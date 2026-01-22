@@ -1,0 +1,251 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+\usepackage{circuitikz}
+\usepackage{float}
+\usepackage{newtxtt}
+\usepackage{newtxmath}
+
+\graphicspath{{./assets/}}
+\ctikzset{logic ports=ieee}
+
+\title{DSD II Homework 0}
+\author{Aden Perry}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+	\item
+	      \begin{enumerate}
+		      \item Assuming standard (not 2's complement):
+		            \begin{align*}
+			            10100101 & = 2^0 + 2^2 + 2^5 + 2^7 \\
+			                     & = 1 + 4 + 32 + 128      \\
+			                     & = \fbox{$165$}
+		            \end{align*}
+		      \item
+		            \begin{align*}
+			            657 & = 512 + 128 + 16 + 1    \\
+			                & = 2^9 + 2^7 + 2^4 + 1^0 \\
+			                & = \fbox{$10 1001 0001$}
+		            \end{align*}
+		      \item With 2's complement:
+		            \begin{align*}
+			            1100101_\text{2's comp} & = -0011011_\text{std}   \\
+			                                    & = 2^0 + 2^1 + 2^3 + 2^4 \\
+			                                    & = 1 + 2 + 8 + 16        \\
+			                                    & = \fbox{$-27$}
+		            \end{align*}
+		      \item With 2's complement:
+		            \begin{align*}
+			            -84 & = -64 - 16 - 4      \\
+			                & = -2^6 - 2^4 - 2^2  \\
+			                & = -1010100          \\
+			                & = \fbox{$10101100$}
+		            \end{align*}
+		      \item
+		            \begin{align*}
+			            55.75 & = 32 + 16 + 4 + 2 +1 + 0.5 + 0.25               \\
+			                  & = 2^5 + 2^4 + 2^2 + 2^1 + 2^0 + 2^{-1} + 2^{-2} \\
+			                  & = \fbox{$110111.11$}
+		            \end{align*}
+	      \end{enumerate}
+	\item
+	      \begin{align*}
+		      (x_1 + x_2 + x_3) \cdot (x_1 + x_2 + \bar x_3)                                                           \\
+		      = x_1 x_1 + x_1 x_2 + x_1 \bar x_3 + x_2 x_1 + x_2 x_2 + x_2 \bar x_3 + x_3 x_1 + x_3 x_2 + x_3 \bar x_3 \\
+		      = x_1 + x_1 x_2 + x_1 x_3 + x_1 \bar x_3 + x_2 + x_2 x_3 + x_2 \bar x_3                                  \\
+		      = x_1 + x_1 x_2 + x_1 + x_2 + x_2                                                                        \\
+		      = x_1 + x_1 x_2 + x_2                                                                                    \\
+		      = \fbox{$x_1 + x_2$}
+	      \end{align*}
+	\item
+	      \begin{enumerate}
+		      \item
+		            \begin{tabular}{c|c|c|c|c}
+			            \hline
+			            $x_1$ & $x_2$ & $x_3$ & $\bar x_1 x_3 + x_1 x_2 \bar x_3 + \bar x_1 x_2 + x_1 \bar x_2$ & $\bar x_2 x_3 + x_1 \bar x_3 + x_2 \bar x_3 + \bar x_1 x_2 x_3$ \\
+			            \hline
+			            \hline
+			            1     & 1     & 1     & 0                                                               & 0                                                               \\
+			            \hline
+			            1     & 1     & 0     & 1                                                               & 1                                                               \\
+			            \hline
+			            1     & 0     & 1     & 1                                                               & 1                                                               \\
+			            \hline
+			            1     & 0     & 0     & 1                                                               & 1                                                               \\
+			            \hline
+			            0     & 1     & 1     & 1                                                               & 1                                                               \\
+			            \hline
+			            0     & 1     & 0     & 1                                                               & 1                                                               \\
+			            \hline
+			            0     & 0     & 1     & 1                                                               & 1                                                               \\
+			            \hline
+			            0     & 0     & 0     & 0                                                               & 0                                                               \\
+			            \hline
+		            \end{tabular}
+
+		            \fbox{Statement is true.}
+		      \item
+		            \begin{tabular}{c|c|c|c|c}
+			            \hline
+			            $x_1$ & $x_2$ & $x_3$ & $x_1 \bar x_3 + x_2 x_3 + \bar x_2 \bar x_3$ & $(x_1 + \bar x_2 + x_3)(x_1 + x_2 + \bar x_3)(\bar x_1 + x_2 + \bar x_3)$ \\
+			            \hline
+			            1     & 1     & 1     & 1                                            & 1                                                                         \\
+			            \hline
+			            1     & 1     & 0     & 1                                            & 1                                                                         \\
+			            \hline
+			            1     & 0     & 1     & 0                                            & 0                                                                         \\
+			            \hline
+			            1     & 0     & 0     & 1                                            & 1                                                                         \\
+			            \hline
+			            0     & 1     & 1     & 1                                            & 1                                                                         \\
+			            \hline
+			            0     & 1     & 0     & 0                                            & 0                                                                         \\
+			            \hline
+			            0     & 0     & 1     & 0                                            & 0                                                                         \\
+			            \hline
+			            0     & 0     & 0     & 1                                            & 1                                                                         \\
+			            \hline
+		            \end{tabular}
+
+		            \fbox{Statement is true.}
+		      \item
+		            \begin{tabular}{c|c|c|c|c}
+			            \hline
+			            $x_1$ & $x_2$ & $x_3$ & $(x_1 + x_3)(\bar x_1 + \bar x_2 + \bar x_3)(\bar x_1 + x_2)$ & $(x_1 + x_2)(x_2 + x_3)(\bar x_1 + \bar x_3)$ \\
+			            \hline
+			            1     & 1     & 1     & 0                                                             & 0                                             \\
+			            \hline
+			            1     & 1     & 0     & 1                                                             & 1                                             \\
+			            \hline
+			            1     & 0     & 1     & 0                                                             & 0                                             \\
+			            \hline
+			            1     & 0     & 0     & 0                                                             & 0                                             \\
+			            \hline
+			            0     & 1     & 1     & 1                                                             & 1                                             \\
+			            \hline
+			            0     & 1     & 0     & 0                                                             & 1                                             \\
+			            \hline
+			            0     & 0     & 1     & 1                                                             & 0                                             \\
+			            \hline
+			            0     & 0     & 0     & 0                                                             & 0                                             \\
+			            \hline
+		            \end{tabular}
+
+		            \fbox{Statement is false.}
+	      \end{enumerate}
+      \item Same truth table as (3a); just run it through a kmap.
+
+          \begin{karnaugh-map}(label=corner)[4][2][1][$x_3$][$x_2$][$x_1$]
+              \maxterms{0,7}
+              \implicant{0}{0}
+              \implicant{7}{7}
+              \autoterms[1]
+          \end{karnaugh-map}
+
+          Becomes $(x_1 + x_2 + x_3)(\bar x_1 + \bar x_2 + \bar x_3)$
+
+          \begin{circuitikz}
+              \draw (4,5) node[or port, number inputs = 3] (or1) {};
+              \draw (4,1) node[or port, number inputs = 3] (or2) {};
+              \draw (8,3) node[and port, number inputs = 2] (and) {};
+
+              \node (x1) at (0,0) {$x_1$};
+              \node (x2) at (1,0) {$x_2$};
+              \node (x3) at (2,0) {$x_3$};
+
+              \draw (0, 3) node[not port, rotate = 90] (not1) {};
+              \draw (1, 3) node[not port, rotate = 90] (not2) {};
+              \draw (2, 3) node[not port, rotate = 90] (not3) {};
+
+              \draw (or1.out) -| (and.in 1);
+              \draw (or2.out) -| (and.in 2);
+
+              \draw (x1) |- node[circ, midway] {} (or2.in 1);
+              \draw (x2) |- node[circ, midway] {} (or2.in 2);
+              \draw (x3) |- node[circ, midway] {} (or2.in 3);
+
+              \draw (x1) |- (not1.in);
+              \draw (x2) |- (not2.in);
+              \draw (x3) |- (not3.in);
+
+              \draw (not1.out) |- (or1.in 1);
+              \draw (not2.out) |- (or1.in 2);
+              \draw (not3.out) |- (or1.in 3);
+
+              \node (out) at (10, 3) {$out$};
+          \end{circuitikz}
+      \item Kmap:
+
+          \begin{karnaugh-map}(label=corner)[4][2][1][$x_3$][$x_2$][$x_1$]
+              \maxterms{0,5,6}
+              \implicant{1}{3}
+              \implicant{3}{2}
+              \implicant{3}{7}
+              \implicant{4}{4}
+              \autoterms[1]
+          \end{karnaugh-map}
+          \begin{itemize}
+              \item SOP: \fbox{$x_1 \bar x_2 \bar x_3 + \bar x_1 x_3 + \bar x_1 x_2 + x_2 x_3$}
+              \item POS: \fbox{$(x_1 + x_2 + x_3)(\bar x_1 + x_2 + \bar x_3)(\bar x_1 + \bar x_2 + x_3)$}
+          \end{itemize}
+      \item Behaviour is unspecified when all sensors are 0; this circuit sets
+          alarm to 0 in such a case. Kmap:
+
+          \begin{karnaugh-map}(label=corner)[4][4][1][$x_4$][$x_3$][$x_2$][$x_1$]
+              \maxterms{0,1,2,4,8}
+              \implicant{0}{4}
+              \implicant{0}{1}
+              \implicantedge{0}{0}{8}{8}
+              \implicantedge{0}{0}{2}{2}
+              \autoterms[1]
+          \end{karnaugh-map}
+
+          SOP: $(x_1 + x_3 + x_4)(x_2 + x_3 + x_4)(x_1 + x_2 + x_3)(x_1 + x_2 + x_4)$
+
+          \begin{circuitikz}
+              \node (x1) at (0,0) {$x_1$};
+              \node (x2) at (1,0) {$x_2$};
+              \node (x3) at (2,0) {$x_3$};
+              \node (x4) at (3,0) {$x_4$};
+
+              \draw (5,1) node[or port, number inputs = 3] (or1) {};
+              \draw (5,3) node[or port, number inputs = 3] (or2) {};
+              \draw (5,5) node[or port, number inputs = 3] (or3) {};
+              \draw (5,7) node[or port, number inputs = 3] (or4) {};
+
+              \draw (9,4) node[and port, number inputs = 4] (and) {};
+
+              \draw (x1) |- node[circ, midway] {} (or1.in 1);
+              \draw (x3) |- node[circ, midway] {} (or1.in 2);
+              \draw (x4) |- node[circ, midway] {} (or1.in 3);
+
+              \draw (x2) |- node[circ, midway] {} (or2.in 1);
+              \draw (x3) |- node[circ, midway] {} (or2.in 2);
+              \draw (x4) |- node[circ, midway] {} (or2.in 3);
+
+              \draw (x1) |- node[circ, midway] {} (or3.in 1);
+              \draw (x2) |- node[circ, midway] {} (or3.in 2);
+              \draw (x3) |- (or3.in 3);
+
+              \draw (x1) |- (or4.in 1);
+              \draw (x2) |- (or4.in 2);
+              \draw (x4) |- (or4.in 3);
+
+              \draw (or1.out) -| (and.in 4);
+              \draw (or2.out) |- (and.in 3);
+              \draw (or3.out) |- (and.in 2);
+              \draw (or4.out) -| (and.in 1);
+
+              \node (out) at (11, 4) {$out$};
+          \end{circuitikz}
+  \end{enumerate}
+
+\end{document}

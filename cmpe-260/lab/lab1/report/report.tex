@@ -1,0 +1,237 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 260}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L2}
+\newcommand{\LabInstructor}{Richard Cliver}
+
+\newcommand{\TAs}{Eric Reed \\ Oliver Merliss \\ Pietro Paniccia \\ Tevin Hendess}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Cory Merkel}
+\newcommand{\exerciseNumber}{1}
+\newcommand{\exerciseDescription}{Defining a simple 32-bit ALU}
+\newcommand{\dateDone}{2026-01-13}
+\newcommand{\dateSubmitted}{2025-01-20}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+The purpose of this exercise was to design and implement a 4-bit ALU consisting
+of an SLL circuit and a NOT circuit; as well as a 32-bit ALU consisting of an
+SLL circuit, an SRL circuit, an SRA circuit, an AND circuit, an OR circuit, and
+and XOR circuit. Each circuit was described with a behavioral architecture of a
+VHDL entity. Each ALU was described with a structural architecture of a VHDL
+entity. Each ALU was simulated and tested against several test cases. The 4-bit
+ALU was flashed to the Basys3 FPGA and tested physically. All test cases
+passed, so the exercise was successful.
+
+\section*{Design Methodology}
+
+A behavioral architecture using VHDL generics was written to describe an SLL
+circuit to shift an input signal of a generic size a specified number of bits
+left. The number of bits to shift was represented by a bus of bits equal in
+count to the $\mathrm{log}_2$ of the number of the bits of the input signal, also
+represented using a VHDL generic. A dataflow architecture using VHDL generics
+was written to describe a logical NOT circuit, to NOT each bit of an input
+signal of generic size. The circuits were combined and the size of the input
+signals was set to 4 in order to create a 4-bit ALU. A block diagram for the
+created ALU is given in Figure \ref{fig:alu4-bd}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu4-bd}
+    \caption{Block diagram for 4-bit ALU}
+    \label{fig:alu4-bd}
+\end{figure}
+
+The 4-bit ALU used a binary select signal \texttt{OP} to select between logical
+NOT and logical left shift. Logical NOT operated only on input signal A,
+whereas SLL shifted input signal A by the value specified by input signal B.
+
+The 4-bit ALU was modified to accept 32-bit inputs and outputs, and expand to
+support 6 total operations: logical OR, logical AND, logical XOR, logical shift
+left, logical shift right, and arithmetic shift right. Each of the first 3 was
+similar to the logical NOT implemented in the 4-bit ALU; they compared each bit
+of an input signal A with the corresponding bit of input signal B.
+
+Logical right and left and arithmetic right shift were all very similar to each
+other. Logical right shift generated an array that contained from the MSB of
+input signal A to the shifted number of bits before the LSB, and left-filled
+with zeroes. Arithmetic right shift did the same, but left-filled with the same
+digit as the MSB of signal A. Logical left shift generated an array that
+contained from the shifted number of bits after the MSB to the LSB, and
+right-filled with zeroes.
+
+All 6 circuits were combined together to create a simple 32-bit ALU. A block
+diagram for the created ALU is given in Figure \ref{fig:alu32-bd}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu32-bd}
+    \caption{Block diagram for 32-bit ALU}
+    \label{fig:alu32-bd}
+\end{figure}
+
+The 32-bit ALU used a 4-bit select signal \texttt{OP} to select between
+operations. Although there are currently just 6 operations, 4 bits were
+reserved for the \texttt{OP} signal to allow future expansion of the ALU.
+
+\section*{Results and Analysis}
+
+In order to verify the correctness of the ALU designs given by Figures
+\ref{fig:alu4-bd} and \ref{fig:alu32-bd}, test benches were created for each
+design. The 4-bit ALU was sufficiently small that it was practical to test most
+possible input combinations. As such, the test cases for the 4-bit ALU included 
+input signal A ranging from 0 to 7 for the NOT operation, from 1 to 7 for the
+SLL operation, and input signal B ranging from 0 to 3 for the SLL operation.
+This allowed the design to be tested against every significant input. The test
+bench was simulated using a behavioral strategy to test the design. The
+resultant waveform is given by Figure \ref{fig:alu4-behv-tb}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu4-behv-wave}
+    \caption{Waveform for behavioral test of 4-bit ALU}
+    \label{fig:alu4-behv-tb}
+\end{figure}
+
+This waveform shows that the design for the 4-bit ALU is correct. For example,
+the NOT operation was tested at 90 ns, shown in Figure \ref{fig:alu4-tb-not}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu4-tb-not}
+    \caption{Waveform for the behavioral test of the NOT operation of 4-bit ALU}
+    \label{fig:alu4-tb-not}
+\end{figure}
+
+The NOT operation was selected with \texttt{OP = 0}, and the input bits
+(\texttt{A = 0x4}) were inverted (\texttt{Y = 0xB}). This is the correct behavior
+for logical not. Similarly, the SLL operation was tested at 540 ns, as shown in
+Figure \ref{fig:alu4-tb-sll}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu4-tb-sll}
+    \caption{Waveform for the behavioral test of the SLL operation of 4-bit ALU}
+    \label{fig:alu4-tb-sll}
+\end{figure}
+
+The SLL operation was selected with \texttt{OP = 1}, and the input signal
+\texttt{A = 1101} was shifted right by the value given by signal
+\texttt{B = 0x2}, which resulted in output \texttt{Y = 0100}. This is the correct
+behavior for a logical shift left of 2 bits.
+
+The test bench for the 4-bit ALU was also simulated using implementation data
+in order to accurately reflect signal delay in the Basys3 FPGA. The waveform
+for the implementation test is given in figure \ref{fig:alu4-tb-impl}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu4-impl-wav}
+    \caption{Waveform for the post-implementation test of the 4-bit ALU}
+    \label{fig:alu4-tb-impl}
+\end{figure}
+
+The rapid signal changing that occurs, for example, at 0 ns and 500 ns is the
+result of delay in the FPGA's transistors. This waveform shows that at least 5
+ns must pass after a change in an input before the output can be reliably used.
+
+The design for the 4-bit ALU was used to generate a bitstream and flash the
+Basys3 FPGA. Switches 3--0 were mapped to B[3--0], switches 7--4 were mapped to
+A[3--0], switch 15 was mapped to OP, and LEDs 3--0 were mapped to Y[3--0]. The
+hardware was confirmed to function as expected by manipulating the switches and
+observing the changes in the LEDs.
+
+The 32-bit ALU was not sufficiently small to simulate every possible input;
+instead, it was necessary to simulate a few general test cases as well as
+probable edge cases in order to ensure correctness. Test cases were chosen to
+be common uses of the operation, such as applying logical AND to
+\texttt{0xFFFFFFFF} and \texttt{0x0}, and to be more unusual uses of the
+operations, such as applying a 2-bit SRA to \texttt{0x6}. The latter is unusual
+in that the right-most bit gets dropped completely, whereas in the common case
+it is preserved.
+
+The waveform generated by
+the behavioral simulation of the 32-bit ALU test bench is given by
+\ref{fig:alu32-behv-tb}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu32-behv-wave}
+    \caption{Waveform for the behavioral test of the 32-bit ALU}
+    \label{fig:alu32-behv-tb}
+\end{figure}
+
+This waveform shows that the design for the 32-bit ALU is correct. For example,
+the SRL operation was tested at 0 ns, shown in Figure \ref{fig:alu32-tb-srl}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu32-tb-srl}
+    \caption{Waveform for the behavioral test of the SRL operation of the 32-bit ALU}
+    \label{fig:alu32-tb-srl}
+\end{figure}
+
+The SRL operation was selected with \texttt{OP = 0xD}, and the input signal
+\texttt{A = 0x6} was shifted right by the value given by signal
+\texttt{B = 0x2}, which resulted in output \texttt{Y = 0x1}. This is the correct
+behavior for a logical shift right of 1 bit. Similarly, the SRA operation was
+tested at 150 ns, the waveform for which is shown in Figure
+\ref{fig:alu32-tb-sra}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu32-tb-sra}
+    \caption{Waveform for the behavioral test of the SRA operation of the 32-bit ALU}
+    \label{fig:alu32-tb-sra}
+\end{figure}
+
+The SRA operation was selected with \texttt{OP = 0xE}, and the input signal
+\texttt{A = 0xF0000000} was shifted right by the value given by signal
+\texttt{B = 0x1}, which resulted in output \texttt{Y = 0xF8000000}. This is the
+correct behavior for a signed shift right of 1 bit.
+
+The test bench for the 32-bit ALU was also simulated using implementation data
+in order to determine the signal delay from the Basys3 FPGA. The waveform
+generated by the post-implementation simulation is given in Figure
+\ref{fig:alu32-tb-impl}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=\textwidth]{alu32-impl-wave}
+    \caption{Waveform for the post-implementation test of the 32-bit ALU}
+    \label{fig:alu32-tb-impl}
+\end{figure}
+
+The rapid signal changes that occur are the result in delays in the transistors
+of the Basys3 FPGA. This waveform demonstrates that signals must settle for at
+most 20 ns (in the worst case, at 0 ns) after changes in inputs before the
+outputs are reliable.
+
+\section*{Conclusion}
+
+The object of the exercise was to design a simple 32-bit ALU. This was
+accomplished by first designing a 4-bit ALU with generics, and subsequently 
+expanding to accomodate 32-bits and 6 operations in total. The exercise was
+successful; the 4-bit ALU flashed to the FPGA worked with all manipulations,
+and the 32-bit ALU passed all test cases. Generics were shown to be a powerful
+feature of VHDL to implement variably large or small designs. In future
+projects, generics may be effectively used by defining a generic as the length
+of any logic vector or other length that might need expanding.
+
+\includepdf[pages=-]{assets/prelab}
+
+\end{document}
