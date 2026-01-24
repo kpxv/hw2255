@@ -1,0 +1,86 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+
+\graphicspath{{./assets/}}
+
+\title{Homework 1}
+\author{Aden Perry}
+\date{January 23, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+	\item
+	      \begin{enumerate}
+		      \item
+		            \begin{align*}
+			            13 & = 8 + 4 + 1       \\
+			               & = 2^3 + 2^2 + 2^0 \\
+			               & = \fbox{$1101$}
+		            \end{align*}
+		      \item
+		            \begin{align*}
+			            44 & = 32 + 8 + 4      \\
+			               & = 2^5 + 2^3 + 2^2 \\
+			               & = \fbox{$101100$}
+		            \end{align*}
+	      \end{enumerate}
+	\item
+	      \begin{align*}
+		      1010110 & = 2^1 + 2^2 + 2^4 + 2^6 \\
+		              & = 2 + 4 + 16 + 64       \\
+		              & = \fbox{$86$}
+	      \end{align*}
+	\item Not sure how to show work for this; it's just like doing addition in decimal.
+	      \begin{align*}
+		      10100 + 00111 & = (0 + 1) + (00 + 10) + (100 + 100) + (0000 + 0000) + (10000 + 00000) \\
+		                    & = (1) + (10) + (1000) + (0000) + (10000)                              \\
+		                    & = \fbox{$11011$}
+	      \end{align*}
+	\item Ditto.
+	      \begin{align*}
+		      66_{16} + 75_{16} & = (6_{16} + 5_{16}) + (60_{16} + 70_{16}) \\
+		                        & = (\mathrm{B}_{16}) + (\mathrm{D}0_{16})  \\
+		                        & = \fbox{$0\mathrm{xDB}$}
+	      \end{align*}
+	\item Ditto.
+	      \begin{enumerate}
+		      \item
+		            \begin{align*}
+			            1234 + \mathrm{ABEF} & = (4 + \mathrm{F}) + (30 + \mathrm{E0}) + (200 + \mathrm{B00}) + (1000 + \mathrm{A}000) \\
+			                                 & = (13) + (110) + (\mathrm{D}00) + (\mathrm{B}000)                                       \\
+			                                 & = \fbox{$\mathrm{BE}23$}
+		            \end{align*}
+		      \item TODO: Figure out the correct encoding.
+		            \begin{align*}
+			            1234 - \mathrm{ABEF} & = -((\mathrm{F} - 4) + (\mathrm{E}0 - 30) + (\mathrm{B}00 - 200) + (\mathrm{A}000 - 1000)) \\
+			                                 & = -(\mathrm{B} + (\mathrm{B}0) + (900) + (9000)                                            \\
+			                                 & = \fbox{$-99BB$}
+		            \end{align*}
+	      \end{enumerate}
+	\item
+	      \begin{enumerate}
+		      \item No overflow.
+		            \begin{align*}
+			            25 - (-11) & = 0001 1001 - 1111 0101 \\
+			                       & = 0001 1001 + 0000 1011 \\
+			                       & = 0010 0100             \\
+			                       & = \fbox{$36$}
+		            \end{align*}
+		      \item Overflow.
+		            \begin{align*}
+			            -62 - 49 & = 1100 0010 - 0011 0001 \\
+			                     & = 1100 0010 + 1100 1111 \\
+			                     & = 0001 0001             \\
+			                     & = \fbox{$17$}
+		            \end{align*}
+	      \end{enumerate}
+\end{enumerate}
+
+\end{document}
