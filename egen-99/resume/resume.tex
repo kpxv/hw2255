@@ -44,8 +44,6 @@
     \usepackage{lmodern}
 \fi
 
-
-
 % Some settings:
 \AtBeginEnvironment{adjustwidth}{\partopsep0pt} % remove space before adjustwidth environment
 \pagestyle{empty} % no header or footer
@@ -171,14 +169,6 @@
 	\mbox{\hrefWithoutArrow{tel:+1-802-478-49-39}{\color{black}{\footnotesize\faPhone*}\hspace*{0.13cm}+1 802 478 4939}}%
 	\kern 0.25 cm%
 	\AND%
-	% \kern 0.25 cm%
-	% \mbox{\hrefWithoutArrow{https://yourwebsite.com/}{\color{black}{\footnotesize\faLink}\hspace*{0.13cm}yourwebsite.com}}%
-	% \kern 0.25 cm%
-	% \AND%
-	% \kern 0.25 cm%
-	% \mbox{\hrefWithoutArrow{https://linkedin.com/in/aden-perry-8a6b10364}{\color{black}{\footnotesize\faLinkedinIn}\hspace*{0.13cm}Aden Perry}}%
-	% \kern 0.25 cm%
-	% \AND%
 	\kern 0.25 cm%
 	\mbox{\hrefWithoutArrow{https://github.com/kpxv}{\color{black}{\footnotesize\faGithub}\hspace*{0.13cm}kpxv}}%
 \end{header}
@@ -205,7 +195,7 @@ Available January -- August 2027
 \vspace{0.10 cm}
 \begin{onecolentry}
 	\begin{highlights}
-		\item GPA: 3.13
+		\item GPA: 3.13/4.0
 	\end{highlights}
 \end{onecolentry}
 
@@ -219,7 +209,7 @@ Circuits I; Digital System Design I, II;
 
 \section{Skills}
 
-TODO
+\textbf{Computing:} Finite State Machines, Computer Architecture, Network Protocols, Scripting, Network Security  % TODO: Expand
 
 \textbf{Programming Languages:} Java, C++, C, VHDL, Python, ARM Assembly, Lua, HTML, SQL, \LaTeX, Bash, Make, CMake
 
@@ -232,12 +222,56 @@ TODO
 
 \section{Projects}
 
-- Proxmox install
-- SecOnion install
-- Robotics?
-- Network management, eg mac  filters
-- DNS w/ pihole
-- TODO
+\begin{twocolentry}{ \textit{May 2025} }
+	\textbf{System Administration}
+\end{twocolentry}
+\begin{onecolentry}
+    Researched and implemented Type 1 hypervisor for home server. Installed and
+    configured Proxmox + KVM using ZFS and RAID. Created Linux bridges and
+    linked to installed VMs. Configured DNS resolution to use PiHole VM for
+    network-wide adblocking.
+\end{onecolentry}
+
+\vspace{0.10 cm}
+\begin{twocolentry}{ \textit{December 2025} }
+	\textbf{System Administration}
+\end{twocolentry}
+\begin{onecolentry}
+    Implemented and troubleshot Proxmox-based Security Onion deployment.
+    Utilized switch to capture all capture all network traffic and send to NIC
+    port. Ensured captured traffic was detected by Security Onion and that
+    detections were being run.
+\end{onecolentry}
+
+\vspace{0.10 cm}
+\begin{twocolentry}{ \textit{January 2026} }
+	\textbf{Digital System Design}
+\end{twocolentry}
+\begin{onecolentry}
+    Designed and implemented N-bit ALU in VHDL using Xilinix software.
+    Simulated using test bench to ensure validity. Synthesized and implemented
+    4-bit design on a Basys3 FPGA board. Tested correctness on the FPGA.
+\end{onecolentry}
+
+\vspace{0.10 cm}
+\begin{twocolentry}{ \textit{January 2026} }
+	\textbf{Digital System Design}
+\end{twocolentry}
+\begin{onecolentry}
+    Designed and and implemented register file using D flip-flops via VHDL.
+    Simulated using test bench to ensure validity. Synthesized and implemented
+    on a Basys3 FPGA board. Tested correctness on the FPGA.
+\end{onecolentry}
+
+\vspace{0.10 cm}
+\begin{twocolentry}{ \textit{Sep. 2025 -- Nov. 2025} }
+	\textbf{Software Design}
+\end{twocolentry}
+\begin{onecolentry}
+    Designed and developed website using Java with Spring framework and
+    Spring Boot defaults following the agile development process. Worked with
+    team of five to set, implement, and test sprint and project goals.
+\end{onecolentry}
 
 
 \section{Work History}
@@ -297,162 +331,15 @@ TODO
 \end{onecolentry}
 
 
-\section{Technical Experience}
-
-\begin{twocolentry}{}
-	\textbf{Robotics}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Solved hardware challenges
-		\begin{itemize}
-			\item Quickly moving many objects over a barrier
-			\item Quickly moving objects into a basket
-			\item Designing a disk shooter
-		\end{itemize}
-		\item Adapted to new challenges
-		\begin{itemize}
-			\item Rule changes disallowing core strategies
-			\item Breakage of parts
-			\item Limited parts
-		\end{itemize}
-		\item Programmed robot using C++ and VEX V5 controller
-		\item Assembled and tested various cables for use with motors and sensors
-	\end{highlights}
-\end{onecolentry}
-
-
-\vspace{0.2 cm}
-
-\begin{twocolentry}{}
-	\textbf{Programming}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Programmed autonomous and driver-controlled robots using C, C++, and python
-		\item Created basic shell scripts
-		\item Automated tasks such as:
-		\begin{itemize}
-			\item Visiting 1000+ links contained in a file
-			\item Generating file metadata from pre-specified file names
-			\item Mass converting between file formats
-			\item Syncing files over SSH connection
-		\end{itemize}
-		\item Created spell checker and election programs in C for Harvard CS50, a self-directed programming course
-	\end{highlights}
-\end{onecolentry}
-
-
-\vspace{0.2 cm}
-
-\begin{twocolentry}{}
-	\textbf{Home System Administration}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Researched and chose base OS to install on home server
-		\item Set up and managed home network w/ MAC filtering
-		\item Set up and managed guest network
-		\item Established auto-shutdown routine to protect against sudden power loss
-		\item Managed Proxmox instances:
-		\begin{itemize}
-			\item Established local fileserver
-			\item Set up Security Onion instance
-			\item Set up DNS resolution with PiHole
-		\end{itemize}
-	\end{highlights}
-\end{onecolentry}
-
-
-\vspace{0.2 cm}
-
-\begin{twocolentry}{}
-	\textbf{Researched and built personal computer}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Taught self to analyze CPU, GPU, RAM, and other computer component specifications
-		\item Researched individual components
-		\item Determined which drivers were required
-		\item Fixed incompatibilities between motherboard and case
-	\end{highlights}
-\end{onecolentry}
-
-
-\vspace{0.2 cm}
-
-\begin{twocolentry}{}
-	\textbf{Installed Arch Linux}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Researched and installed parts of standard user experience:
-		\begin{itemize}
-			\item systemd
-			\item Superuser groups
-			\item Window managers
-			\item Compositors
-			\item Drivers
-		\end{itemize}
-		\item Learned about disk partitioning
-	\end{highlights}
-\end{onecolentry}
-
-
-\vspace{0.2 cm}
-
-\begin{twocolentry}{}
-	\textbf{Helped colleagues with computer issues}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Broken audio
-		\item Screen not projecting
-		\item Files failing to download
-		\item Installing Windows
-	\end{highlights}
-\end{onecolentry}
-
-
-\vspace{0.2 cm}
-
-\begin{twocolentry}{}
-	\textbf{Other Skills}
-\end{twocolentry}
-
-\vspace{0.10 cm}
-\begin{onecolentry}
-	\begin{highlights}
-		\item Used version control software to manage projects
-		\item Experience with Windows 10, OS X, and Linux (Arch- and Debian- based)
-		\item Experience with WINE
-		\item Experience with Virtual Machines
-		\item Experience with \LaTeX
-	\end{highlights}
-\end{onecolentry}
-
-
-\section{Interests}
-
-Playing piano, TODO
-
-
-\section{Activities}
-
-HAM Radio Operator
-
-High school robotics?
+% \section{Interests}
+%
+% Playing piano, TODO
+%
+%
+% \section{Activities}
+%
+% HAM Radio Operator
+%
+% High school robotics?
 
 \end{document}
