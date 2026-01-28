@@ -5,10 +5,14 @@
 \usepackage{amsmath}
 \usepackage{IEEEtrantools}
 \usepackage{karnaugh-map}
+\usepackage{circuitikz}
+\usepackage{newtxtt}
+\usepackage{newtxmath}
 
 \graphicspath{{./assets/}}
+\ctikzset{logic ports=ieee}
 
-\title{Homework 1}
+\title{DSD II Homework 1}
 \author{Aden Perry}
 \date{\today}
 
@@ -16,7 +20,139 @@
 \maketitle
 
 \begin{enumerate}
-    \item TODO
+	\item See attached VHDL.
+	\item See attached VHDL.
+	\item Treat x1, x2, and x3 as inputs. Load val1--8 with the correct outputs.
+
+	      \begin{tabular}{|c|c|c|c|}
+		      \hline
+		      $x_1$ & $x_2$ & $x_3$ & $y$ \\
+		      \hline
+		      \hline
+		      0     & 0     & 0     & 0   \\
+		      \hline
+		      0     & 0     & 1     & 0   \\
+		      \hline
+		      0     & 1     & 0     & 0   \\
+		      \hline
+		      0     & 1     & 1     & 1   \\
+		      \hline
+		      1     & 0     & 0     & 0   \\
+		      \hline
+		      1     & 0     & 1     & 1   \\
+		      \hline
+		      1     & 1     & 0     & 1   \\
+		      \hline
+		      1     & 1     & 1     & 1   \\
+		      \hline
+	      \end{tabular}
+
+	      Ergo values should be mapped as (assuming upper input is selected on 0):
+
+	      \begin{tabular}{|c|c|}
+		      \hline
+		      Port & Value \\
+		      \hline
+		      \hline
+		      val1 & 0     \\
+		      \hline
+		      val2 & 0     \\
+		      \hline
+		      val3 & 0     \\
+		      \hline
+		      val4 & 1     \\
+		      \hline
+		      val5 & 0     \\
+		      \hline
+		      val6 & 1     \\
+		      \hline
+		      val7 & 1     \\
+		      \hline
+		      val8 & 1     \\
+		      \hline
+	      \end{tabular}
+
+	\item Truth table:
+
+	      \begin{tabular}{|c|c|c|c||c|c|}
+		      \hline
+		      $a_0$ & $a_1$ & $a_2$ & $a_3$ & $y_0$ & $y_1$ \\
+		      \hline
+		      \hline
+		      1     & X     & X     & X     & 1     & 1     \\
+		      \hline
+		      0     & 1     & X     & X     & 1     & 0     \\
+		      \hline
+		      0     & 0     & 1     & X     & 0     & 1     \\
+		      \hline
+		      0     & 0     & 0     & 1     & 0     & 0     \\
+		      \hline
+		      0     & 0     & 0     & 0     & $a_0$ & $a_1$ \\
+		      \hline
+	      \end{tabular}
+
+	      Which simplifies to:
+
+	      \begin{tabular}{|c|c|c|c||c|c|}
+		      \hline
+		      $a_0$ & $a_1$ & $a_2$ & $a_3$ & $y_0$ & $y_1$ \\
+		      \hline
+		      \hline
+		      1     & X     & X     & X     & 1     & 1     \\
+		      \hline
+		      0     & 1     & X     & X     & 1     & 0     \\
+		      \hline
+		      0     & 0     & 1     & X     & 0     & 1     \\
+		      \hline
+		      0     & 0     & 0     & X     & 0     & 0     \\
+		      \hline
+	      \end{tabular}
+
+          In kmaps ($y_0$, $y_1$):
+
+          \begin{karnaugh-map}(label=corner)[4][4][1][$a_1$][$a_0$][$a_3$][$a_2$]
+              \maxterms{0,4,8,12}
+              \implicant{1}{11}
+              \implicant{3}{10}
+              \autoterms[1]
+          \end{karnaugh-map}
+          \begin{karnaugh-map}(label=corner)[4][4][1][$a_1$][$a_0$][$a_3$][$a_2$]
+              \maxterms{1,5,13,9,0,4}
+              \implicant{3}{10}
+              \implicant{12}{8}
+              \autoterms[1]
+          \end{karnaugh-map}
+
+          $y_0 = a_0 + a_1$ (1 gate); $y_1 = a_0 + \bar {a_0} \bar {a_1} a_2$ (5 gates).
+
+          \begin{circuitikz}
+              \node (a0) at (0,0) {$a_0$};
+              \node (a1) at (1,0) {$a_1$};
+              \node (a2) at (2,0) {$a_2$};
+              \node (a3) at (3,0) {$a_3$};
+
+              \draw (8,1) node[or port] (or0) {};
+
+              \draw (0,5) node[not port, rotate = 90] (not0) {};
+              \draw (1,5) node[not port, rotate = 90] (not1) {};
+              \draw (5,7) node[and port, number inputs = 3] (and0) {};
+              \draw (8,3) node[or port] (or1) {};
+
+              \draw (a0) |- node[circ, midway] {} (or0.in 1);
+              \draw (a1) |- node[circ, midway] {} (or0.in 2);
+
+              \draw (a0) |- (not0.in);
+              \draw (a1) |- (not1.in);
+              \draw (not0.out) |- (and0.in 1);
+              \draw (not1.out) |- (and0.in 2);
+              \draw (a2) |- (and0.in 3);
+
+              \draw (a0) |- node[circ, midway] {} (or1.in 2);
+              \draw (and0.out) |- (or1.in 1);
+
+              \node (y0) at (10,1) {$y_0$};
+              \node (y1) at (10,3) {$y_1$};
+          \end{circuitikz}
 \end{enumerate}
 
 \end{document}
