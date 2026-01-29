@@ -6,6 +6,7 @@
 \usepackage{IEEEtrantools}
 \usepackage{karnaugh-map}
 \usepackage{circuitikz}
+\usepackage{minted}
 \usepackage{newtxtt}
 \usepackage{newtxmath}
 
@@ -20,8 +21,8 @@
 \maketitle
 
 \begin{enumerate}
-	\item See attached VHDL.
-	\item See attached VHDL.
+    \item \inputminted{vhdl}{assets/q1.vhdl}
+    \item \inputminted{vhdl}{assets/q2.vhdl}
 	\item Treat x1, x2, and x3 as inputs. Load val1--8 with the correct outputs.
 
 	      \begin{tabular}{|c|c|c|c|}
@@ -153,6 +154,24 @@
               \node (y0) at (10,1) {$y_0$};
               \node (y1) at (10,3) {$y_1$};
           \end{circuitikz}
+
+      \item Encoder:
+
+          \inputminted{vhdl}{assets/q5.vhdl}
+
+          Testbench:
+
+          \inputminted{vhdl}{assets/q5-tb.vhdl}
+          
+          Waveform:
+
+          \includegraphics[width=\textwidth]{out}
+      \item 
+          \begin{enumerate}
+              \item \texttt{out <= data and (others => sel)}
+              \item \texttt{for i in range'data loop out(i) <= data(i) when sel else '0'; end loop;}
+              \item \texttt{for i in range'data loop with sel select out(i) <= data(i) when sel, '0' when others; end loop;}
+          \end{enumerate}
 \end{enumerate}
 
 \end{document}
