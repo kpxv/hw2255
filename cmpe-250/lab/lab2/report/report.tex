@@ -1,0 +1,134 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 250}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L1}
+\newcommand{\LabInstructor}{Chongzhou Fang}
+
+\newcommand{\TAs}{Eddie Satowski \\ Khoi Pham \\ Sowntharya Sritharasarma}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Chongzhou Fang}
+\newcommand{\exerciseNumber}{2}
+\newcommand{\exerciseDescription}{Basic Arithmetic Operations}
+\newcommand{\dateDone}{2026-01-22}
+\newcommand{\dateSubmitted}{2025-01-29}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+The purpose of this exercise was to build, compile, debug, and execute a simple
+Assembly program written in armasm for the ARMv6-M architecture. An arithmetic
+expression consisting of addition, subtraction, multiplication, and division
+was defined and broken into individual Assembly components. The program was
+compiled and the debugger was used to verify the state of each modified
+register after the execution of each instruction. The modified register values
+matched the pre-calculated expected register values. The final register value
+was the correct result of the expression. The exercise was successful.
+
+\section*{Procedure}
+
+A Keil MDK-ARM project was created. A template Assembly program was loaded and
+modified. EQUate directives for multiplication and division were defined. After
+the \texttt{main} label, the first two integers of the expression were loaded
+into registers R0 and R1 and summed. Following standard algebraic order of
+operations, or else moving from left to right, the remainder of the expression
+was converted into Assembly code. Negative numbers created by first loading
+the additive complement, and then subtracting from 0. Division was accomplished
+through a right bit shift. Multiplication was accomplished through a left bit
+shift and addition.
+
+The program was assembled and built.
+
+\section*{Results}
+
+The debugger was used to verify the state of each register after each
+calculation. The expected value of the register is compared to the actual value
+of the register post-intstruction in Table \ref{tab:register}.
+
+\begin{figure}[H]
+	\center
+	\caption{\emph{Expected and actual register values}}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Expected    & Actual      & Equation                                    \\
+		\hline
+		\hline
+		0x0000 002D & 0x0000 002D & $45                                       $ \\
+		\hline
+		0x0000 0006 & 0x0000 0006 & $6                                        $ \\
+		\hline
+		0x0000 0033 & 0x0000 0033 & $45+6                                     $ \\
+		\hline
+		0x0000 00DB & 0x0000 00DB & $13                                       $ \\
+		\hline
+		0xFFFF FFF3 & 0xFFFF FFF3 & $-13                                      $ \\
+		\hline
+		0xFFFF FFFC & 0xFFFF FFFC & $-13/4                                    $ \\
+		\hline
+		0x0000 002F & 0x0000 002F & $45+6+(-13/4)                             $ \\
+		\hline
+		0x0000 0007 & 0x0000 0007 & $7                                        $ \\
+		\hline
+		0x0000 000E & 0x0000 000E & $7 \cdot 2                                      $ \\
+		\hline
+		0x0000 0015 & 0x0000 0015 & $7 \cdot 2+7                                    $ \\
+		\hline
+		0xFFFF FFEB & 0xFFFF FFEB & $-(7 \cdot 2+7)                                 $ \\
+		\hline
+		0x0000 001A & 0x0000 001A & $(45 + 6) + (-13 / 4) - (7  \cdot  3)           $ \\
+		\hline
+		0x0000 0041 & 0x0000 0041 & $65                                       $ \\
+		\hline
+		0xFFFF FFBF & 0xFFFF FFBF & $-65                                      $ \\
+		\hline
+		0xFFFF FFD9 & 0xFFFF FFD9 & $(45 + 6) + (-13 / 4) - (7  \cdot  3) - 65      $ \\
+		\hline
+		0x0000 0021 & 0x0000 0021 & $33                                       $ \\
+		\hline
+		0xFFFF FFFA & 0xFFFF FFFA & $(45 + 6) + (-13 / 4) - (7  \cdot  3) - 65  +33 $ \\
+		\hline
+	\end{tabular}
+	\label{tab:register}
+\end{figure}
+
+All actual values matched their expected values, including integers (like 45,
+6, 13, -13, etc\.), bit shifts (like -13/4 and 7 * 2), and standard addition. The
+contents of each register from R0 to R15 is given in Figure \ref{fig:debug}.
+
+\begin{figure}[H]
+	\center
+	\includegraphics{out}
+	\label{fig:debug}
+	\caption{\emph{The final state of the registers}}
+\end{figure}
+
+R0 contains the final result from Table \ref{tab:register}, R2 the
+second-to-last, and R1 the third-to-last. The final result is the most
+important. In decimal, it is -6: the correct answer to the expression
+$(45 + 6) + (-13 / 4) - (7 \cdot  3) - 65 + 33$.
+
+\section*{Conclusion}
+
+The object of this exercise was to implement simple arithmetic operations in 
+Assembly language. This was accomplished through usage of a template and small
+modifications. Multiplication was done through bit-shifting and simple 
+addition, for the purposes of speed and simplicity. Floor division was likewise
+done through bit-shifting. Similar methods to accomplish arithmetic operations
+could be applied to any Assembly language program, or when writing high-level
+code without compiler optimizations.
+
+\includepdf[pages=-]{assets/prelab}
+
+\end{document}
