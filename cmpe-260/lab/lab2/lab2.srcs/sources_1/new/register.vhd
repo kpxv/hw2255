@@ -1,3 +1,14 @@
+-------------------------------------------------
+--  File:          register.vhd
+--
+--  Entity:        Register
+--  Architecture:  behavioral
+--  Author:        Aden Perry
+--  Created:       2025-02-10
+--  Modified:
+--  VHDL'93
+--  Description:   An entity describing a register file
+-------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -29,9 +40,11 @@ begin
     RD1 <= register_array(to_integer(unsigned(Addr1)));
     RD2 <= register_array(to_integer(unsigned(Addr2)));
 
+    -- SYNC WRITE
     process(clk_n) is
     begin
         if (falling_edge(clk_n)) then
+            -- Only write if we active. Do not allow R0 write.
             if (we = '1') and (to_integer(unsigned(Addr3)) /= 0) then
                 register_array(to_integer(unsigned(Addr3))) <= wd;
             end if;

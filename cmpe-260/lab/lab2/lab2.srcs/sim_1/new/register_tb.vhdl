@@ -1,11 +1,11 @@
 -------------------------------------------------
---  File:          RegisterFileTB.vhd
+--  File:          register_tb.vhd
 --
 --  Entity:        RegisterFileTB
 --  Architecture:  testbench
---  Author:        Jason Blocklove
---  Created:       09/03/19
---  Modified:
+--  Author:        Jason Blocklove, Aden Perry
+--  Created:       2019-09-03
+--  Modified:      2026-02-10
 --  VHDL'93
 --  Description:   The following is the entity and
 --                 architectural description of a
