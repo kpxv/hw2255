@@ -33,7 +33,7 @@ type test_vector is record
 	RD2 : std_logic_vector(BIT_WIDTH-1 downto 0);
 end record;
 
-constant num_tests : integer := 10;
+constant num_tests : integer := 12;
 type test_array is array (0 to num_tests-1) of test_vector;
 
 constant test_vector_array : test_array := (
@@ -60,13 +60,13 @@ constant test_vector_array : test_array := (
     -- Initial tests
     (we => '0', Addr1 => "000", Addr2 => "000", Addr3 => "001", wd => x"10", RD1 => x"00", RD2 => x"00"),
     (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "001", wd => x"10", RD1 => x"00", RD2 => x"00"),
-    (we => '1', Addr1 => "001", Addr2 => "000", Addr3 => "010", wd => x"ff", RD1 => x"10", RD2 => x"00")
+    (we => '1', Addr1 => "001", Addr2 => "000", Addr3 => "010", wd => x"ff", RD1 => x"10", RD2 => x"00"),
+
+    (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "010", wd => x"FF", RD1 => x"00", RD2 => x"00"),  -- write 0x10 to R2.
+    (we => '0', Addr1 => "000", Addr2 => "010", Addr3 => "000", wd => x"00", RD1 => x"00", RD2 => x"FF")   -- read R2. should be 0x10.
+
 );
 component RegisterFile is
-	GENERIC(
-		BIT_WIDTH : integer := 8;
-		LOG_PORT_DEPTH : integer := 3
-	);
 	PORT (
 	------------ INPUTS ---------------
 		clk_n	: in std_logic;
@@ -94,7 +94,6 @@ signal RD2		: std_logic_vector(BIT_WIDTH-1 downto 0); --Read from Addr2
 begin
 
 UUT : RegisterFile
-
 	port map (
 	------------ INPUTS ---------------
 		clk_n	 => clk_n,
