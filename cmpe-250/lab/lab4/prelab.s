@@ -1,19 +1,14 @@
 .global _start
 
+.equ vector_table_size, 0x000000c0
+.equ vector_size, 4
+
+
+.section .text
+
 _start:
-    ; Set divisor
-    mov r0, #7
-    ; Set dividend
-    mov r1, #37
+    movs r0, #7
+    movs r1, #21
 
-    bl divu
 
-divu:
-    
-
-divu_loop:
-    lsrs r0, #1
-
-end:
-    mov r7, #1
-    swi 0
+.section .data
