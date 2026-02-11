@@ -20,8 +20,8 @@ end RegisterFileTB;
 
 architecture tb of RegisterFileTB is
 
-constant BIT_WIDTH : integer := 8;
-constant LOG_PORT_DEPTH : integer := 3;
+constant BIT_WIDTH : integer := 32;
+constant LOG_PORT_DEPTH : integer := 2;
 
 type test_vector is record
 	we : std_logic;
@@ -33,37 +33,37 @@ type test_vector is record
 	RD2 : std_logic_vector(BIT_WIDTH-1 downto 0);
 end record;
 
-constant num_tests : integer := 12;
+constant num_tests : integer := 14;
 type test_array is array (0 to num_tests-1) of test_vector;
 
 constant test_vector_array : test_array := (
     -- Write value to empty register, then read
-    (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "001", wd => x"10", RD1 => x"00", RD2 => x"00"),  -- write 0x10 to R1.
-    (we => '0', Addr1 => "001", Addr2 => "000", Addr3 => "000", wd => x"00", RD1 => x"10", RD2 => x"00"),  -- read R1. should be 0x10.
+    (we => '1', Addr1 => "00", Addr2 => "00", Addr3 => "01", wd => x"00000010", RD1 => x"00000000", RD2 => x"00000000"),  -- write 0x10 to R1.
+    (we => '0', Addr1 => "01", Addr2 => "00", Addr3 => "00", wd => x"00000000", RD1 => x"00000010", RD2 => x"00000000"),  -- read R1. should be 0x10.
 
     -- Overwrite value in register, then read
-    (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "001", wd => x"FF", RD1 => x"00", RD2 => x"00"),  -- overwrite R1 with 0xFF.
-    (we => '0', Addr1 => "001", Addr2 => "000", Addr3 => "000", wd => x"00", RD1 => x"FF", RD2 => x"00"),  -- read R1. should be 0xFF.
+    (we => '1', Addr1 => "00", Addr2 => "00", Addr3 => "01", wd => x"000000FF", RD1 => x"00000000", RD2 => x"00000000"),  -- overwrite R1 with 0xFF.
+    (we => '0', Addr1 => "01", Addr2 => "00", Addr3 => "00", wd => x"00000000", RD1 => x"000000FF", RD2 => x"00000000"),  -- read R1. should be 0xFF.
 
     -- Read from unwritten register
-    (we => '0', Addr1 => "010", Addr2 => "000", Addr3 => "000", wd => x"00", RD1 => x"00", RD2 => x"00"),  -- read R2. should be 0x00.
+    (we => '0', Addr1 => "10", Addr2 => "00", Addr3 => "00", wd => x"00000000", RD1 => x"00000000", RD2 => x"00000000"),  -- read R2. should be 0x00.
 
     -- Attempt write with we disabled.
-    (we => '0', Addr1 => "000", Addr2 => "000", Addr3 => "010", wd => x"FF", RD1 => x"00", RD2 => x"00"),  -- attempt write R2 with 0xFF. should fail.
-    (we => '0', Addr1 => "010", Addr2 => "000", Addr3 => "000", wd => x"00", RD1 => x"00", RD2 => x"00"),  -- read R2. should be 0x00.
+    (we => '0', Addr1 => "00", Addr2 => "00", Addr3 => "10", wd => x"000000FF", RD1 => x"00000000", RD2 => x"00000000"),  -- attempt write R2 with 0xFF. should fail.
+    (we => '0', Addr1 => "10", Addr2 => "00", Addr3 => "00", wd => x"00000000", RD1 => x"00000000", RD2 => x"00000000"),  -- read R2. should be 0x00.
 
-    -- Discluded from prelab, because I can only have 10 tests.
     -- Attempt write to R0.
-    -- (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "000", wd => x"FF", RD1 => x"00", RD2 => x"00"),  -- attempt write R0 with 0xFF. should fail.
-    -- (we => '0', Addr1 => "000", Addr2 => "000", Addr3 => "000", wd => x"00", RD1 => x"00", RD2 => x"00"),  -- read R0. should be 0x00.
+    (we => '1', Addr1 => "00", Addr2 => "00", Addr3 => "00", wd => x"000000FF", RD1 => x"00000000", RD2 => x"00000000"),  -- attempt write R0 with 0xFF. should fail.
+    (we => '0', Addr1 => "00", Addr2 => "00", Addr3 => "00", wd => x"00000000", RD1 => x"00000000", RD2 => x"00000000"),  -- read R0. should be 0x00.
 
     -- Initial tests
-    (we => '0', Addr1 => "000", Addr2 => "000", Addr3 => "001", wd => x"10", RD1 => x"00", RD2 => x"00"),
-    (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "001", wd => x"10", RD1 => x"00", RD2 => x"00"),
-    (we => '1', Addr1 => "001", Addr2 => "000", Addr3 => "010", wd => x"ff", RD1 => x"10", RD2 => x"00"),
+    (we => '0', Addr1 => "00", Addr2 => "00", Addr3 => "01", wd => x"00000010", RD1 => x"00000000", RD2 => x"00000000"),  -- attempt write without we. should fail.
+    (we => '1', Addr1 => "00", Addr2 => "00", Addr3 => "01", wd => x"00000010", RD1 => x"00000000", RD2 => x"00000000"),  -- attempt write with we.
+    (we => '1', Addr1 => "01", Addr2 => "00", Addr3 => "10", wd => x"000000FF", RD1 => x"00000010", RD2 => x"00000000"),  -- read.
 
-    (we => '1', Addr1 => "000", Addr2 => "000", Addr3 => "010", wd => x"FF", RD1 => x"00", RD2 => x"00"),  -- write 0x10 to R2.
-    (we => '0', Addr1 => "000", Addr2 => "010", Addr3 => "000", wd => x"00", RD1 => x"00", RD2 => x"FF")   -- read R2. should be 0x10.
+    -- Test read with RD2.
+    (we => '1', Addr1 => "00", Addr2 => "00", Addr3 => "10", wd => x"000000FF", RD1 => x"00000000", RD2 => x"00000000"),  -- write 0xFF to R2.
+    (we => '0', Addr1 => "00", Addr2 => "10", Addr3 => "00", wd => x"00000000", RD1 => x"00000000", RD2 => x"000000FF")   -- read R2 with RD2. should be 0xFF.
 
 );
 component RegisterFile is

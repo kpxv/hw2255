@@ -4,8 +4,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity RegisterFile is
     generic (
-        BIT_WIDTH : INTEGER := 8;
-        LOG_PORT_DEPTH : INTEGER := 3
+        BIT_WIDTH : INTEGER := 32;
+        LOG_PORT_DEPTH : INTEGER := 2
     );
 
     PORT (
