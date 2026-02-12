@@ -156,7 +156,7 @@ LOOP_START
             BL DIVU
             BCC VALID
             MOVS R0, #0
-            MVN R0, R0
+            MVNS R0, R0
             MOVS R1, R0
 VALID
             LDR R2, =P
@@ -209,20 +209,20 @@ RegInit     PROC  {}
             ENDP    ;RegInit
 ;---------------------------------------------------------------
 ;>>>>> begin subroutine code <<<<<
-DIVU PROC{R3-R14}
-    CMP R0, #0      // SETS CARRY FLAG IF EQUAL
+DIVU PROC {R3-R14}
+    CMP R0, #0      ; SETS CARRY FLAG IF EQUAL
     BEQ DIVU_END
     PUSH {R2}
     MOVS R2, #0
 DIVU_LOOP
     CMP R1, R0
-    BLT DIVU_CLEANUP
+    BLO DIVU_CLEANUP
     SUBS R1, R1, R0
     ADDS R2, R2, #1
     B DIVU_LOOP
 DIVU_CLEANUP
     MOVS R0, R2
-    // CLEAR APSR FLAGS
+    ; CLEAR APSR FLAGS
     MOVS R2, #1
     ADDS R2, #1
     POP {R2}
