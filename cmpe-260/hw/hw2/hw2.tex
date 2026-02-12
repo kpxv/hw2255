@@ -1,0 +1,45 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+\usepackage{circuitikz}
+\usepackage{minted}
+\usepackage{newtxtt}
+\usepackage{newtxmath}
+
+\graphicspath{{./assets/}}
+\ctikzset{logic ports=ieee}
+
+\title{DSD II Homework 1}
+\author{Aden Perry}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+	\item \includegraphics[width=\linewidth]{q1}
+
+	\item Unit:
+	      \inputminted{vhdl}{assets/q2.vhd}
+	      Testbench:
+	      \inputminted{vhdl}{assets/q2-tb.vhd}
+	      Value: \texttt{q = 1000}, \texttt{dout = 1}\\
+	      Waveform:
+
+	      \includegraphics[width=\linewidth]{q2-wav}
+
+	\item \inputminted{vhdl}{assets/q3.vhd}
+          Waveform:
+	      % \includegraphics[width=\linewidth]{q3-wav}
+
+	      FSM:
+
+	      \includegraphics[width=0.5\linewidth]{q3-fsm}
+
+\end{enumerate}
+
+\end{document}
