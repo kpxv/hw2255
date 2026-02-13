@@ -155,9 +155,8 @@ LOOP_START
 
             BL DIVU
             BCC VALID
-            MOVS R0, #0
-            MVNS R0, R0
-            MOVS R1, R0
+            LDR R0, =0xFFFFFFFF
+            LDR R1, =0xFFFFFFFF
 VALID
             LDR R2, =P
             STR R0, [R2]
