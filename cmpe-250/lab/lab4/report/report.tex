@@ -1,0 +1,166 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 250}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L1}
+\newcommand{\LabInstructor}{Chongzhou Fang}
+
+\newcommand{\TAs}{Eddie Satowski \\ Khoi Pham}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Chongzhou Fang}
+\newcommand{\exerciseNumber}{4}
+\newcommand{\exerciseDescription}{Iteration and Subroutines}
+\newcommand{\dateDone}{2026-02-05}
+\newcommand{\dateSubmitted}{2025-02-13}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+The purpose of this exercise was to design, implement, and test an unsigned
+division algorithm written in armasm for the ARMv6-M architecture. The
+algorithm used a subtraction loop to calculate the result of a division
+operation. A library was imported to test the algorithm. Two word variables
+and a word array were created to store results and interface between the the
+test functions and the algorithm. All tests passed; the exercise was
+successful.
+
+\section*{Procedure}
+
+An algorithm was designed and tested using the GNU Assembler. Register R2 was
+pushed to the stack and initialized to 0; it was used to track the quotient.
+\texttt{CMP} and conditional branching were used to subtract the divisor from
+the dividend until the dividend was less than the divisor. Each iteration,
+the quotient was incremented by 1. Upon loop exit, the quotient was moved into
+register R0, the \texttt{ADDS} instruction was used to clear the CARRY flag,
+and register R2 was popped from the stack. Simple error checking occured at the
+entrance to the DIVU algorithm to ensure no division by 0 could occur. Instead,
+input values were preserved and the CARRY flag was set.
+
+After the algorithm was written, it was ported to Keil ARM Assembly for the
+purpose of importing and running the test library. A Keil MDK-ARM project was
+created. A template Assembly program was loaded. The DIVU algorithm was added
+to the end of the \texttt{MyCode} area.
+
+Two variables, \texttt{P} and \texttt{Q}, were created in the \texttt{MyData}
+area for the purpose of communicating with the test library. An array was
+created to store results. A test loop was created at the start of the
+\texttt{MyCode} area. The loop loaded the test case from the library into
+variables \texttt{P} and \texttt{Q}. It then called the \texttt{DIVU}
+algorithm. It stored the results into the variables, and used the library to
+test them.
+
+The program was translated, built, and debugged. Using the debugger, the tests
+were confirmed to pass by viewing the register contents after all test cases
+were run.
+
+\section*{Results}
+
+The test library counted the number of tests that were not passed in register
+R6. It also tracked which was the last run test in R7; the last of the test
+had the value 0xA0. Thus, the expected register values were an R6 of 0 and an
+R7 of 0xA0. The actual results are presented in Figure \ref{fig:register}.
+
+\begin{figure}[H]
+	\center
+	\includegraphics{registers}
+	\caption{The final register values}
+	\label{fig:register}
+\end{figure}
+
+As seen in Figure \ref{fig:register}, both registers matched the expected
+values.
+
+The image symbol table of the program is given in Table \ref{tab:sym},
+including all local symbols and relevant global symbols.
+
+\begin{table}[H]
+	\center
+	\caption{The image symbol table}
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		Symbol Name             & Value      & Type       & Size & Object (Section)                   \\
+		\hline
+		\hline
+		RESET                   & 0x00000000 & Section    & 192  & lab4.o(RESET)                      \\
+		\hline
+		Exercise04\_Lib.s       & 0x00000000 & Number     & 0    & exercise04\_lib.o ABSOLUTE         \\
+		\hline
+		dc.s                    & 0x00000000 & Number     & 0    & dc.o ABSOLUTE                      \\
+		\hline
+		lab4.s                  & 0x00000000 & Number     & 0    & lab4.o ABSOLUTE                    \\
+		\hline
+		Exercise04\_Lib         & 0x000000c0 & Section    & 420  & exercise04\_lib.o(Exercise04\_Lib) \\
+		\hline
+		InitData                & 0x000000c1 & Thumb Code & 6    & exercise04\_lib.o(Exercise04\_Lib) \\
+		\hline
+		LoadData                & 0x000000c7 & Thumb Code & 38   & exercise04\_lib.o(Exercise04\_Lib) \\
+		\hline
+		TestData                & 0x000000ed & Thumb Code & 44   & exercise04\_lib.o(Exercise04\_Lib) \\
+		\hline
+		MyCode                  & 0x00000264 & Section    & 160  & lab4.o(MyCode)                     \\
+		\hline
+		Reset\_Handler          & 0x00000265 & Thumb Code & 50   & lab4.o(MyCode)                     \\
+		\hline
+		RegInit                 & 0x00000297 & Thumb Code & 52   & lab4.o(MyCode)                     \\
+		\hline
+		DIVU                    & 0x000002cb & Thumb Code & 28   & lab4.o(MyCode)                     \\
+		\hline
+		.ARM.\_\_at\_0x1FFFFC00 & 0x1ffffc00 & Section    & 256  & lab4.o(.ARM.\_\_at\_0x1FFFFC00)    \\
+		\hline
+		MyData                  & 0x1ffffd00 & Section    & 208  & lab4.o(MyData)                     \\
+		\hline
+		P                       & 0x1ffffd00 & Data       & 4    & lab4.o(MyData)                     \\
+		\hline
+		Q                       & 0x1ffffd04 & Data       & 4    & lab4.o(MyData)                     \\
+		\hline
+		Results                 & 0x1ffffd08 & Data       & 200  & lab4.o(MyData)                     \\
+		\hline
+	\end{tabular}
+	\label{tab:sym}
+\end{table}
+
+According to Table \ref{tab:sym}, the \texttt{Reset\_Handler} symbol (i.e.\ the
+main program) occupies 50 bytes. This is confirmed by subtracting the start
+address of \texttt{Reset\_Handler}, 0x265, from the start address of the
+following symbol \texttt{RegInit}, 0x297. This does not include the content of
+\texttt{DIVU} or \texttt{RegInit} — combined, they make up the contents of the
+\texttt{MyCode} area, which is clearly seen to have a size of 160 bytes.
+
+The ExerciseLib library code is clearly shown to have a byte size of 420. There
+are 3 variables: \texttt{P}, \texttt{Q}, and \texttt{Results}. By summing their
+sizes, the total byte size of the variables can be found. The sum reveals a
+byte size of 208. This is confirmed by checking the size of the \texttt{MyData}
+area, which is the same.
+
+The stack is contained in the area \texttt{.ARM.\_\_at\_0x1FFFFC00}, which has
+a size of 256. This is confirmed by viewing \texttt{SSTACK\_SIZE} EQUate inside
+the assembly file, which is used to assign the stack memory. It is equal to
+0x100; thus, the stack has a byte size of 256.
+
+\section*{Conclusion}
+
+The object of this exercise was to design, implement, and test a DIVU function
+using an imported library. This was accomplished through the usage of a
+template to initialize the program and by adding subroutines to perform the
+logic. Division was done through pure subtraction; this was simple to
+implement, but slow for large numbers. In the future, bit shifting might be
+considered as an alternative. The use of branching and of variables can and
+should be used for any future assembly programs, especially if complex.
+Variables are useful for storing values outside the registers; branching is
+required for complex logic.
+
+\includepdf[pages=-]{assets/prelab}
+
+\end{document}
