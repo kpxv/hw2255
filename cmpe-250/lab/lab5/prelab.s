@@ -13,12 +13,20 @@
 
 .set uart0_bdh_9600, 0x01
 .set uart0_bdl_9600, 0x38
+
 .set uart0_c1_opt, 0x00
 
 .set uart0_c2_t_r_clr, 0x00
 .set uart0_c2_t_en, 0x08
 .set uart0_c2_r_en, 0x04
 .set uart0_c2_t_r_en, 0x0c
+
+// Stores \data to \to. Modifies R0 and R1
+.macro storeb_unsafe data, to
+    movs r0, \to
+    movs r1, \data
+    strb r1, [r0, #0]
+.endm
 
 
 .global _start
@@ -35,9 +43,14 @@ _start:
 Init_UART0_Polling:
     push {r0, r1}
     // Clear TE and RE
-    movs r0, =uart0_c2
-    movs r1, uart0_c2_t_r_clr
-    strb r1, [r0, #0]
+    storeb_unsafe uart0_c2_t_r_clr, =uart0_c2
+
+    // Enable polling; use 2 pins; set stop bit to 1; set baud rate to 9600
+    storeb_unsafe uart0_bdh_9600, =uart0_bdh
+    storeb_unsafe uart0_bdl_9600, =uart0_bdl
+
+    // Set 8-bit data, no parity
+    storeb_unsafe uart0_c1_opt, =uart0_c1
 
     pop {r0, r1}
     bx lr
