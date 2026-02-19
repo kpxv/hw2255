@@ -20,7 +20,7 @@
             OPT  1   ;Turn on listing
 ;****************************************************************
 ;EQUates
-// Address EQUates
+; Address EQUates
 uart0_bdh EQU 0x4006A000
 uart0_bdl EQU 0x4006A001
 uart0_c1 EQU 0x4006A002
@@ -54,10 +54,10 @@ sim_uidl EQU 0x40048060
 sim_copc EQU 0x40048100
 sim_srvcop EQU 0x40048104
 
-// Shift EQUates
+; Shift EQUates
 sim_sopt2_uart0src_shift EQU 26
 
-// Setting EQUates
+; Setting EQUates
 uart0_bdh_9600 EQU 0x01
 uart0_bdl_9600 EQU 0x38
 
@@ -70,12 +70,12 @@ uart0_c2_t_r_en EQU 0x0c
 
 sim_sopt2_uart0src_mcgfllclk EQU (01 << sim_sopt2_uart0src_shift)
 
-// Mask EQUates
+; Mask EQUates
 uart0_s1_tdre_mask EQU 0x80
 uart0_s1_rdrf_mask EQU 0x20
 
 
-// Stores \data to \dest. Modifies R0 and R1
+; Stores \data to \dest. Modifies R0 and R1
 	MACRO storeb_unsafe $data, $dest
     ldr r0, =$dest
     movs r1, #$data
@@ -108,68 +108,68 @@ main
 ;>>>>> begin subroutine code <<<<<
     
 
-/**
-  * Initialize board for polled serial I/O with UART0 through ports B pins 1
-  * and 2, using: 8 data bits, no parity, and one stop bit at 9600 baud
-  * Changes: LR, PC, PSR
-  **/
+;*
+; Initialize board for polled serial I/O with UART0 through ports B pins 1
+; and 2, using: 8 data bits, no parity, and one stop bit at 9600 baud
+; Changes: LR, PC, PSR
+;*/
 Init_UART0_Polling
     push {r0, r1}
-    // TODO: use MCGFLLCLK
+    ; TODO: use MCGFLLCLK
 
-    // Clear TE and RE
+    ; Clear TE and RE
     storeb_unsafe uart0_c2_t_r_clr, uart0_c2
 
-    // Enable polling; use 2 pins; set stop bit to 1; set baud rate to 9600
+    ; Enable polling; use 2 pins; set stop bit to 1; set baud rate to 9600
     storeb_unsafe uart0_bdh_9600, uart0_bdh
     storeb_unsafe uart0_bdl_9600, uart0_bdl
 
-    // Set 8-bit data, no parity
+    ; Set 8-bit data, no parity
     storeb_unsafe uart0_c1_opt, uart0_c1
 
     pop {r0, r1}
     bx lr
 
-/**
-  * Gets a character from UART0_D
-  * Return value in R0
-  * Changes: R0, LR, PC, PSR
-  **/
+;*
+; Gets a character from UART0_D
+; Return value in R0
+; Changes: R0, LR, PC, PSR
+;*/
 GetChar
     push {r1}
     movs r1, #uart0_s1_rdrf_mask
 GetCharLoop
-    // Wait for RDRF to be set
+    ; Wait for RDRF to be set
     ldr r0, =uart0_s1
     ldrb r0, [r0, #0]
     ands r0, r0, r1
     cmp r0, #0
     bne GetCharLoop
 
-    // Read UART0_D
+    ; Read UART0_D
     ldr r0, =uart0_d
     ldrb r0, [r0, #0]
 
     pop {r1}
     bx lr
 
-/**
-  * Puts a character into UART0_D
-  * Reads from R0
-  * Changes: LR, PC, PSR
-  **/
+;*
+; Puts a character into UART0_D
+; Reads from R0
+; Changes: LR, PC, PSR
+;*/
 PutChar
     push {r1, r2}
     movs r1, #uart0_s1_tdre_mask
 PutCharLoop
-    // Wait for TDRE to be set
+    ; Wait for TDRE to be set
     ldr r2, =uart0_s1
     ldrb r2, [r2, #0]
     ands r2, r2, r1
     cmp r2, #0
     bne PutCharLoop
 
-    // Write UART0_D
+    ; Write UART0_D
     ldr r2, =uart0_d
     strb r0, [r2, #0]
 
