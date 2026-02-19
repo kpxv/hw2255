@@ -164,12 +164,7 @@ UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR
             ENTRY
             EXPORT  Reset_Handler
             IMPORT  Startup
-			EXPORT  PutChar
-			IMPORT Carry
-			IMPORT Negative
-			IMPORT Overflow
-			IMPORT PutPrompt
-			IMPORT Zero
+
 Reset_Handler  PROC  {}
 main
 ;---------------------------------------------------------------
@@ -180,56 +175,10 @@ main
 ;---------------------------------------------------------------
 ;>>>>> begin main program code <<<<<
 			bl Init_UART0_Polling
-			bl PutPrompt
-mainloop
-			bl GetChar
-			MOVS R4, R0
-			MOVS R1, R4
-			MOVS R2, R4
-			SUBS R1, R1, #0x61
-			SUBS R2, R2, #0x7B
-			LDR R3, =0x8000000
-			ANDS R1, R1, R3
-			MVNS R3, R3
-			ORRS R2, R2, R3
-			MVNS R2, R2
-			ORRS R1, R1, R2
-			CMP R1, #0
-			bne check
-toUpper
-			SUBS R4, R4, #0x20
-check
-			CMP R4, #0x43
-			beq putCarry
-			CMP R4, #0x4E
-			beq putNegative
-			CMP R4, #0x56
-			beq putOverflow
-			CMP R4, #0x5A
-			beq putZero
-			
-			b mainloop
-			
-putCarry
-			bl PutChar
-			bl Carry
-			bl PutPrompt
-			bl mainloop
-putNegative
-			bl PutChar
-			bl Negative
-			bl PutPrompt
-			bl mainloop
-putOverflow
-			bl PutChar
-			bl Overflow
-			bl PutPrompt
-			bl mainloop
-putZero
-			bl PutChar
-			bl Zero
-			bl PutPrompt
-			bl mainloop
+			MOVS R1, #5
+			LDR R0, =var
+			BL GetStringSB
+
 ;>>>>>   end main program code <<<<<
 ;Stay here
             B       .
@@ -242,7 +191,7 @@ putZero
 ; and 2, using: 8 data bits, no parity, and one stop bit at 9600 baud
 ; Changes: LR, PC, PSR
 ;*/
-Init_UART0_Polling
+Init_UART0_Polling PROC {}
 ;Select MCGFLLCLK as UART0 clock source 
     push {r0, r1, r2}
 	
@@ -320,13 +269,14 @@ Init_UART0_Polling
 
     POP {R0, R1, R2}
     BX LR
+	ENDP
 
 ;*
 ; Gets a character from UART0_D
 ; Return value in R0
 ; Changes: R0, LR, PC, PSR
 ;*/
-GetChar
+GetChar PROC {}
     PUSH {R1}
     MOVS R1, #UART0_S1_RDRF_MASK
 GetCharLoop
@@ -343,13 +293,14 @@ GetCharLoop
 
     POP {R1}
     BX LR
+	ENDP
 
 ;*
 ; Puts a character into UART0_D
 ; Reads from R0
 ; Changes: LR, PC, PSR
 ;*/
-PutChar
+PutChar PROC {}
     PUSH {R1, R2}
     MOVS R1, #UART0_S1_TDRE_MASK
 PutCharLoop
@@ -366,6 +317,142 @@ PutCharLoop
 
     POP {R1, R2}
     BX LR
+	ENDP
+	
+
+
+GetStringSB PROC {}
+	PUSH {R0-R4, LR}
+	CMP R1, #0
+	BEQ GetStringSBTerminate   ; String must have at least one character
+	SUBS R1, R1, #1
+	MOVS R2, R0
+	MOVS R3, #0
+GetStringSBLoop
+	BL GetChar
+	CMP R0, #0x0D
+	BEQ GetStringSBCleanup
+	CMP R0, #0x08
+	BEQ GetStringSBBackspace
+	CMP R0, #0x7F
+	BEQ GetStringSBLoop
+	CMP R0, #0x1F
+	BLS GetStringSBLoop
+	
+	CMP R3, R1
+	BHS GetStringSBLoop
+	
+	STRB R0, [R2, R3]
+	ADDS R3, R3, #1
+	BL PutChar
+	B GetStringSBLoop
+	
+GetStringSBBackspace
+	CMP R3, #0
+	BEQ GetStringSBLoop
+	BL PutChar
+	MOVS R0, #0x20
+	BL PutChar
+	MOVS R0, #0x0A
+	BL PutChar
+	SUBS R3, R3, #1
+	B GetStringSBLoop
+		
+GetStringSBCleanup
+	MOVS R4, #0
+	STRB R4, [R2, R3]
+	MOVS R0, #0x0A
+	BL PutChar
+GetStringSBTerminate
+	POP {R0-R4, PC}
+	
+	ENDP
+	
+
+
+PutStringSB PROC {}
+	PUSH {R0-R3, LR}
+	MOVS R2, R0
+	MOVS R3, #0
+PutStringSBLoop
+	CMP R3, R1
+	BEQ PutStringSBTerminate
+	LDRB R0, [R2, R3]
+	CMP R0, #0
+	BEQ PutStringSBTerminate
+	
+	BL PutChar
+	ADDS R3, R3, #1
+	B PutStringSBLoop
+	
+PutStringSBTerminate
+	POP {R0-R3, PC}
+	
+	ENDP
+	
+	
+	
+PutNumU PROC {}
+	PUSH {R0-R4, LR}
+	CMP R0, #0
+	BEQ PutNumUPrintZero
+	MOVS R2, R0
+	MOVS R4, #0
+PutNumULoop
+	MOVS R1, R2
+	MOVS R0, #10
+	BL DIVU
+	ADDS R1, R1, #0x30
+	PUSH {R1}
+	ADDS R4, R4, #1
+	CMP R0, #0
+	BEQ PutNumUPop
+	B PutNumULoop
+
+PutNumUPop
+	CMP R4, #0
+	BEQ PutNumUTerminate
+	POP {R0}
+	BL PutChar
+	SUBS R4, R4, #1
+	B PutNumUPop
+	
+PutNumUPrintZero
+	MOVS R0, #0x30
+	BL PutChar
+	B PutNumUTerminate; LEAVE
+	
+PutNumUTerminate
+	POP {R0-R4, PC}
+	BX LR
+	
+	ENDP
+
+
+
+DIVU PROC {R3-R14}
+            CMP R0, #0      ; SETS CARRY FLAG IF EQUAL
+            BEQ DIVU_END
+            PUSH {R2}
+            MOVS R2, #0
+DIVU_LOOP
+            CMP R1, R0
+            BLO DIVU_CLEANUP
+            SUBS R1, R1, R0
+            ADDS R2, R2, #1
+            B DIVU_LOOP
+DIVU_CLEANUP
+            MOVS R0, R2
+            ; CLEAR APSR FLAGS
+            MOVS R2, #1
+            ADDS R2, #1
+            POP {R2}
+DIVU_END
+            BX LR
+            ENDP
+
+
+
 ;>>>>>   end subroutine code <<<<<
             ALIGN
 ;****************************************************************
@@ -449,6 +536,7 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
+var			SPACE 10
 ;>>>>>   end variables here <<<<<
             ALIGN
             END
