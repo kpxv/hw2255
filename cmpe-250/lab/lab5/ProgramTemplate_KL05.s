@@ -1,0 +1,263 @@
+            TTL Program Title for Listing Header Goes Here
+;****************************************************************
+;Descriptive comment header goes here.
+;(What does the program do?)
+;Name:  <Your name here>
+;Date:  <Date completed here>
+;Class:  CMPE-250
+;Section:  <Your lab section, day, and time here>
+;---------------------------------------------------------------
+;Keil Template for KL05
+;R. W. Melton
+;September 13, 2020
+;****************************************************************
+;Assembler directives
+            THUMB
+            OPT    64  ;Turn on listing macro expansions
+;****************************************************************
+;Include files
+            GET  MKL05Z4.s     ;Included by start.s
+            OPT  1   ;Turn on listing
+;****************************************************************
+;EQUates
+// Address EQUates
+.set uart0_bdh, 0x4006A000
+.set uart0_bdl, 0x4006A001
+.set uart0_c1, 0x4006A002
+.set uart0_c2, 0x4006A003
+.set uart0_s1, 0x4006A004
+.set uart0_s2, 0x4006A005
+.set uart0_c3, 0x4006A006
+.set uart0_d, 0x4006A007
+.set uart0_ma1, 0x4006A008
+.set uart0_ma2, 0x4006A009
+.set uart0_c4, 0x4006A00A
+.set uart0_c5, 0x4006A00B
+
+.set sim_sopt1, 0x40047000
+.set sim_sopt1cfg, 0x40047004
+.set sim_sopt2, 0x40048004
+.set sim_sopt4, 0x4004800C
+.set sim_sopt5, 0x40048010
+.set sim_sopt7, 0x40048018
+.set sim_sdid, 0x40048024
+.set sim_scgc4, 0x40048034
+.set sim_scgc5, 0x40048038
+.set sim_scgc6, 0x4004803C
+.set sim_scgc7, 0x40048040
+.set sim_clkdiv1, 0x40048044
+.set sim_fcfg1, 0x4004804c
+.set sim_fcfg2, 0x40048050
+.set sim_uidmh, 0x40048058
+.set sim_uidml, 0x4004805c
+.set sim_uidl, 0x40048060
+.set sim_copc, 0x40048100
+.set sim_srvcop, 0x40048104
+
+// Shift EQUates
+.set sim_sopt2_uart0src_shift, 26
+
+// Setting EQUates
+.set uart0_bdh_9600, 0x01
+.set uart0_bdl_9600, 0x38
+
+.set uart0_c1_opt, 0x00
+
+.set uart0_c2_t_r_clr, 0x00
+.set uart0_c2_t_en, 0x08
+.set uart0_c2_r_en, 0x04
+.set uart0_c2_t_r_en, 0x0c
+
+.set sim_sopt2_uart0src_mcgfllclk, (01 << sim_sopt2_uart0src_shift)
+
+// Mask EQUates
+.set uart0_s1_tdre_mask, 0x80
+.set uart0_s1_rdrf_mask, 0x20
+
+
+// Stores \data to \dest. Modifies R0 and R1
+	MACRO storeb_unsafe $data, $dest
+    ldr r0, =$dest
+    movs r1, #$data
+    strb r1, [r0, #0]
+	MEND
+;****************************************************************
+;Program
+;Linker requires Reset_Handler
+            AREA    MyCode,CODE,READONLY
+            ENTRY
+            EXPORT  Reset_Handler
+            IMPORT  Startup
+Reset_Handler  PROC  {}
+main
+;---------------------------------------------------------------
+;Mask interrupts
+            CPSID   I
+;KL05 system startup with 48-MHz system clock
+            BL      Startup
+;---------------------------------------------------------------
+;>>>>> begin main program code <<<<<
+;>>>>>   end main program code <<<<<
+;Stay here
+			bl Init_UART0_Polling
+			movs r0, #65
+			bl PutChar
+			bl GetChar
+            B       .
+            ENDP    ;main
+;>>>>> begin subroutine code <<<<<
+    
+
+/**
+  * Initialize board for polled serial I/O with UART0 through ports B pins 1
+  * and 2, using: 8 data bits, no parity, and one stop bit at 9600 baud
+  * Changes: LR, PC, PSR
+  **/
+Init_UART0_Polling
+    push {r0, r1}
+    // TODO: use MCGFLLCLK
+
+    // Clear TE and RE
+    storeb_unsafe uart0_c2_t_r_clr, uart0_c2
+
+    // Enable polling; use 2 pins; set stop bit to 1; set baud rate to 9600
+    storeb_unsafe uart0_bdh_9600, uart0_bdh
+    storeb_unsafe uart0_bdl_9600, uart0_bdl
+
+    // Set 8-bit data, no parity
+    storeb_unsafe uart0_c1_opt, uart0_c1
+
+    pop {r0, r1}
+    bx lr
+
+/**
+  * Gets a character from UART0_D
+  * Return value in R0
+  * Changes: R0, LR, PC, PSR
+  **/
+GetChar
+    push {r1}
+    movs r1, #uart0_s1_rdrf_mask
+GetCharLoop
+    // Wait for RDRF to be set
+    ldr r0, =uart0_s1
+    ldrb r0, [r0, #0]
+    ands r0, r0, r1
+    cmp r0, #0
+    bne GetCharLoop
+
+    // Read UART0_D
+    ldr r0, =uart0_d
+    ldrb r0, [r0, #0]
+
+    pop {r1}
+    bx lr
+
+/**
+  * Puts a character into UART0_D
+  * Reads from R0
+  * Changes: LR, PC, PSR
+  **/
+PutChar
+    push {r1, r2}
+    movs r1, #uart0_s1_tdre_mask
+PutCharLoop
+    // Wait for TDRE to be set
+    ldr r2, =uart0_s1
+    ldrb r2, [r2, #0]
+    ands r2, r2, r1
+    cmp r2, #0
+    bne PutCharLoop
+
+    // Write UART0_D
+    ldr r2, =uart0_d
+    strb r0, [r2, #0]
+
+    pop {r1, r2}
+    bx lr
+;>>>>>   end subroutine code <<<<<
+            ALIGN
+;****************************************************************
+;Vector Table Mapped to Address 0 at Reset
+;Linker requires __Vectors to be exported
+            AREA    RESET, DATA, READONLY
+            EXPORT  __Vectors
+            EXPORT  __Vectors_End
+            EXPORT  __Vectors_Size
+            IMPORT  __initial_sp
+            IMPORT  Dummy_Handler
+            IMPORT  HardFault_Handler
+__Vectors 
+                                      ;ARM core vectors
+            DCD    __initial_sp       ;00:end of stack
+            DCD    Reset_Handler      ;01:reset vector
+            DCD    Dummy_Handler      ;02:NMI
+            DCD    HardFault_Handler  ;03:hard fault
+            DCD    Dummy_Handler      ;04:(reserved)
+            DCD    Dummy_Handler      ;05:(reserved)
+            DCD    Dummy_Handler      ;06:(reserved)
+            DCD    Dummy_Handler      ;07:(reserved)
+            DCD    Dummy_Handler      ;08:(reserved)
+            DCD    Dummy_Handler      ;09:(reserved)
+            DCD    Dummy_Handler      ;10:(reserved)
+            DCD    Dummy_Handler      ;11:SVCall (supervisor call)
+            DCD    Dummy_Handler      ;12:(reserved)
+            DCD    Dummy_Handler      ;13:(reserved)
+            DCD    Dummy_Handler      ;14:PendSV (PendableSrvReq)
+                                      ;   pendable request 
+                                      ;   for system service)
+            DCD    Dummy_Handler      ;15:SysTick (system tick timer)
+            DCD    Dummy_Handler      ;16:DMA channel 0 transfer 
+                                      ;   complete/error
+            DCD    Dummy_Handler      ;17:DMA channel 1 transfer
+                                      ;   complete/error
+            DCD    Dummy_Handler      ;18:DMA channel 2 transfer
+                                      ;   complete/error
+            DCD    Dummy_Handler      ;19:DMA channel 3 transfer
+                                      ;   complete/error
+            DCD    Dummy_Handler      ;20:(reserved)
+            DCD    Dummy_Handler      ;21:FTFA command complete/
+                                      ;   read collision
+            DCD    Dummy_Handler      ;22:low-voltage detect;
+                                      ;   low-voltage warning
+            DCD    Dummy_Handler      ;23:low leakage wakeup
+            DCD    Dummy_Handler      ;24:I2C0
+            DCD    Dummy_Handler      ;25:(reserved)
+            DCD    Dummy_Handler      ;26:SPI0
+            DCD    Dummy_Handler      ;27:(reserved)
+            DCD    Dummy_Handler      ;28:UART0 (status; error)
+            DCD    Dummy_Handler      ;29:(reserved)
+            DCD    Dummy_Handler      ;30:(reserved)
+            DCD    Dummy_Handler      ;31:ADC0
+            DCD    Dummy_Handler      ;32:CMP0
+            DCD    Dummy_Handler      ;33:TPM0
+            DCD    Dummy_Handler      ;34:TPM1
+            DCD    Dummy_Handler      ;35:(reserved)
+            DCD    Dummy_Handler      ;36:RTC (alarm)
+            DCD    Dummy_Handler      ;37:RTC (seconds)
+            DCD    Dummy_Handler      ;38:PIT
+            DCD    Dummy_Handler      ;39:(reserved)
+            DCD    Dummy_Handler      ;40:(reserved)
+            DCD    Dummy_Handler      ;41:DAC0
+            DCD    Dummy_Handler      ;42:TSI0
+            DCD    Dummy_Handler      ;43:MCG
+            DCD    Dummy_Handler      ;44:LPTMR0
+            DCD    Dummy_Handler      ;45:(reserved)
+            DCD    Dummy_Handler      ;46:PORTA
+            DCD    Dummy_Handler      ;47:PORTB
+__Vectors_End
+__Vectors_Size  EQU     __Vectors_End - __Vectors
+            ALIGN
+;****************************************************************
+;Constants
+            AREA    MyConst,DATA,READONLY
+;>>>>> begin constants here <<<<<
+;>>>>>   end constants here <<<<<
+            ALIGN
+;****************************************************************
+;Variables
+            AREA    MyData,DATA,READWRITE
+;>>>>> begin variables here <<<<<
+;>>>>>   end variables here <<<<<
+            ALIGN
+            END
