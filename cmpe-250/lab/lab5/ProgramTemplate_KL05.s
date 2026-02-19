@@ -116,68 +116,68 @@ main
 ;*/
 Init_UART0_Polling
 ;Select MCGFLLCLK as UART0 clock source 
-    push {r0, r1}
+    push {r0, r1, r2}
 	
-    LDR   Ri,=SIM_SOPT2 
-    LDR   Rj,=SIM_SOPT2_UART0SRC_MASK 
-    LDR   Rk,[Ri,#0] 
-    BICS  Rk,Rk,Rj 
-    LDR   Rj,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
-    ORRS  Rk,Rk,Rj 
-    STR   Rk,[Ri,#0] 
+    LDR   R0,=SIM_SOPT2 
+    LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
+    LDR   R2,[R0,#0] 
+    BICS  R2,R2,R1 
+    LDR   R1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+    ORRS  R2,R2,R1 
+    STR   R2,[R0,#0] 
 ;Set UART0 for external connection 
-    LDR   Ri,=SIM_SOPT5 
-    LDR   Rj,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
-    LDR   Rk,[Ri,#0] 
-    BICS  Rk,Rk,Rj 
-    STR   Rk,[Ri,#0] 
+    LDR   R0,=SIM_SOPT5 
+    LDR   R1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+    LDR   R2,[R0,#0] 
+    BICS  R2,R2,R1 
+    STR   R2,[R0,#0] 
 ;Enable UART0 module clock 
-    LDR   Ri,=SIM_SCGC4 
-    LDR   Rj,=SIM_SCGC4_UART0_MASK 
-    LDR   Rk,[Ri,#0] 
-    ORRS  Rk,Rk,Rj 
-    STR   Rk,[Ri,#0] 
+    LDR   R0,=SIM_SCGC4 
+    LDR   R1,=SIM_SCGC4_UART0_MASK 
+    LDR   R2,[R0,#0] 
+    ORRS  R2,R2,R1 
+    STR   R2,[R0,#0] 
 ;Enable PORT B module clock 
-    LDR   Ri,=SIM_SCGC5 
-    LDR   Rj,=SIM_SCGC5_PORTB_MASK 
-    LDR   Rk,[Ri,#0] 
-    ORRS  Rk,Rk,Rj 
-    STR   Rk,[Ri,#0] 
+    LDR   R0,=SIM_SCGC5 
+    LDR   R1,=SIM_SCGC5_PORTB_MASK 
+    LDR   R2,[R0,#0] 
+    ORRS  R2,R2,R1 
+    STR   R2,[R0,#0] 
 ;Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
-    LDR     Ri,=PORTB_PCR2 
-    LDR     Rj,=PORT_PCR_SET_PTB2_UART0_RX 
-    STR     Rj,[Ri,#0] 
+    LDR     R0,=PORTB_PCR2 
+    LDR     R1,=PORT_PCR_SET_PTB2_UART0_RX 
+    STR     R1,[R0,#0] 
 ; Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
-    LDR     Ri,=PORTB_PCR1 
-    LDR     Rj,=PORT_PCR_SET_PTB1_UART0_TX 
-    STR     Rj,[Ri,#0] 
+    LDR     R0,=PORTB_PCR1 
+    LDR     R1,=PORT_PCR_SET_PTB1_UART0_TX 
+    STR     R1,[R0,#0] 
 ;Disable UART0 receiver and transmitter 
-    LDR   Ri,=UART0_BASE 
-    MOVS  Rj,#UART0_C2_T_R 
-    LDRB  Rk,[Ri,#UART0_C2_OFFSET] 
-    BICS  Rk,Rk,Rj 
-    STRB  Rk,[Ri,#UART0_C2_OFFSET] 
+    LDR   R0,=UART0_BASE 
+    MOVS  R1,#UART0_C2_T_R 
+    LDRB  R2,[R0,#UART0_C2_OFFSET] 
+    BICS  R2,R2,R1 
+    STRB  R2,[R0,#UART0_C2_OFFSET] 
 ;Set UART0 for 9600 baud, 8N1 protocol 
-    MOVS  Rj,#UART0_BDH_9600 
-    STRB  Rj,[Ri,#UART0_BDH_OFFSET] 
-    MOVS  Rj,#UART0_BDL_9600 
-    STRB  Rj,[Ri,#UART0_BDL_OFFSET] 
-    MOVS  Rj,#UART0_C1_8N1 
-    STRB  Rj,[Ri,#UART0_C1_OFFSET] 
-    MOVS  Rj,#UART0_C3_NO_TXINV 
-    STRB  Rj,[Ri,#UART0_C3_OFFSET] 
-    MOVS  Rj,#UART0_C4_NO_MATCH_OSR_16 
-    STRB  Rj,[Ri,#UART0_C4_OFFSET] 
-    MOVS  Rj,#UART0_C5_NO_DMA_SSR_SYNC 
-    STRB  Rj,[Ri,#UART0_C5_OFFSET] 
-    MOVS  Rj,#UART0_S1_CLEAR_FLAGS 
-    STRB  Rj,[Ri,#UART0_S1_OFFSET] 
-    MOVS  Rj, \ 
+    MOVS  R1,#UART0_BDH_9600 
+    STRB  R1,[R0,#UART0_BDH_OFFSET] 
+    MOVS  R1,#UART0_BDL_9600 
+    STRB  R1,[R0,#UART0_BDL_OFFSET] 
+    MOVS  R1,#UART0_C1_8N1 
+    STRB  R1,[R0,#UART0_C1_OFFSET] 
+    MOVS  R1,#UART0_C3_NO_TXINV 
+    STRB  R1,[R0,#UART0_C3_OFFSET] 
+    MOVS  R1,#UART0_C4_NO_MATCH_OSR_16 
+    STRB  R1,[R0,#UART0_C4_OFFSET] 
+    MOVS  R1,#UART0_C5_NO_DMA_SSR_SYNC 
+    STRB  R1,[R0,#UART0_C5_OFFSET] 
+    MOVS  R1,#UART0_S1_CLEAR_FLAGS 
+    STRB  R1,[R0,#UART0_S1_OFFSET] 
+    MOVS  R1, \ 
           #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
-    STRB  Rj,[Ri,#UART0_S2_OFFSET] 
+    STRB  R1,[R0,#UART0_S2_OFFSET] 
 ;Enable UART0 receiver and transmitter 
-    MOVS  Rj,#UART0_C2_T_R 
-    STRB  Rj,[Ri,#UART0_C2_OFFSET] 
+    MOVS  R1,#UART0_C2_T_R 
+    STRB  R1,[R0,#UART0_C2_OFFSET] 
 
     ; TODO: use MCGFLLCLK
 
@@ -191,7 +191,7 @@ Init_UART0_Polling
     ; Set 8-bit data, no parity
     ;storeb_unsafe uart0_c1_opt, uart0_c1
 
-    pop {r0, r1}
+    pop {r0, r1, r2}
     bx lr
 
 ;*
