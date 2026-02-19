@@ -26,10 +26,8 @@
 ;Use provided PORT_PCR_MUX_SELECT_2_MASK 
 ;--------------------------------------------------------------- 
 ;Port B 
-PORT_PCR_SET_PTB2_UART0_RX  EQU  (PORT_PCR_ISF_MASK :OR: \ 
-                                  PORT_PCR_MUX_SELECT_2_MASK) 
-PORT_PCR_SET_PTB1_UART0_TX  EQU  (PORT_PCR_ISF_MASK :OR: \ 
-                                  PORT_PCR_MUX_SELECT_2_MASK) 
+PORT_PCR_SET_PTB2_UART0_RX  EQU  (PORT_PCR_ISF_MASK :OR: PORT_PCR_MUX_SELECT_2_MASK) 
+PORT_PCR_SET_PTB1_UART0_TX  EQU  (PORT_PCR_ISF_MASK :OR: PORT_PCR_MUX_SELECT_2_MASK) 
 ;--------------------------------------------------------------- 
 ;SIM_SCGC4 
 ;1->10:UART0 clock gate control (enabled) 
@@ -42,17 +40,13 @@ PORT_PCR_SET_PTB1_UART0_TX  EQU  (PORT_PCR_ISF_MASK :OR: \
 ;SIM_SOPT2 
 ;01=27-26:UART0SRC=UART0 clock source select (MCGFLLCLK) 
 ;--------------------------------------------------------------- 
-SIM_SOPT2_UART0SRC_MCGFLLCLK  EQU  \ 
-                                 (1 << SIM_SOPT2_UART0SRC_SHIFT) 
+SIM_SOPT2_UART0SRC_MCGFLLCLK  EQU  (1 << SIM_SOPT2_UART0SRC_SHIFT) 
 ;--------------------------------------------------------------- 
 ;SIM_SOPT5 
 ; 0->   16:UART0 open drain enable (disabled) 
 ; 0->   02:UART0 receive data select (UART0_RX) 
 ;00->01-00:UART0 transmit data select source (UART0_TX) 
-SIM_SOPT5_UART0_EXTERN_MASK_CLEAR  EQU  \ 
-                               (SIM_SOPT5_UART0ODE_MASK :OR: \ 
-                                SIM_SOPT5_UART0RXSRC_MASK :OR: \ 
-                                SIM_SOPT5_UART0TXSRC_MASK)
+SIM_SOPT5_UART0_EXTERN_MASK_CLEAR  EQU (SIM_SOPT5_UART0ODE_MASK :OR: SIM_SOPT5_UART0RXSRC_MASK :OR: SIM_SOPT5_UART0TXSRC_MASK)
 ;--------------------------------------------------------------- 
 ;UART0_BDH 
 ;    0->  7:LIN break detect IE (disabled) 
@@ -139,11 +133,7 @@ UART0_C5_NO_DMA_SSR_SYNC  EQU  0x00
 ;1-->2:NF=noise flag; write 1 to clear (clear) 
 ;1-->1:FE=framing error flag; write 1 to clear (clear) 
 ;1-->0:PF=parity error flag; write 1 to clear (clear) 
-UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: \ 
-                            UART0_S1_OR_MASK :OR: \ 
-                            UART0_S1_NF_MASK :OR: \ 
-                            UART0_S1_FE_MASK :OR: \ 
-                            UART0_S1_PF_MASK) 
+UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: UART0_S1_OR_MASK :OR:    UART0_S1_NF_MASK :OR:  UART0_S1_FE_MASK :OR: UART0_S1_PF_MASK) 
 ;--------------------------------------------------------------- 
 ;UART0_S2 
 ;1-->7:LBKDIF=LIN break detect interrupt flag (clear) 
@@ -156,8 +146,7 @@ UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: \
 ;0-->2:BRK13=break character generation length (10) 
 ;0-->1:LBKDE=LIN break detect enable (disabled) 
 ;0-->0:RAF=receiver active flag; read-only 
-UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  \ 
-        (UART0_S2_LBKDIF_MASK :OR: UART0_S2_RXEDGIF_MASK) 
+UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR: UART0_S2_RXEDGIF_MASK) 
 ;---------------------------------------------------------------
 
 
@@ -175,6 +164,12 @@ UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  \
             ENTRY
             EXPORT  Reset_Handler
             IMPORT  Startup
+			EXPORT  PutChar
+			IMPORT Carry
+			IMPORT Negative
+			IMPORT Overflow
+			IMPORT PutPrompt
+			IMPORT Zero
 Reset_Handler  PROC  {}
 main
 ;---------------------------------------------------------------
@@ -185,9 +180,56 @@ main
 ;---------------------------------------------------------------
 ;>>>>> begin main program code <<<<<
 			bl Init_UART0_Polling
-			movs r0, #65
-			bl PutChar
+			bl PutPrompt
+mainloop
 			bl GetChar
+			MOVS R4, R0
+			MOVS R1, R4
+			MOVS R2, R4
+			SUBS R1, R1, #0x61
+			SUBS R2, R2, #0x7B
+			LDR R3, =0x8000000
+			ANDS R1, R1, R3
+			MVNS R3, R3
+			ORRS R2, R2, R3
+			MVNS R2, R2
+			ORRS R1, R1, R2
+			CMP R1, #0
+			bne check
+toUpper
+			SUBS R4, R4, #0x20
+check
+			CMP R4, #0x43
+			beq putCarry
+			CMP R4, #0x4E
+			beq putNegative
+			CMP R4, #0x56
+			beq putOverflow
+			CMP R4, #0x5A
+			beq putZero
+			
+			b mainloop
+			
+putCarry
+			bl PutChar
+			bl Carry
+			bl PutPrompt
+			bl mainloop
+putNegative
+			bl PutChar
+			bl Negative
+			bl PutPrompt
+			bl mainloop
+putOverflow
+			bl PutChar
+			bl Overflow
+			bl PutPrompt
+			bl mainloop
+putZero
+			bl PutChar
+			bl Zero
+			bl PutPrompt
+			bl mainloop
 ;>>>>>   end main program code <<<<<
 ;Stay here
             B       .
@@ -293,7 +335,7 @@ GetCharLoop
     LDRB R0, [R0, #0]
     ANDS R0, R0, R1
     CMP R0, #0
-    bne GetCharLoop
+    beq  GetCharLoop
 
     ; Read UART0_D
     LDR R0, =UART0_D
@@ -316,7 +358,7 @@ PutCharLoop
     LDRB R2, [R2, #0]
     ANDS R2, R2, R1
     CMP R2, #0
-    bne PutCharLoop
+    beq PutCharLoop
 
     ; Write UART0_D
     LDR R2, =UART0_D
