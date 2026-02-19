@@ -1,3 +1,4 @@
+// Address EQUates
 .set uart0_bdh, 0x4006A000
 .set uart0_bdl, 0x4006A001
 .set uart0_c1, 0x4006A002
@@ -31,6 +32,10 @@
 .set sim_copc, 0x40048100
 .set sim_srvcop, 0x40048104
 
+// Shift EQUates
+.set sim_sopt2_uart0src_shift, 26
+
+// Setting EQUates
 .set uart0_bdh_9600, 0x01
 .set uart0_bdl_9600, 0x38
 
@@ -41,10 +46,12 @@
 .set uart0_c2_r_en, 0x04
 .set uart0_c2_t_r_en, 0x0c
 
-// TDRE is bit 7: 2_1000 0000
+.set sim_sopt2_uart0src_mcgfllclk, (01 << sim_sopt2_uart0src_shift)
+
+// Mask EQUates
 .set uart0_s1_tdre_mask, 0x80
-// RDRF is bit 5: 2_0010 0000
 .set uart0_s1_rdrf_mask, 0x20
+
 
 // Stores \data to \dest. Modifies R0 and R1
 .macro storeb_unsafe data, dest
@@ -70,6 +77,8 @@ _start:
   **/
 Init_UART0_Polling:
     push {r0, r1}
+    // TODO: use MCGFLLCLK
+
     // Clear TE and RE
     storeb_unsafe uart0_c2_t_r_clr, uart0_c2
 
