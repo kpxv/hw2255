@@ -1,0 +1,127 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+
+\graphicspath{{./assets/}}
+
+\title{CMPE 250 Homework 3}
+\author{Aden Perry}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+	\item
+	      \begin{enumerate}
+		      \item Index mode addressing
+		            \begin{verbatim}
+        LDR  R1, =String    ; load variable address
+        MOVS R0, #0         ; Init loop counter
+LOOP_START
+        LDRB R2, [R1, R0]   ; Get the ith byte of the variable
+        EOR  R2, R2, #0x5A  ; XOR the ith byte with 0x5A
+        STRB R2, [R1, R0]   ; Replace the ith byte with the XORed value
+
+        ADDS R0, R0, #1     ; Increment loop counter
+        CMP R0, #80         ; Check if loop should exit
+        BLO LOOP_START      ; Loop
+\end{verbatim}
+
+		      \item Displacement mode addressing
+		            \begin{verbatim}
+        LDR  R1, =String    ; load variable address
+        MOVS R0, #0         ; Init loop counter
+LOOP_START
+        LDRB R2, [R1, #0]   ; Get the ith byte of the variable
+        EOR  R2, R2, #0x5A  ; XOR the ith byte with 0x5A
+        STRB R2, [R1, #0]   ; Replace the ith byte with the XORed value
+
+        ADDS R1, R1, #1     ; Increment the variable pointer
+
+        ADDS R0, R0, #1     ; Increment loop counter
+        CMP R0, #80         ; Check if loop should exit
+        BLO LOOP_START      ; Loop
+\end{verbatim}
+	      \end{enumerate}
+
+	\item
+	      \begin{enumerate}
+		      \item Manual
+		            \begin{verbatim}
+        ; Inputs:
+        ; R1 - array pointer
+        ; R2 - array length
+        ; Outputs:
+        ; R0 - minimum of array elements
+Min     PROC
+        CMP R2, #0          ; Ensure array length > 0
+        BEQ END
+
+        MOVS R0, #0         ; Load R0 with the highest possible number
+        MVNS R0, R0
+        
+        PUSH {R1, R2, R3}   ; Save registers to restore them later
+
+LOOP_START
+        LDR R3, [R1, #0]    ; Get the ith word of the array
+        CMP R0, R3          ; Compare current minimum with the ith word
+        BLS NO_CHANGE       ; Do not change R0 if it is still the minimum
+
+        MOVS R0, R3         ; Else, change R0
+
+NO_CHANGE
+        ADDS R1, R1, #4     ; Increment array pointer
+
+        SUBS R2, R2, #1     ; Decrement loop counter
+        BNE LOOP_START      ; Loop if R2 is not 0
+
+        POP {R1, R2, R3}    ; Restore registers
+END
+        BX LR
+
+        ENDP
+\end{verbatim}
+		      \item With LDM
+		            \begin{verbatim}
+        ; Inputs:
+        ; R1 - array pointer
+        ; R2 - array length
+        ; Outputs:
+        ; R0 - minimum of array elements
+        ; R0 remains unchanged if no elements in array
+Min     PROC
+        CMP R2, #0          ; Ensure array length > 0
+        BEQ END
+
+        MOVS R0, #0         ; Load R0 with the highest possible number
+        MVNS R0, R0
+        
+        PUSH {R1, R2, R3}   ; Save registers to restore them later
+
+LOOP_START
+        LDMIA R1!, {R3}     ; Get the ith word of the array
+        CMP R0, R3          ; Compare current minimum with the ith word
+        BLS NO_CHANGE       ; Do not change R0 if it is still the minimum
+
+        MOVS R0, R3         ; Else, change R0
+
+NO_CHANGE
+
+        SUBS R2, R2, #1     ; Decrement loop counter
+        BNE LOOP_START      ; Loop if R2 is not 0
+
+        POP {R1, R2, R3}    ; Restore registers
+END
+        BX LR
+
+        ENDP
+\end{verbatim}
+	      \end{enumerate}
+\end{enumerate}
+
+\end{document}
