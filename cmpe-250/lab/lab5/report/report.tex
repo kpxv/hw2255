@@ -1,0 +1,106 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 250}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L1}
+\newcommand{\LabInstructor}{Chongzhou Fang}
+
+\newcommand{\TAs}{Eddie Satowski \\ Khoi Pham}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Chongzhou Fang}
+\newcommand{\exerciseNumber}{4}
+\newcommand{\exerciseDescription}{Iteration and Subroutines}
+\newcommand{\dateDone}{2026-02-12}
+\newcommand{\dateSubmitted}{2025-02-21}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+The purpose of this exercise was to initialize a Universal Asynchronous
+Reciever / Transmitter (UART) on an NXP Freedom Board KL05Z, as well as to
+design, implement, and test an interactable menu and subroutines to print
+characters to and recieve characters from a TTY. The subroutines waited for the
+\texttt{TDRE} or \texttt{RDRF} flag to be set, then read or wrote data to or
+from the \texttt{UART\_D} register. The interactable menu was implemented by
+waiting for a character to be input, and if the character was one of C, N, V,
+or Z, branching to a library-provided subroutine to print the menu text. The
+program was translated, compiled, and flashed to the KL05Z. It was tested with
+various inputs. All inputs worked as expected; the exercise was successful.
+
+\section*{Procedure}
+
+A Keil MDK-ARM project was created. Provided files \texttt{MKL05Z4.s},
+\texttt{Start.s}, and \linebreak \texttt{Exercise05\_Lib.lib} were added to the project
+directory. Files \texttt{Start.s} and \linebreak \texttt{Exercise05\_Lib.lib} were added
+to Source Group 1 of the project.
+
+A subroutine for initializing the UART on the KL05Z to use port B pins 1 and 2
+with 8 data bits, no parity, 1 stop bit, and 9600 baud was taken from provided
+code and modified so that no registers other than \texttt{LR}, \texttt{PC}, and
+\texttt{PSR} were changed after execution.
+
+A subroutine to get a character from the UART data register was written. It
+first waited for the \texttt{RDRF} flag to be set, ensuring that data was ready
+to be read, then read a byte from \texttt{UART0\_D} into \texttt{R0}.
+
+A subroutine to put a character into the UART data register was written. It
+first waited for the \texttt{TDRE} flag to be set, ensuring that data was ready
+to be transmitted, than wrote a byte from \texttt{R0} into \texttt{UART0\_D}.
+
+A main program to display an interactive menu was written. It used a library to
+display prompt text and responses. The library dependend on the PutChar
+subroutine. The main program first polled for input using GetChar, then
+converted any lowercase letter to an uppercase letter. The converted inputs
+were compared against letters C, N, V, and Z. If any inputs matched, the
+library was used to print information about the relevant \texttt{PSR} flag.
+
+The program was translated and built. Target options were modified to allow the
+debugger to work with the flashed chip. The program was flashed to the KL05Z.
+The windows program PuTTY was configured to communicate with the chip. The
+program was tested with a variety of inputs, including A--Z, a--z, and special
+characters. Only the characters c, C, n, N, v, V, z, and Z were printed and
+brought up the relevant menus. Occasionally, after inputting a long sequence of
+characters, the menu stopped responding. It is unclear whether this was caused
+due to a fault in the assembly program or beacuse the TTY was misconfigured.
+
+\section*{Results}
+
+The MyCode area of the program had a byte size of 344. The exeucutable area of
+of the MyCode area had a byte size of 282. It's memory addresses spanned from
+0x0 to 0x11A. The main program spanned from 0x6 to 0x82, with a byte size of
+124. The GetChar subroutine spanned from memory address 0xEE to memory address
+0x102, with a byte size of 20. The PutChar subroutine spanned from memory
+address 0x104 to memory address 0x118, with a byte size of 20. The equal byte
+sizes of GetChar and PutChar make sense — the only differences between them is
+that they read different flags and do different I/O operations to the
+\texttt{UART0\_D} register.
+
+\section*{Conclusion}
+
+
+The object of this exercise was to initialize a Universal Asynchronous
+Reciever / Transmitter (UART) on an NXP Freedom Board KL05Z, as well as to
+design, implement, and test an interactable menu and subroutines to print
+characters to and recieve characters from a TTY. This was accomplished through
+the usage of a template to initialize the program and by adding subroutines to
+perform the logic. A library was used to determine the text to be displayed.
+GetChar and PutChar read a flag from status register 1 and, depending on the
+value, stored / wrote a character to / from \texttt{UART0\_D}. The use of the
+UART will helpful in any future work with a chip that needs to communicate with
+another device.
+
+\includepdf[pages=-]{assets/prelab}
+
+\end{document}
