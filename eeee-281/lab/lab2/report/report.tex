@@ -1,0 +1,111 @@
+\documentclass[EEEE]{KGCOEReport}
+
+\usepackage{biblatex}
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{csquotes}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{amsmath}
+\usepackage{circuitikz}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{./assets/}
+\addbibresource{./assets/bib.bib}
+
+\newcommand{\classCode}{EEEE 281}
+\newcommand{\className}{Circuits 1}
+
+\newcommand{\name}{Aden Perry}
+% \newcommand{\partnerName}{PARTNER}
+
+\newcommand{\LabSectionNum}{L7}
+
+\newcommand{\TAs}{Sol Holston}
+\newcommand{\exerciseNumber}{2}
+\newcommand{\exerciseDescription}{Nodal Analysis}
+
+\newcommand{\dateDone}{2026-02-24}
+\newcommand{\dateSubmitted}{2026-03-03}
+
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+\section{Introduction and Theory}
+
+\subsection{Theory: Circuit(s) Investigated}
+
+\begin{figure}[H]
+    \center
+	\includegraphics[width=0.5\textwidth]{figures/circuit-1.pdf}
+    \caption{Transistor circuit}
+    \label{fig:c1}
+\end{figure}
+
+\begin{equation*}
+	\begin{bmatrix}
+		1           & 0                    & 0                   & 0 & 0                   \\
+		0           & 1                    & 0                   & 0 & 0                   \\
+		-4,700^{-1} & -2,200^{-1}          & 6.673 \cdot 10^{-4} & 0 & 0                   \\
+		0           & 0                    & -1                  & 1 & 0                   \\
+		-1,000^{-1} & -2.228 \cdot 10^{-3} & 0                   & 0 & 3.228 \cdot 10^{-3}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		v_1 \\ v_2 \\ v_b \\ v_e \\ v_c
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+		5 \\ -5 \\ -17 \cdot 10^{-6} \\ -0.7 \\ 17 \cdot 10^{-6}
+	\end{bmatrix}
+\end{equation*}
+
+Thus,
+
+\begin{align*}
+	v_c & = -0.657525 \text{ V} \\
+	v_b & = -1.83707 \text{ V}  \\
+	v_e & = -2.53707 \text{ V}
+\end{align*}
+
+\subsection{Theory: LTspice Simulation}
+
+\section{Hardware Experiment: Results and Discussion}
+
+\section{Conclusion}
+
+\begin{table}[H]
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		           & VB     & VC     & VE     & VBE   \\
+		\hline
+		\hline
+		Hand calc  & −1.837 & −0.658 & −2.537 & 0.7   \\
+		\hline
+		Simulation & -1.838 & -0.658 & -2.537 & 0.7   \\
+		\hline
+		Hardware   & -1.851 & -0.624 & -2.549 & 0.697 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Acknowledgements}
+
+Methods described in the textbook \textit{Fundamentals of Electric Circuits,
+	7th Ediition} \cite{fec} were used to derive TODO
+
+The template for this Technical Memo was modified from a \LaTeX \ class created
+by Joshua Milas and Seth Gower, using the provided Tech Memo Template and
+example Tech Memo from the Advanced Course as inspiration.
+
+The Teaching Assistant, Sol Holston, verified calculated, simulated, and
+measured values were correct.
+
+\printbibliography
+
+\end{document}
