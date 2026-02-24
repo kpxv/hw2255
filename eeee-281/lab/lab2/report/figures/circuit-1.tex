@@ -1,0 +1,35 @@
+\documentclass{standalone}
+
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usepackage{newtxtext, newtxmath}
+
+\begin{document}
+\begin{circuitikz}[american voltages]
+    \draw
+    (0,0) to [V, l=$5V$] (0,-4)
+    to [V, l=$5V$] (0,-9)
+    to (9,-9)
+    to [R, l=$10k\Omega$] (9,-2)
+    to (6,-2)
+    to [R, l=$1k\Omega$] (6,0)
+    to (0,0)
+
+    (3, 0) to [R, l=$4.7k\Omega$] (3,-4)
+    to [R, l=$2.2k\Omega$] (3, -9)
+
+
+    (6,-4) node [npn] (trans) {2N3904}
+
+    (trans.C) to (6,-2)
+    (trans.E) to [R, l=$470\Omega$] (6,-9)
+    (trans.B) to [short, f_<=$17\mu A$] (3,-4)
+
+    (trans.B) ++ (-1, 0) to [open, v=$0.7V$] (trans.E)
+
+    (-1,-4) to (0, -4)
+    ;
+
+    \node [ground] at (-1, -4) {};
+\end{circuitikz}
+\end{document}
