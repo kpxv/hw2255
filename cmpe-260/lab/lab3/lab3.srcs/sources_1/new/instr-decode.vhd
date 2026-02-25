@@ -1,152 +1,154 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
+-- Company:
+-- Engineer:
+--
 -- Create Date: 02/24/2026 07:53:30 PM
--- Design Name: 
+-- Design Name:
 -- Module Name: InstrDecode - behv
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
+-- Project Name:
+-- Target Devices:
+-- Tool Versions:
+-- Description:
+--
+-- Dependencies:
+--
 -- Revision:
 -- Revision 0.01 - File Created
 -- Additional Comments:
--- 
+--
 ----------------------------------------------------------------------------------
+library ieee;
+    use ieee.std_logic_1164.all;
+    use ieee.numeric_std.all;
 
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
-
-entity InstrDecode is
+entity instrdecode is
     port (
-             clk : in std_logic;
-             Instruction : in std_logic_vector(31 downto 0);
-             RegWriteAddr : in std_logic_vector(4 downto 0);
-             RegWriteData : in std_logic_vector(31 downto 0);
-             RegWriteEn : in std_logic;
+        clk          : in    std_logic;
+        instruction  : in    std_logic_vector(31 downto 0);
+        regwriteaddr : in    std_logic_vector(4 downto 0);
+        regwritedata : in    std_logic_vector(31 downto 0);
+        regwriteen   : in    std_logic;
 
-             RegWrite : out std_logic;
-             MemtoReg : out std_logic;
-             MemWrite : out std_logic;
-             ALUControl : out std_logic_vector(3 downto 0);
-             ALUSrc : out std_logic;
-             RegDst : out std_logic;
-             RD1 : out std_logic_vector(31 downto 0);
-             RD2 : out std_logic_vector(31 downto 0);
-             RtDest : out std_logic_vector(4 downto 0);
-             RdDest : out std_logic_vector(4 downto 0);
-             ImmOut : out std_logic_vector(31 downto 0)
-         );
-end InstrDecode;
+        regwrite   : out   std_logic;
+        memtoreg   : out   std_logic;
+        memwrite   : out   std_logic;
+        alucontrol : out   std_logic_vector(3 downto 0);
+        alusrc     : out   std_logic;
+        regdst     : out   std_logic;
+        rd1        : out   std_logic_vector(31 downto 0);
+        rd2        : out   std_logic_vector(31 downto 0);
+        rtdest     : out   std_logic_vector(4 downto 0);
+        rddest     : out   std_logic_vector(4 downto 0);
+        immout     : out   std_logic_vector(31 downto 0)
+    );
+end entity instrdecode;
 
-architecture behv of InstrDecode is
-    signal Opcode_s, Funct_s : std_logic_vector(5 downto 0);
-    signal RegWrite_s, MemtoReg_s, MemWrite_s, ALUSrc_s, RegDst_s : std_logic;
-    signal ALUControl_s : std_logic_vector(3 downto 0);
-    signal RegAddr1_s, RegAddr2_s : std_logic_vector(4 downto 0);
-    signal ImmOut_s : std_logic_vector(31 downto 0);
+architecture behv of instrdecode is
+    signal opcode_s,   funct_s    : std_logic_vector(5 downto 0);
+    signal regwrite_s             : std_logic;
+    signal memtoreg_s             : std_logic;
+    signal memwrite_s             : std_logic;
+    signal alusrc_s               : std_logic;
+    signal regdst_s               : std_logic;
+    signal alucontrol_s           : std_logic_vector(3 downto 0);
+    signal regaddr1_s, regaddr2_s : std_logic_vector(4 downto 0);
+    signal immout_s               : std_logic_vector(31 downto 0);
 begin
-    Opcode_s <= Instruction(31 downto 26);
-    Funct_s <= Instruction(5 downto 0);
-    RegAddr1_s <= Instruction(25 downto 21);
-    RegAddr2_s <= Instruction(20 downto 16);
+    opcode_s   <= instruction(31 downto 26);
+    funct_s    <= instruction(5 downto 0);
+    regaddr1_s <= instruction(25 downto 21);
+    regaddr2_s <= instruction(20 downto 16);
 
-    ControlUnit_inst : entity work.ControlUnit
-    port map (
-                 Opcode => Opcode_s,
-                 Funct => Funct_s,
+    controlunit_inst : entity work.controlunit(behv)
+        port map (
+            opcode => opcode_s,
+            funct  => funct_s,
 
-                 RegWrite => RegWrite_s,
-                 MemtoReg => MemtoReg_s,
-                 MemWrite => MemWrite_s,
-                 ALUControl => ALUControl_s,
-                 ALUSrc => ALUSrc_s,
-                 RegDst => RegDst_s
-             );
+            regwrite   => regwrite_s,
+            memtoreg   => memtoreg_s,
+            memwrite   => memwrite_s,
+            alucontrol => alucontrol_s,
+            alusrc     => alusrc_s,
+            regdst     => regdst_s
+        );
 
-    RegisterFile_inst : entity work.RegisterFile
-    port map (
-                 clk_n => clk,
-                 we => RegWriteEn,
-                 Addr1 => RegAddr1_s,
-                 Addr2 => RegAddr2_s,
-                 Addr3 => RegWriteAddr,
-                 wd => RegWriteData,
+    registerfile_inst : entity work.registerfile(behv)
+        port map (
+            clk_n => clk,
+            we    => regwriteen,
+            addr1 => regaddr1_s,
+            addr2 => regaddr2_s,
+            addr3 => regwriteaddr,
+            wd    => regwritedata,
 
-                 RD1 => RD1,
-                 RD2 => RD2
-             );
+            rd1 => rd1,
+            rd2 => rd2
+        );
 
-    process (clk, RegWrite_s)
+    regwrite_proc : process (clk, regwrite_s) is
     begin
         if rising_edge(clk) then
-            RegWrite <= RegWrite_s;
+            regwrite <= regwrite_s;
         end if;
-    end process;
+    end process regwrite_proc;
 
-    process (clk, MemtoReg_s)
+    memtoreg_proc : process (clk, memtoreg_s) is
     begin
         if rising_edge(clk) then
-            MemtoReg <= MemtoReg_s;
+            memtoreg <= memtoreg_s;
         end if;
-    end process;
+    end process memtoreg_proc;
 
-    process (clk, MemWrite_s)
+    memwrite_proc : process (clk, memwrite_s) is
     begin
         if rising_edge(clk) then
-            MemWrite <= MemWrite_s;
+            memwrite <= memwrite_s;
         end if;
-    end process;
+    end process memwrite_proc;
 
-    process (clk, ALUControl_s)
+    alucontrol_proc : process (clk, alucontrol_s) is
     begin
         if rising_edge(clk) then
-            ALUControl <= ALUControl_s;
+            alucontrol <= alucontrol_s;
         end if;
-    end process;
+    end process alucontrol_proc;
 
-    process (clk, ALUSrc_s)
+    alusrc_proc : process (clk, alusrc_s) is
     begin
         if rising_edge(clk) then
-            ALUSrc <= ALUSrc_s;
+            alusrc <= alusrc_s;
         end if;
-    end process;
+    end process alusrc_proc;
 
-    process (clk, RegDst_s)
+    regdst_proc : process (clk, regdst_s) is
     begin
         if rising_edge(clk) then
-            RegDst <= RegDst_s;
+            regdst <= regdst_s;
         end if;
-    end process;
+    end process regdst_proc;
 
-    process (clk, Instruction)
+    rtdest_proc : process (clk, instruction) is
     begin
         if rising_edge(clk) then
-            RtDest <= Instruction(20 downto 16);
+            rtdest <= instruction(20 downto 16);
         end if;
-    end process;
+    end process rtdest_proc;
 
-    process (clk, Instruction)
+    rddest_proc : process (clk, instruction) is
     begin
         if rising_edge(clk) then
-            RdDest <= Instruction(15 downto 11);
+            rddest <= instruction(15 downto 11);
         end if;
-    end process;
+    end process rddest_proc;
 
-    process (clk, Instruction)
+    immout_proc : process (clk, instruction) is
     begin
         if rising_edge(clk) then
             -- Sign extend
-            ImmOut_s (15 downto 0) <= Instruction(15 downto 0);
-            ImmOut_s (31 downto 16) <= (others => Instruction(15));
+            immout_s (15 downto 0)  <= instruction(15 downto 0);
+            immout_s (31 downto 16) <= (others => instruction(15));
 
-            ImmOut <= ImmOut_s;
+            immout <= immout_s;
         end if;
-    end process;
-end behv;
+    end process immout_proc;
+end architecture behv;

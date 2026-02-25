@@ -12,79 +12,84 @@
 --                 Testbench for Instruction Fetch
 --                 Stage
 -------------------------------------------------
+library ieee;
+    use ieee.std_logic_1164.all;
+    use ieee.numeric_std.all;
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+entity instructionfetchtb is
+end entity instructionfetchtb;
 
-entity InstructionFetchTB is
-end InstructionFetchTB;
+architecture behv of instructionfetchtb is
+    type test_vector is record
+        rst         : std_logic;
+        Instruction : std_logic_vector(31 downto 0);
+    end record test_vector;
+    -- TODO: Add additional 5 cases to test table
+    type     test_array is array (natural range <>) of test_vector;
+    constant test_vector_array : test_array :=
+    (
+        (
+            rst         => '1',
+            Instruction => x"00000000"
+        ), -- address 0, reset value
+        (
+            rst         => '0',
+            Instruction => x"11111111"
+        ), -- address 1
+        (
+            rst         => '0',
+            Instruction => x"22222222"
+        ), -- address 2
+        (
+            rst         => '0',
+            Instruction => x"1F2E3D4C"
+        )  -- address 3
+    );
 
-architecture Behavioral of InstructionFetchTB is
+    component instructionfetch is
+        port (
+            clk         : in    std_logic;
+            rst         : in    std_logic;
+            instruction : out   std_logic_vector(31 downto 0)
+        );
+    end component instructionfetch;
 
-type test_vector is record
-	rst : std_logic;
-	Instruction	 : std_logic_vector(31 downto 0);
-end record;
-
---TODO: Add additional 5 cases to test table
-type test_array is array (natural range <>) of test_vector;
-constant test_vector_array : test_array := (
-	(rst => '1', Instruction => x"00000000"), -- address 0, reset value
-	(rst => '0', Instruction => x"11111111"), -- address 1
-	(rst => '0', Instruction => x"22222222"), -- address 2
-	(rst => '0', Instruction => x"1f2e3d4c")  -- address 3
-);
-
-component InstructionFetch
-  port (
-    clk : in std_logic;
-    rst : in std_logic;
-    Instruction : out std_logic_vector(31 DOWNTO 0)
-  );
-end component;
-
-	signal rst : std_logic;
-	signal clk : std_logic;
-	signal instruction : std_logic_vector(31 downto 0);
-
-
+    signal   rst               : std_logic;
+    signal   clk               : std_logic;
+    signal   instruction       : std_logic_vector(31 downto 0);
 begin
+    uut : component instructionfetch
+        port map (
+            clk         => clk,
+            rst         => rst,
+            instruction => instruction
+        );
 
-uut : InstructionFetch
-  port map (
-    clk => clk,
-    rst => rst,
-    Instruction => Instruction
-  );
+    clk_proc : process is
+    begin
+        clk <= '0';
+        wait for 50 ns;
+        clk <= '1';
+        wait for 50 ns;
+    end process clk_proc;
 
-clk_proc:process
-begin
-	clk <= '0';
-	wait for 50 ns;
-	clk <= '1';
-	wait for 50 ns;
-end process;
+    stim_proc : process is
+    begin
+        -- TODO:  time for everything to reset
+        rst <= '1';
+        wait until clk = '1';
+        wait until clk = '0';
 
-stim_proc:process
-begin
-  --TODO:	time for everything to reset
-  rst <= '1';
-  wait until clk='1';
-  wait until clk='0';
+        for i in test_vector_array'range loop
+            rst <= test_vector_array(i).rst;
+            wait until clk = '0';
+        -- TODO:  assert statement
+        end loop;
 
-	for i in test_vector_array'range loop
-		rst <= test_vector_array(i).rst;
-		wait until clk='0';
---TODO:	assert statement
-	end loop;
-	wait until clk='0';
+        wait until clk = '0';
 
-	assert false
-		report "Testbench Concluded"
-		severity failure;
-
-
-end process;
-
-end Behavioral;
+        assert false
+            report "Testbench Concluded"
+            severity failure;
+    end process stim_proc;
+end architecture behv;
