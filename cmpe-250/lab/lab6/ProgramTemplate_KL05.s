@@ -148,15 +148,17 @@ UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: UART0_S1_OR_MASK :OR:    UAR
 ;0-->0:RAF=receiver active flag; read-only 
 UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR: UART0_S2_RXEDGIF_MASK) 
 ;---------------------------------------------------------------
+MAX_STRING EQU 79
 
+HEX_0 EQU 0x30
+HEX_a EQU 0x61
+OFFSET_a_A EQU 0x20
 
-; Stores \data to \dest. Modifies R0 and R1
-	MACRO
-	storeb_unsafe $data, $dest
-    ldr r0, =$dest
-    movs r1, #$data
-    strb r1, [r0, #0]
-	MEND
+HEX_G EQU 0x43
+HEX_I EQU 0x4E
+HEX_L EQU 0x56
+HEX_P EQU 0x5A
+
 ;****************************************************************
 ;Program
 ;Linker requires Reset_Handler
@@ -175,9 +177,35 @@ main
 ;---------------------------------------------------------------
 ;>>>>> begin main program code <<<<<
 			bl Init_UART0_Polling
-			MOVS R1, #5
-			LDR R0, =var
-			BL GetStringSB
+
+            LDR R0, =var
+            MOVS R1, #0
+            STRB R1, {R0, #0}
+
+MAIN_LOOP
+            LDR R0, =instr_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB 
+
+POLL_LOOP
+            BL GetChar          ; Poll for character
+            MOVS R4, R0         ; Allow logic with toUpper, but save polled character for printing
+            CMP R4, #HEX_a      ; Check whether the polled character is less then 'a'
+            BLT CHECK           ; If so, skip toUpper conversion
+TO_UPPER
+            SUBS R4, R4, #OFFSET_a_A    ; Else, convert character to uppercase.
+
+CHECK
+			CMP R4, #HEX_G      ; Check whether character is G
+			BEQ G_INSTR
+			CMP R4, #HEX_I      ; Check whether character is I
+			BEQ I_INSTR
+			CMP R4, #HEX_L      ; Check whether character is L
+			BEQ L_INSTR
+			CMP R4, #HEX_P      ; Check whether character is P
+			BEQ P_INSTR
+			
+			B POLL_LOOP         ; Loop
 
 ;>>>>>   end main program code <<<<<
 ;Stay here
@@ -192,84 +220,72 @@ main
 ; Changes: LR, PC, PSR
 ;*/
 Init_UART0_Polling PROC {}
-;Select MCGFLLCLK as UART0 clock source 
-    push {r0, r1, r2}
-	
-    LDR   R0,=SIM_SOPT2 
-    LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
-    LDR   R2,[R0,#0] 
-    BICS  R2,R2,R1 
-    LDR   R1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
-    ORRS  R2,R2,R1 
-    STR   R2,[R0,#0] 
-;Set UART0 for external connection 
-    LDR   R0,=SIM_SOPT5 
-    LDR   R1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
-    LDR   R2,[R0,#0] 
-    BICS  R2,R2,R1 
-    STR   R2,[R0,#0] 
-;Enable UART0 module clock 
-    LDR   R0,=SIM_SCGC4 
-    LDR   R1,=SIM_SCGC4_UART0_MASK 
-    LDR   R2,[R0,#0] 
-    ORRS  R2,R2,R1 
-    STR   R2,[R0,#0] 
-;Enable PORT B module clock 
-    LDR   R0,=SIM_SCGC5 
-    LDR   R1,=SIM_SCGC5_PORTB_MASK 
-    LDR   R2,[R0,#0] 
-    ORRS  R2,R2,R1 
-    STR   R2,[R0,#0] 
-;Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
-    LDR     R0,=PORTB_PCR2 
-    LDR     R1,=PORT_PCR_SET_PTB2_UART0_RX 
-    STR     R1,[R0,#0] 
-; Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
-    LDR     R0,=PORTB_PCR1 
-    LDR     R1,=PORT_PCR_SET_PTB1_UART0_TX 
-    STR     R1,[R0,#0] 
-;Disable UART0 receiver and transmitter 
-    LDR   R0,=UART0_BASE 
-    MOVS  R1,#UART0_C2_T_R 
-    LDRB  R2,[R0,#UART0_C2_OFFSET] 
-    BICS  R2,R2,R1 
-    STRB  R2,[R0,#UART0_C2_OFFSET] 
-;Set UART0 for 9600 baud, 8N1 protocol 
-    MOVS  R1,#UART0_BDH_9600 
-    STRB  R1,[R0,#UART0_BDH_OFFSET] 
-    MOVS  R1,#UART0_BDL_9600 
-    STRB  R1,[R0,#UART0_BDL_OFFSET] 
-    MOVS  R1,#UART0_C1_8N1 
-    STRB  R1,[R0,#UART0_C1_OFFSET] 
-    MOVS  R1,#UART0_C3_NO_TXINV 
-    STRB  R1,[R0,#UART0_C3_OFFSET] 
-    MOVS  R1,#UART0_C4_NO_MATCH_OSR_16 
-    STRB  R1,[R0,#UART0_C4_OFFSET] 
-    MOVS  R1,#UART0_C5_NO_DMA_SSR_SYNC 
-    STRB  R1,[R0,#UART0_C5_OFFSET] 
-    MOVS  R1,#UART0_S1_CLEAR_FLAGS 
-    STRB  R1,[R0,#UART0_S1_OFFSET] 
-    MOVS  R1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
-    STRB  R1,[R0,#UART0_S2_OFFSET] 
-;Enable UART0 receiver and transmitter 
-    MOVS  R1,#UART0_C2_T_R 
-    STRB  R1,[R0,#UART0_C2_OFFSET] 
+            ;Select MCGFLLCLK as UART0 clock source 
+            push {r0, r1, r2}
+            
+            LDR   R0,=SIM_SOPT2 
+            LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
+            LDR   R2,[R0,#0] 
+            BICS  R2,R2,R1 
+            LDR   R1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+            ORRS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Set UART0 for external connection 
+            LDR   R0,=SIM_SOPT5 
+            LDR   R1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+            LDR   R2,[R0,#0] 
+            BICS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Enable UART0 module clock 
+            LDR   R0,=SIM_SCGC4 
+            LDR   R1,=SIM_SCGC4_UART0_MASK 
+            LDR   R2,[R0,#0] 
+            ORRS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Enable PORT B module clock 
+            LDR   R0,=SIM_SCGC5 
+            LDR   R1,=SIM_SCGC5_PORTB_MASK 
+            LDR   R2,[R0,#0] 
+            ORRS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
+            LDR     R0,=PORTB_PCR2 
+            LDR     R1,=PORT_PCR_SET_PTB2_UART0_RX 
+            STR     R1,[R0,#0] 
+            ; Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
+            LDR     R0,=PORTB_PCR1 
+            LDR     R1,=PORT_PCR_SET_PTB1_UART0_TX 
+            STR     R1,[R0,#0] 
+            ;Disable UART0 receiver and transmitter 
+            LDR   R0,=UART0_BASE 
+            MOVS  R1,#UART0_C2_T_R 
+            LDRB  R2,[R0,#UART0_C2_OFFSET] 
+            BICS  R2,R2,R1 
+            STRB  R2,[R0,#UART0_C2_OFFSET] 
+            ;Set UART0 for 9600 baud, 8N1 protocol 
+            MOVS  R1,#UART0_BDH_9600 
+            STRB  R1,[R0,#UART0_BDH_OFFSET] 
+            MOVS  R1,#UART0_BDL_9600 
+            STRB  R1,[R0,#UART0_BDL_OFFSET] 
+            MOVS  R1,#UART0_C1_8N1 
+            STRB  R1,[R0,#UART0_C1_OFFSET] 
+            MOVS  R1,#UART0_C3_NO_TXINV 
+            STRB  R1,[R0,#UART0_C3_OFFSET] 
+            MOVS  R1,#UART0_C4_NO_MATCH_OSR_16 
+            STRB  R1,[R0,#UART0_C4_OFFSET] 
+            MOVS  R1,#UART0_C5_NO_DMA_SSR_SYNC 
+            STRB  R1,[R0,#UART0_C5_OFFSET] 
+            MOVS  R1,#UART0_S1_CLEAR_FLAGS 
+            STRB  R1,[R0,#UART0_S1_OFFSET] 
+            MOVS  R1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
+            STRB  R1,[R0,#UART0_S2_OFFSET] 
+            ;Enable UART0 receiver and transmitter 
+            MOVS  R1,#UART0_C2_T_R 
+            STRB  R1,[R0,#UART0_C2_OFFSET] 
 
-    ; TODO: use MCGFLLCLK
-
-    ; Clear TE and RE
-    ;storeb_unsafe uart0_c2_t_r_clr, uart0_c2
-
-    ; Enable polling; use 2 pins; set stop bit to 1; set baud rate to 9600
-    ;storeb_unsafe uart0_bdh_9600, uart0_bdh
-    ;storeb_unsafe uart0_bdl_9600, uart0_bdl
-
-    ; Set 8-bit data, no parity
-    ;storeb_unsafe uart0_c1_opt, uart0_c1
-
-    POP {R0, R1, R2}
-    BX LR
-	ENDP
+            POP {R0, R1, R2}
+            BX LR
+            ENDP
 
 ;*
 ; Gets a character from UART0_D
@@ -277,23 +293,23 @@ Init_UART0_Polling PROC {}
 ; Changes: R0, LR, PC, PSR
 ;*/
 GetChar PROC {}
-    PUSH {R1}
-    MOVS R1, #UART0_S1_RDRF_MASK
+            PUSH {R1}
+            MOVS R1, #UART0_S1_RDRF_MASK
 GetCharLoop
-    ; Wait for RDRF to be set
-    LDR R0, =UART0_S1
-    LDRB R0, [R0, #0]
-    ANDS R0, R0, R1
-    CMP R0, #0
-    beq  GetCharLoop
+            ; Wait for RDRF to be set
+            LDR R0, =UART0_S1
+            LDRB R0, [R0, #0]
+            ANDS R0, R0, R1
+            CMP R0, #0
+            beq  GetCharLoop
 
-    ; Read UART0_D
-    LDR R0, =UART0_D
-    LDRB R0, [R0, #0]
+            ; Read UART0_D
+            LDR R0, =UART0_D
+            LDRB R0, [R0, #0]
 
-    POP {R1}
-    BX LR
-	ENDP
+            POP {R1}
+            BX LR
+            ENDP
 
 ;*
 ; Puts a character into UART0_D
@@ -301,132 +317,147 @@ GetCharLoop
 ; Changes: LR, PC, PSR
 ;*/
 PutChar PROC {}
-    PUSH {R1, R2}
-    MOVS R1, #UART0_S1_TDRE_MASK
+            PUSH {R1, R2}
+            MOVS R1, #UART0_S1_TDRE_MASK
 PutCharLoop
-    ; Wait for TDRE to be set
-    LDR R2, =UART0_S1
-    LDRB R2, [R2, #0]
-    ANDS R2, R2, R1
-    CMP R2, #0
-    beq PutCharLoop
+            ; Wait for TDRE to be set
+            LDR R2, =UART0_S1
+            LDRB R2, [R2, #0]
+            ANDS R2, R2, R1
+            CMP R2, #0
+            beq PutCharLoop
 
-    ; Write UART0_D
-    LDR R2, =UART0_D
-    STRB R0, [R2, #0]
+            ; Write UART0_D
+            LDR R2, =UART0_D
+            STRB R0, [R2, #0]
 
-    POP {R1, R2}
-    BX LR
-	ENDP
-	
+            POP {R1, R2}
+            BX LR
+            ENDP
 
-
+; Gets a string from user
+; Inputs:
+;   R1 : Buffer capacity
+;   R0 : Address of stored string
+; Outputs:
+;   A string at location in memory specified by R0
 GetStringSB PROC {}
-	PUSH {R0-R4, LR}
-	CMP R1, #0
-	BEQ GetStringSBTerminate   ; String must have at least one character
-	SUBS R1, R1, #1
-	MOVS R2, R0
-	MOVS R3, #0
+            PUSH {R0-R4, LR}
+            CMP R1, #0
+            BEQ GetStringSBTerminate   ; String must have at least one character
+            SUBS R1, R1, #1
+            MOVS R2, R0
+            MOVS R3, #0
 GetStringSBLoop
-	BL GetChar
-	CMP R0, #0x0D
-	BEQ GetStringSBCleanup
-	CMP R0, #0x08
-	BEQ GetStringSBBackspace
-	CMP R0, #0x7F
-	BEQ GetStringSBLoop
-	CMP R0, #0x1F
-	BLS GetStringSBLoop
-	
-	CMP R3, R1
-	BHS GetStringSBLoop
-	
-	STRB R0, [R2, R3]
-	ADDS R3, R3, #1
-	BL PutChar
-	B GetStringSBLoop
+            BL GetChar
+            CMP R0, #0x0D
+            BEQ GetStringSBCleanup
+            CMP R0, #0x08
+            BEQ GetStringSBBackspace
+            CMP R0, #0x7F
+            BEQ GetStringSBLoop
+            CMP R0, #0x1F
+            BLS GetStringSBLoop
+            
+            CMP R3, R1
+            BHS GetStringSBLoop
+            
+            STRB R0, [R2, R3]
+            ADDS R3, R3, #1
+            BL PutChar
+            B GetStringSBLoop
 	
 GetStringSBBackspace
-	CMP R3, #0
-	BEQ GetStringSBLoop
-	BL PutChar
-	MOVS R0, #0x20
-	BL PutChar
-	MOVS R0, #0x0A
-	BL PutChar
-	SUBS R3, R3, #1
-	B GetStringSBLoop
+            CMP R3, #0
+            BEQ GetStringSBLoop
+            BL PutChar
+            MOVS R0, #0x20
+            BL PutChar
+            MOVS R0, #0x0A
+            BL PutChar
+            SUBS R3, R3, #1
+            B GetStringSBLoop
 		
 GetStringSBCleanup
-	MOVS R4, #0
-	STRB R4, [R2, R3]
-	MOVS R0, #0x0A
-	BL PutChar
+            MOVS R4, #0
+            STRB R4, [R2, R3]
+            MOVS R0, #0x0A
+            BL PutChar
 GetStringSBTerminate
-	POP {R0-R4, PC}
+            POP {R0-R4, PC}
+            
+            ENDP
 	
-	ENDP
-	
-
-
+; Prints a string
+; Inputs:
+;   R0 : Memory addr of the string to print
+;   R1 : Capacity of the string
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
 PutStringSB PROC {}
-	PUSH {R0-R3, LR}
-	MOVS R2, R0
-	MOVS R3, #0
+            PUSH {R0-R3, LR}
+            MOVS R2, R0
+            MOVS R3, #0
 PutStringSBLoop
-	CMP R3, R1
-	BEQ PutStringSBTerminate
-	LDRB R0, [R2, R3]
-	CMP R0, #0
-	BEQ PutStringSBTerminate
-	
-	BL PutChar
-	ADDS R3, R3, #1
-	B PutStringSBLoop
+            CMP R3, R1
+            BEQ PutStringSBTerminate
+            LDRB R0, [R2, R3]
+            CMP R0, #0
+            BEQ PutStringSBTerminate
+            
+            BL PutChar
+            ADDS R3, R3, #1
+            B PutStringSBLoop
 	
 PutStringSBTerminate
-	POP {R0-R3, PC}
+            POP {R0-R3, PC}
+            
+            ENDP
 	
-	ENDP
-	
-	
-	
+; Print decimal of binary value
+; Inputs:
+;   R0 : The value to print
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
 PutNumU PROC {}
-	PUSH {R0-R4, LR}
-	CMP R0, #0
-	BEQ PutNumUPrintZero
-	MOVS R2, R0
-	MOVS R4, #0
+            PUSH {R0-R4, LR}
+            CMP R0, #0
+            BEQ PutNumUPrintZero
+            MOVS R2, R0
+            MOVS R4, #0
 PutNumULoop
-	MOVS R1, R2
-	MOVS R0, #10
-	BL DIVU
-	ADDS R1, R1, #0x30
-	PUSH {R1}
-	ADDS R4, R4, #1
-	CMP R0, #0
-	BEQ PutNumUPop
-	B PutNumULoop
+            MOVS R1, R2
+            MOVS R0, #10
+            BL DIVU
+            ADDS R1, R1, #HEX_0
+            PUSH {R1}
+            ADDS R4, R4, #1
+            CMP R0, #0
+            BEQ PutNumUPop
+            B PutNumULoop
 
 PutNumUPop
-	CMP R4, #0
-	BEQ PutNumUTerminate
-	POP {R0}
-	BL PutChar
-	SUBS R4, R4, #1
-	B PutNumUPop
+            CMP R4, #0
+            BEQ PutNumUTerminate
+            POP {R0}
+            BL PutChar
+            SUBS R4, R4, #1
+            B PutNumUPop
 	
 PutNumUPrintZero
-	MOVS R0, #0x30
-	BL PutChar
-	B PutNumUTerminate; LEAVE
+            MOVS R0, #0x30
+            BL PutChar
+            B PutNumUTerminate; LEAVE
 	
 PutNumUTerminate
-	POP {R0-R4, PC}
-	BX LR
-	
-	ENDP
+            POP {R0-R4, PC}
+            BX LR
+            
+            ENDP
 
 
 
@@ -451,6 +482,102 @@ DIVU_END
             BX LR
             ENDP
 
+; Prints a string from user input
+; Inputs:
+;   R0 : TODO
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+G_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            MOVS R0, "<"
+            BL PutChar
+            LDR R0, =var
+            MOVS R1, #MAX_STRING
+            BL GetStringSB
+            POP{R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Initialize
+; Inputs:
+;   R0 : TODO
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+I_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            LDR R0, =var
+            MOVS R1, #0
+            STRB R1, {R0, #0}
+
+            MOVS R1, #4
+            LDR R0, =crlf_str
+            BL PutStringSB
+            POP {R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Prints the length of the string
+; Inputs:
+;   R0 : TODO
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+L_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            LDR R0, =var
+            MOVS R1, #MAX_STRING
+            BL LengthStringSB
+            BL PutNumU
+            POP {R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Print the operational string
+; Inputs:
+;   R0 : TOOD
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+P_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            MOVS R0, ">"
+            BL PutChar
+
+            LDR R0, =var
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+
+            MOVS R0, ">"
+            BL PutChar
+            POP {R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Print the char and newline
+; Inputs:
+;   R0 : The char to print
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+ECHO_CMD PROC {}
+            PUSH {R0, R1, LR}
+            BL PutChar
+            LDR R0, =crlf_str
+			MOVS R1, #5
+            BL PutStringSB
+            POP {R0, R1, PC}
+            ENDP
 
 
 ;>>>>>   end subroutine code <<<<<
@@ -530,13 +657,15 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
+intr_str    DCB "Type a string command (G,I,L,P):", 0x00
+crlf_str    DCB 0x0D, 0x0A
 ;>>>>>   end constants here <<<<<
             ALIGN
 ;****************************************************************
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
-var			SPACE 10
+var			SPACE MAX_STRING
 ;>>>>>   end variables here <<<<<
             ALIGN
             END
