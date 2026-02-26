@@ -150,14 +150,14 @@ UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR
 ;---------------------------------------------------------------
 MAX_STRING EQU 79
 
-HEX_0 EQU 0x30
-HEX_a EQU 0x61
+HEX_0 EQU "0"
+HEX_a EQU "a"
 OFFSET_a_A EQU 0x20
 
-HEX_G EQU 0x43
-HEX_I EQU 0x4E
-HEX_L EQU 0x56
-HEX_P EQU 0x5A
+HEX_G EQU "G"
+HEX_I EQU "I"
+HEX_L EQU "L"
+HEX_P EQU "P"
 
 ;****************************************************************
 ;Program
@@ -166,6 +166,7 @@ HEX_P EQU 0x5A
             ENTRY
             EXPORT  Reset_Handler
             IMPORT  Startup
+			IMPORT LengthStringSB
 
 Reset_Handler  PROC  {}
 main
@@ -180,7 +181,7 @@ main
 
             LDR R0, =var
             MOVS R1, #0
-            STRB R1, {R0, #0}
+            STRB R1, [R0, #0]
 
 MAIN_LOOP
             LDR R0, =instr_str
@@ -287,6 +288,110 @@ Init_UART0_Polling PROC {}
             BX LR
             ENDP
 
+; Prints a string from user input
+; Inputs:
+;   R0 : TODO
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+G_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            MOVS R0, #"<"
+            BL PutChar
+            LDR R0, =var
+            MOVS R1, #MAX_STRING
+            BL GetStringSB
+            POP{R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Initialize
+; Inputs:
+;   R0 : TODO
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+I_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            LDR R0, =var
+            MOVS R1, #0
+            STRB R1, [R0, #0]
+
+            MOVS R1, #4
+            LDR R0, =crlf_str
+            BL PutStringSB
+            POP {R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Prints the length of the string
+; Inputs:
+;   R0 : TODO
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+L_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+			LDR R0, =len_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            LDR R0, =var
+            MOVS R1, #MAX_STRING
+            BL LengthStringSB
+            BL PutNumU
+			MOVS R0, #0
+			BL ECHO_CMD
+            POP {R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Print the operational string
+; Inputs:
+;   R0 : TOOD
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+P_INSTR PROC {}
+            PUSH {R0, R1}
+            BL ECHO_CMD
+            MOVS R0, #">"
+            BL PutChar
+
+            LDR R0, =var
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+
+            MOVS R0, #">"
+            BL PutChar
+			MOVS R0, #0
+			BL ECHO_CMD
+            POP {R0, R1}
+            B MAIN_LOOP
+            ENDP
+
+; Print the char and newline
+; Inputs:
+;   R0 : The char to print
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+ECHO_CMD PROC {}
+            PUSH {R0, R1, LR}
+            BL PutChar
+            LDR R0, =crlf_str
+			MOVS R1, #5
+            BL PutStringSB
+            POP {R0, R1, PC}
+            ENDP
+
 ;*
 ; Gets a character from UART0_D
 ; Return value in R0
@@ -373,16 +478,19 @@ GetStringSBBackspace
             BL PutChar
             MOVS R0, #0x20
             BL PutChar
-            MOVS R0, #0x0A
+            MOVS R0, #0x08
             BL PutChar
+			MOVS R0, #0x00
+			STRB R0, [R2, R3]
             SUBS R3, R3, #1
             B GetStringSBLoop
 		
 GetStringSBCleanup
             MOVS R4, #0
             STRB R4, [R2, R3]
-            MOVS R0, #0x0A
-            BL PutChar
+			LDR R0, =crlf_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
 GetStringSBTerminate
             POP {R0-R4, PC}
             
@@ -429,21 +537,22 @@ PutNumU PROC {}
             BEQ PutNumUPrintZero
             MOVS R2, R0
             MOVS R4, #0
+			MOVS R1, R2
 PutNumULoop
-            MOVS R1, R2
             MOVS R0, #10
             BL DIVU
-            ADDS R1, R1, #HEX_0
             PUSH {R1}
             ADDS R4, R4, #1
             CMP R0, #0
             BEQ PutNumUPop
+			MOVS R1, R0
             B PutNumULoop
 
 PutNumUPop
             CMP R4, #0
             BEQ PutNumUTerminate
             POP {R0}
+			ADDS R0, R0, #HEX_0
             BL PutChar
             SUBS R4, R4, #1
             B PutNumUPop
@@ -455,8 +564,6 @@ PutNumUPrintZero
 	
 PutNumUTerminate
             POP {R0-R4, PC}
-            BX LR
-            
             ENDP
 
 
@@ -482,102 +589,7 @@ DIVU_END
             BX LR
             ENDP
 
-; Prints a string from user input
-; Inputs:
-;   R0 : TODO
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-G_INSTR PROC {}
-            PUSH {R0, R1}
-            BL ECHO_CMD
-            MOVS R0, "<"
-            BL PutChar
-            LDR R0, =var
-            MOVS R1, #MAX_STRING
-            BL GetStringSB
-            POP{R0, R1}
-            B MAIN_LOOP
-            ENDP
 
-; Initialize
-; Inputs:
-;   R0 : TODO
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-I_INSTR PROC {}
-            PUSH {R0, R1}
-            BL ECHO_CMD
-            LDR R0, =var
-            MOVS R1, #0
-            STRB R1, {R0, #0}
-
-            MOVS R1, #4
-            LDR R0, =crlf_str
-            BL PutStringSB
-            POP {R0, R1}
-            B MAIN_LOOP
-            ENDP
-
-; Prints the length of the string
-; Inputs:
-;   R0 : TODO
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-L_INSTR PROC {}
-            PUSH {R0, R1}
-            BL ECHO_CMD
-            LDR R0, =var
-            MOVS R1, #MAX_STRING
-            BL LengthStringSB
-            BL PutNumU
-            POP {R0, R1}
-            B MAIN_LOOP
-            ENDP
-
-; Print the operational string
-; Inputs:
-;   R0 : TOOD
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-P_INSTR PROC {}
-            PUSH {R0, R1}
-            BL ECHO_CMD
-            MOVS R0, ">"
-            BL PutChar
-
-            LDR R0, =var
-            MOVS R1, #MAX_STRING
-            BL PutStringSB
-
-            MOVS R0, ">"
-            BL PutChar
-            POP {R0, R1}
-            B MAIN_LOOP
-            ENDP
-
-; Print the char and newline
-; Inputs:
-;   R0 : The char to print
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-ECHO_CMD PROC {}
-            PUSH {R0, R1, LR}
-            BL PutChar
-            LDR R0, =crlf_str
-			MOVS R1, #5
-            BL PutStringSB
-            POP {R0, R1, PC}
-            ENDP
 
 
 ;>>>>>   end subroutine code <<<<<
@@ -657,8 +669,9 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
-intr_str    DCB "Type a string command (G,I,L,P):", 0x00
-crlf_str    DCB 0x0D, 0x0A
+instr_str   DCB "Type a string command (G,I,L,P):", 0x00
+crlf_str    DCB 0x0D, 0x0A, 0x00
+len_str		DCB "Length:", 0x00
 ;>>>>>   end constants here <<<<<
             ALIGN
 ;****************************************************************

@@ -150,18 +150,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>178</LineNumber>
+          <LineNumber>179</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>266</Address>
+          <Address>0</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
+          <BreakIfRCount>0</BreakIfRCount>
           <Filename>.\ProgramTemplate_KL05.s</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\lab6_proj\ProgramTemplate_KL05.s\178</Expression>
+          <Expression></Expression>
         </Bp>
       </Breakpoint>
       <Tracepoint>
