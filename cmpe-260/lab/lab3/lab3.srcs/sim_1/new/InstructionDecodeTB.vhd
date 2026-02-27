@@ -41,60 +41,104 @@ architecture tb of instructiondecodetb is
     (
         -- NOOP
         (
+            -- Inputs
             Instruction  => x"00000000",
             RegWriteAddr => "00000",
             RegWriteData => x"00000000",
             RegWriteEn   => '0',
-            RegWrite     => '1',
-            MemtoReg     => '0',
-            MemWrite     => '0',
-            ALUControl   => "1100",
-            ALUSrc       => '0',
-            RegDst       => '1',
-            RD1          => x"00000000",
-            RD2          => x"00000000",
-            RtDest       => "00000",
-            RdDest       => "00000",
-            ImmOut       => x"00000000"
+            -- Outputs
+            RegWrite   => '1',
+            MemtoReg   => '0',
+            MemWrite   => '0',
+            ALUControl => "1100",
+            ALUSrc     => '0',
+            RegDst     => '1',
+            RD1        => x"00000000",
+            RD2        => x"00000000",
+            RtDest     => "00000",
+            RdDest     => "00000",
+            ImmOut     => x"00000000"
         ),
-        -- ADD R1, R1, R2 - 00000000001000010001000000100000
+        -- ADD R1, R1, R2 - 000000 00001 00001 00010 00000 100000
         (
+            -- Inputs
             Instruction  => x"00211020",
             RegWriteAddr => "00001",
             RegWriteData => x"12121212",
             RegWriteEn   => '1',
-            RegWrite     => '1',
-            MemtoReg     => '0',
-            MemWrite     => '0',
-            ALUControl   => "0100",
-            ALUSrc       => '0',
-            RegDst       => '1',
-            RD1          => x"12121212",
-            RD2          => x"12121212",
-            RtDest       => "00001",
-            RdDest       => "00010",
-            ImmOut       => x"00001020"
+            -- Outputs
+            RegWrite   => '1',
+            MemtoReg   => '0',
+            MemWrite   => '0',
+            ALUControl => "0100",
+            ALUSrc     => '0',
+            RegDst     => '1',
+            RD1        => x"12121212",
+            RD2        => x"12121212",
+            RtDest     => "00001",
+            RdDest     => "00010",
+            ImmOut     => x"00001020"
         ),
-        -- ADDI R1, R1, 13 - 00100000001000010000000000001101
+        -- ADDI R1, R1, 13 - 001000 00001 00001 0000000000001101
         (
+            -- Inputs
             Instruction  => x"2021000D",
             RegWriteAddr => "00010",
             RegWriteData => x"00000001",
             RegWriteEn   => '1',
-            RegWrite     => '1',
-            MemtoReg     => '0',
-            MemWrite     => '0',
-            ALUControl   => "0100",
-            ALUSrc       => '1',
-            RegDst       => '0',
-            RD1          => x"12121212",
-            RD2          => x"12121212",
-            RtDest       => "00001",
-            RdDest       => "00000",
-            ImmOut       => x"0000000D"
+            -- Outputs
+            RegWrite   => '1',
+            MemtoReg   => '0',
+            MemWrite   => '0',
+            ALUControl => "0100",
+            ALUSrc     => '1',
+            RegDst     => '0',
+            RD1        => x"12121212",
+            RD2        => x"12121212",
+            RtDest     => "00001",
+            RdDest     => "00000",
+            ImmOut     => x"0000000D"
+        ),
+        -- MULTU, R1, R1, R2 - 000000 00001 00001 00010 00000 011001
+        (
+            -- Inputs
+            Instruction  => x"000211019",
+            RegWriteAddr => "000010",
+            RegWriteData => x"00000001",
+            RegWriteEn   => '1',
+            -- Outputs
+            RegWrite   => '1',
+            MemtoReg   => '0',
+            MemWrite   => '0',
+            ALUControl => "0110",
+            ALUSrc     => '0',
+            RegDst     => '1',
+            RD1        => x"12121212",
+            RD2        => x"12121212",
+            RtDest     => "00001",
+            RdDest     => "00010",
+            ImmOut     => x"00001019"
+        ),
+        -- ANDI R1, R1, 0x0000FFFF - 001100 00001 00001 0000000011111111
+        (
+            -- Inputs
+            Instruction  => x"202100FF",
+            RegWriteAddr => "00010",
+            RegWriteData => x"00000001",
+            RegWriteEn   => '1',
+            -- Outputs
+            RegWrite   => '1',
+            MemtoReg   => '0',
+            MemWrite   => '0',
+            ALUControl => "1010",
+            ALUSrc     => '1',
+            RegDst     => '0',
+            RD1        => x"00001212",
+            RD2        => x"00001212",
+            RtDest     => "00001",
+            RdDest     => "00000",
+            ImmOut     => x"000000FF"
         )
-
-        -- Add more test vectors here
     );
 
     component instructiondecode is
@@ -185,7 +229,7 @@ begin
     begin
         wait until clk = '0';
 
-        for i in 0 to 2 loop -- TODO: update to number of test vectors
+        for i in 0 to 4 loop -- TODO: update to number of test vectors
             wait until clk = '1';
             instruction  <= test_vector_array(i).Instruction;
             regwriteaddr <= test_vector_array(i).RegWriteAddr;
@@ -193,6 +237,40 @@ begin
             regwriteen   <= test_vector_array(i).RegWriteEn;
             wait until clk = '0';
             wait for 5 ns;
+
+            assert test_vector_array(i).RegWrite = RegWrite
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).MemtoReg = MemtoReg
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).MemWrite = MemWrite
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).ALUControl = ALUControl
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).ALUSrc = ALUSrc
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).RegDst = RegDst
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).RD1 = RD1
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).RD2 = RD2
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).RtDest = RtDest
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).RdDest = RdDest
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
+            assert test_vector_array(i).ImmOut = ImmOut
+                report "Case failed on test #" & integer'image(i)
+                severity failure;
         -- TODO:  assert statements
         end loop;
 

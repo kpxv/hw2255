@@ -17,23 +17,31 @@ architecture behv of instrmem is
         mem  : memory
     ) return std_logic_vector is
     begin
-        if (addr < 1024) then
+        if (addr < 1024 and addr >= 0) then
             return mem(addr);
         else
-            return (others => '0');
+            return x"CC";
         end if;
     end function get_byte;
 
-    signal mem_array : memory  := (others => (others => '0'));
-    signal addr_int  : integer := 0;
-begin
-    addr_int <= to_integer(unsigned(addr));
+    -- Initialize memory addresses 0-8, and set the rest to 0x00
+    signal mem_array   : memory := (x"00", x"00", x"00", x"00", x"11", x"11", x"11", x"11", x"22", x"22", x"22", x"22",
+                                    x"1F", x"2E", x"3D", x"4C", x"01", x"01", x"01", x"01", x"10", x"10", x"10", x"10",
+                                    x"11", x"11", x"00", x"00", x"00", x"00", x"11", x"11", x"AA", x"AA", x"AA", x"AA",
+                                    x"11", x"11", x"00", x"00", x"00", x"00", x"11", x"11", x"AA", x"AA", x"AA", x"AA",
+                                    others => x"00");
+    signal addr_int_s  : integer;
 
-    get_mem_proc : process (addr) is
+    signal d_out_s : std_logic_vector(31 downto 0);
+begin
+    addr_int_s <= to_integer(unsigned(addr));
+    d_out <= d_out_s;
+
+    get_mem_proc : process (addr_int_s, mem_array) is
     begin
-        d_out <= get_byte(addr_int, mem_array) &
-                 get_byte(addr_int + 1, mem_array) &
-                 get_byte(addr_int + 2, mem_array) &
-                 get_byte(addr_int + 3, mem_array);
+        d_out_s <= get_byte(addr_int_s, mem_array)
+                   & get_byte(addr_int_s + 1, mem_array)
+                   & get_byte(addr_int_s + 2, mem_array)
+                   & get_byte(addr_int_s + 3, mem_array);
     end process get_mem_proc;
 end architecture behv;

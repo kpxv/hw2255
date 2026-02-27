@@ -16,7 +16,7 @@ library ieee;
 entity registerfile is
     generic (
         bit_width      : integer := 32;
-        log_port_depth : integer := 2
+        log_port_depth : integer := 5
     );
     port (
         clk_n : in    std_logic;

@@ -30,23 +30,26 @@ entity instrfetch is
 end entity instrfetch;
 
 architecture struct of instrfetch is
-    signal addr        : integer := 0;
-    signal addr_vector : std_logic_vector(27 downto 0);
+    signal addr_int_s        : integer := 0;
+    signal addr_vector_s     : std_logic_vector(27 downto 0);
 begin
-    addr_vector <= std_logic_vector(to_unsigned(addr, 28));
+    -- Sync vector and integer representations
+    addr_vector_s <= std_logic_vector(to_unsigned(addr_int_s, 28));
 
+    -- Use the Memory module
     instr_mem : entity work.instrmem(behv)
         port map (
-            addr  => addr_vector,
+            addr  => addr_vector_s,
             d_out => instruction
         );
 
-    inc_pc_proc : process (clk, rst) is
+    -- Increment the program counter
+    incr_addr_proc : process (clk, rst) is
     begin
         if (rst = '1') then
-            addr <= 0;
+            addr_int_s <= 0;
         elsif rising_edge(clk) then
-            addr <= addr + 4;
+            addr_int_s <= addr_int_s + 4;
         end if;
-    end process inc_pc_proc;
+    end process incr_addr_proc;
 end architecture struct;
