@@ -52,7 +52,6 @@ architecture behv of instrdecode is
     signal regdst_s               : std_logic;
     signal alucontrol_s           : std_logic_vector(3 downto 0);
     signal regaddr1_s, regaddr2_s : std_logic_vector(4 downto 0);
-    signal immout_s               : std_logic_vector(31 downto 0);
 begin
     opcode_s   <= instruction(31 downto 26);
     funct_s    <= instruction(5 downto 0);
@@ -85,70 +84,22 @@ begin
             rd2 => rd2
         );
 
-    regwrite_proc : process (clk, regwrite_s) is
-    begin
-        if rising_edge(clk) then
-            regwrite <= regwrite_s;
-        end if;
-    end process regwrite_proc;
+    regwrite   <= regwrite_s;
+    memtoreg   <= memtoreg_s;
+    memwrite   <= memwrite_s;
+    alucontrol <= alucontrol_s;
+    alusrc     <= alusrc_s;
+    regdst     <= regdst_s;
+    rtdest     <= instruction(20 downto 16);
+    rddest     <= instruction(15 downto 11);
 
-    memtoreg_proc : process (clk, memtoreg_s) is
+    immout_proc : process (instruction) is
+        variable immout_v : std_logic_vector(31 downto 0);
     begin
-        if rising_edge(clk) then
-            memtoreg <= memtoreg_s;
-        end if;
-    end process memtoreg_proc;
+        -- Sign extend
+        immout_v (15 downto 0)  := instruction(15 downto 0);
+        immout_v (31 downto 16) := (others => instruction(15));
 
-    memwrite_proc : process (clk, memwrite_s) is
-    begin
-        if rising_edge(clk) then
-            memwrite <= memwrite_s;
-        end if;
-    end process memwrite_proc;
-
-    alucontrol_proc : process (clk, alucontrol_s) is
-    begin
-        if rising_edge(clk) then
-            alucontrol <= alucontrol_s;
-        end if;
-    end process alucontrol_proc;
-
-    alusrc_proc : process (clk, alusrc_s) is
-    begin
-        if rising_edge(clk) then
-            alusrc <= alusrc_s;
-        end if;
-    end process alusrc_proc;
-
-    regdst_proc : process (clk, regdst_s) is
-    begin
-        if rising_edge(clk) then
-            regdst <= regdst_s;
-        end if;
-    end process regdst_proc;
-
-    rtdest_proc : process (clk, instruction) is
-    begin
-        if rising_edge(clk) then
-            rtdest <= instruction(20 downto 16);
-        end if;
-    end process rtdest_proc;
-
-    rddest_proc : process (clk, instruction) is
-    begin
-        if rising_edge(clk) then
-            rddest <= instruction(15 downto 11);
-        end if;
-    end process rddest_proc;
-
-    immout_proc : process (clk, instruction) is
-    begin
-        if rising_edge(clk) then
-            -- Sign extend
-            immout_s (15 downto 0)  <= instruction(15 downto 0);
-            immout_s (31 downto 16) <= (others => instruction(15));
-
-            immout <= immout_s;
-        end if;
+        immout <= immout_v;
     end process immout_proc;
 end architecture behv;

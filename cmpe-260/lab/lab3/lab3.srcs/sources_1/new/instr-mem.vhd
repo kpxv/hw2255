@@ -32,10 +32,10 @@ architecture behv of instrmem is
                                     others => x"00");
     signal addr_int_s  : integer;
 
-    signal d_out_s : std_logic_vector(31 downto 0);
+    signal d_out_s     : std_logic_vector(31 downto 0);
 begin
     addr_int_s <= to_integer(unsigned(addr));
-    d_out <= d_out_s;
+    d_out      <= d_out_s;
 
     get_mem_proc : process (addr_int_s, mem_array) is
     begin

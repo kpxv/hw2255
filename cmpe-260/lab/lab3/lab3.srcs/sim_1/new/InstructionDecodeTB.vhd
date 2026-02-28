@@ -99,11 +99,11 @@ architecture tb of instructiondecodetb is
             RdDest     => "00000",
             ImmOut     => x"0000000D"
         ),
-        -- MULTU, R1, R1, R2 - 000000 00001 00001 00010 00000 011001
+        -- MULTU, R1, R1, R2 - 000000 00001 00010 00001 00000 011001
         (
             -- Inputs
-            Instruction  => x"000211019",
-            RegWriteAddr => "000010",
+            Instruction  => x"00220819",
+            RegWriteAddr => "00010",
             RegWriteData => x"00000001",
             RegWriteEn   => '1',
             -- Outputs
@@ -114,17 +114,17 @@ architecture tb of instructiondecodetb is
             ALUSrc     => '0',
             RegDst     => '1',
             RD1        => x"12121212",
-            RD2        => x"12121212",
-            RtDest     => "00001",
-            RdDest     => "00010",
-            ImmOut     => x"00001019"
+            RD2        => x"00000001",
+            RtDest     => "00010",
+            RdDest     => "00001",
+            ImmOut     => x"00000819"
         ),
-        -- ANDI R1, R1, 0x0000FFFF - 001100 00001 00001 0000000011111111
+        -- ANDI R1, R1, 0xFFFFFFFF - 001100 00001 00001 1111111111111111
         (
             -- Inputs
-            Instruction  => x"202100FF",
-            RegWriteAddr => "00010",
-            RegWriteData => x"00000001",
+            Instruction  => x"3021FFFF",
+            RegWriteAddr => "00001",
+            RegWriteData => x"00001212",
             RegWriteEn   => '1',
             -- Outputs
             RegWrite   => '1',
@@ -136,12 +136,12 @@ architecture tb of instructiondecodetb is
             RD1        => x"00001212",
             RD2        => x"00001212",
             RtDest     => "00001",
-            RdDest     => "00000",
-            ImmOut     => x"000000FF"
+            RdDest     => "11111",
+            ImmOut     => x"FFFFFFFF"
         )
     );
 
-    component instructiondecode is
+    component instrdecode is
         port (
             --------- INPUTS ------------------
             -- Main Input
@@ -171,7 +171,7 @@ architecture tb of instructiondecodetb is
             rddest : out   std_logic_vector(4 downto 0);
             immout : out   std_logic_vector(31 downto 0)
         );
-    end component instructiondecode;
+    end component instrdecode;
 
     signal instruction  : std_logic_vector(31 downto 0);
     signal clk          : std_logic;
@@ -189,7 +189,7 @@ architecture tb of instructiondecodetb is
     signal rddest       : std_logic_vector(4 downto 0);
     signal immout       : std_logic_vector(31 downto 0);
 begin
-    uut : component instructiondecode
+    uut : component instrdecode
         port map (
             --------- INPUTS ------------------
             -- Main Input
@@ -236,39 +236,39 @@ begin
             regwritedata <= test_vector_array(i).RegWriteData;
             regwriteen   <= test_vector_array(i).RegWriteEn;
             wait until clk = '0';
-            wait for 5 ns;
+            wait for 20 ns;
 
-            assert test_vector_array(i).RegWrite = RegWrite
+            assert test_vector_array(i).RegWrite = regwrite
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).MemtoReg = MemtoReg
+            assert test_vector_array(i).MemtoReg = memtoreg
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).MemWrite = MemWrite
+            assert test_vector_array(i).MemWrite = memwrite
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).ALUControl = ALUControl
+            assert test_vector_array(i).ALUControl = alucontrol
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).ALUSrc = ALUSrc
+            assert test_vector_array(i).ALUSrc = alusrc
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).RegDst = RegDst
+            assert test_vector_array(i).RegDst = regdst
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).RD1 = RD1
+            assert test_vector_array(i).RD1 = rd1
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).RD2 = RD2
+            assert test_vector_array(i).RD2 = rd2
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).RtDest = RtDest
+            assert test_vector_array(i).RtDest = rtdest
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).RdDest = RdDest
+            assert test_vector_array(i).RdDest = rddest
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
-            assert test_vector_array(i).ImmOut = ImmOut
+            assert test_vector_array(i).ImmOut = immout
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
         -- TODO:  assert statements

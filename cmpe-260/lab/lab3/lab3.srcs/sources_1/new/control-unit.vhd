@@ -56,7 +56,7 @@ begin
     -- Set MemWrite
     memwrite_proc : process (opcode) is
     begin
-        with opcode select regwrite <=
+        with opcode select memwrite <=
             '1' when "101011",
             '0' when others;
     end process memwrite_proc;
@@ -85,7 +85,7 @@ begin
                 -- Sub
                 "0101" when "100010",
                 -- Invalid
-                "0000" when others;
+                "1100" when others;
         else
             with opcode select alucontrol <=
                 -- Add
@@ -101,7 +101,7 @@ begin
                 -- LW
                 "0100" when "100011",
                 -- Invalid
-                "0000" when others;
+                "1100" when others;
         end if;
     end process alucontrol_proc;
 
