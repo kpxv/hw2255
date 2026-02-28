@@ -1,0 +1,43 @@
+;Quiz 3 Problem 1
+; Assumes reset handler etc are already made; should be called as a subroutine
+UART0_S1_RDRF_MASK  EQU 0x20
+UART0_S1            EQU 0x4006A004
+UART0_D             EQU 0x4006A007
+
+GetChar     PROC {R1-R14}
+            PUSH {R1, LR}
+            MOVS R1, #UART0_S1_RDRF_MASK
+GetCharLoop
+            ; Wait for RDRF to be set
+            LDR R0, =UART0_S1
+            LDRB R0, [R0, #0]
+            ANDS R0, R0, R1
+            CMP R0, #0
+            BEQ  GetCharLoop
+
+            ; Read UART0_D
+            LDR R0, =UART0_D
+            LDRB R0, [R0, #0]
+
+            POP {R1, PC}
+            ENDP
+
+
+
+; Quiz 3 Problem 2
+; Assumes all relevant EQUates are already made.
+PutChar     PROC {R0-R14}
+            PUSH {R0-R3}
+            LDR R1, =UART0_BASE
+            MOVS R2, #UART0_S1_RDRF_MASK        ; Should usee TDRE mask instead
+PutCharLoop
+            LDRB R0, [R1, #UART0_S1_OFFSET]     ; Change R0 to R3
+            TST R0, R2                          ; Change R0 to R3
+            BEQ PutCharLoop
+            STRB R0, [R1, #UART0_D_OFFFSET]     ; Presumably, the goal is for
+                                                ; R0 to be an input. If so,
+                                                ; make the R0-R3 changes
+                                                ; indicated above
+            POP {R0-R3}
+            BX LR
+            ENDP
