@@ -1,0 +1,143 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 250}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L1}
+\newcommand{\LabInstructor}{Chongzhou Fang}
+
+\newcommand{\TAs}{Eddie Satowski \\ Eric Reed \\ Khoi Pham}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Chongzhou Fang}
+\newcommand{\exerciseNumber}{6}
+\newcommand{\exerciseDescription}{Secure String I/O and Number Output}
+\newcommand{\dateDone}{2026-02-21}
+\newcommand{\dateSubmitted}{2025-03-01}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+The purpose of this exercise was to design secure subroutines for string I/O
+using the NXP Freedom KL05Z board. Subroutines took a buffer size as an
+argument and transmitted characters until either the NUL terminator was reached
+or the full buffer size was transmitted. Subroutines ignored control characters
+except for return and backspace. Return was used to end string inputs.
+Backspace was used to remove the previously typed character from the input. The
+subroutines were used to create a basic user interface to initialize, get,
+print, and print the size of a string. The program was translated, compiled,
+and flashed to the KL05Z. It was tested with various inputs and string lengths.
+All inputs, including control characters, were stored to the string correctly.
+All outputs were printed correctly. The correct length of the string was always
+displayed without leading zeroes. The exercise was successful.
+
+\section*{Procedure}
+
+A Keil MDK-ARM project was created. Provided libraries were added to Source
+Group 1 of the project. A subroutine \texttt{GetStringSB} was written using
+a previously written subroutine to recieve a single character. The subroutine
+stored a string from user input to a location in memory. It took as input R0,
+the address of the memory at which to store the string; and R1, the total
+allowable size of the string. If a backspace character was received, the memory
+pointer was decremented. If a return character was recieved, a NUL terminator
+was appended to the string and the subroutine exited. If a control character
+was recieved, it was ignored. If the string size was one less byte than the
+maximum, all inputs except return and backspace were ignored. Otherwise, the
+input was appended to the string and the string pointer was incremented.
+
+A subroutine \texttt{PutStringSB} was written using a previously written
+subroutine to transmit a single character. The subroutine printed all
+characters until either the buffer size was reached or a NUL terminator was
+encountered.
+
+A subroutine \texttt{PutNumU} was written using a previously written subroutine
+to perform unsigned division. The subroutine took input R0 as the number to
+transmit. It iteratively divided R0 and pushed the result to stack. It then
+iteratively popped bytes from the stack, converted them to ASCII characters,
+and transmitted them.
+
+A main program was written to display a basic user interface. It requested a
+one character input from the user and executed a different subroutine based on
+the input. If input was a \texttt{g} or \texttt{G}, it requested a string from
+the user using \texttt{GetStringSB}. If input was \texttt{p} or \texttt{P}, it
+printed the string using \texttt{PutStringSB}. If input was \texttt{l} or
+\texttt{L}, it printed the length of the string using \texttt{PutNumU}. If the
+input was \texttt{i} or \texttt{I}, it set the operative string to a NUL
+character.
+
+The program was translated and built. Target options were modified to allow the
+debugger to work with the flashed chip. The program was flashed to the KL05Z.
+The windows program PuTTY was configured to communicate with the chip. The
+program was tested with a variety of inputs, including control characters,
+return, backspace, and strings of max buffer length.
+
+\section*{Results}
+
+A demonstration of the UI is given in Figure \ref{fig:demo}.
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.8\textwidth]{assets/sc}
+	\caption{Demonstration of UI}
+	\label{fig:demo}
+\end{figure}
+
+Memory ranges are presented in Table \ref{tab:mem}.
+
+\begin{table}[H]
+	\center
+	\caption{Memory Ranges}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		            & Start Address & End Address \\
+		\hline
+		\hline
+		MyCode      & 0x120         & 0x39f       \\
+		\hline
+		Main        & 0x121         & 0x158       \\
+		\hline
+		var         & 0x1ffffd000   & 0x1ffffd04e \\
+		\hline
+		instr\_str  & 0x3a0         & 0x3c0       \\
+		\hline
+		crlf\_str   & 0x3c1         & 0x3c3       \\
+		\hline
+		len\_str    & 0x3c4         & 0x3cb       \\
+		\hline
+		GetStringSB & 0x279         & 0x2d0       \\
+		\hline
+		PutStringSB & 0x2d1         & 0x2ea       \\
+		\hline
+		PutNumU     & 0x2eb         & 0x322       \\
+		\hline
+	\end{tabular}
+	\label{tab:mem}
+\end{table}
+
+The number of user-typed characters must be one fewer than the number of bytes
+allocated for the string to allow for a NUL terminator to be appended to the
+end of the string. \texttt{MAX\_STRING} is used to declare a variable, so it
+must be an EQUate and not a DCD.
+
+\section*{Conclusion}
+
+The objective of this exercise was to design safe algorithms for string I/O, as
+well as to design a subroutine to convert an unsigned binary number into a
+decimal ASCII number. Subroutines used a set maximum string size to ensure
+no overflow could occur, regardless of input. In the future, safe string I/O
+should be used in any serious project to prevent exploitation or accidental
+breakages.
+
+\includepdf[pages=-]{assets/prelab}
+
+\end{document}

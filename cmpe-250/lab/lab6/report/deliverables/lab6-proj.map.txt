@@ -1,0 +1,161 @@
+Component: ARM Compiler 5.06 update 5 (build 528) Tool: armlink [4d35e2]
+
+==============================================================================
+
+Section Cross References
+
+    programtemplate_kl05.o(MyCode) refers to start.o(Start) for Startup
+    programtemplate_kl05.o(MyCode) refers to exercise06_lib.o(Exercise06_Lib) for LengthStringSB
+    programtemplate_kl05.o(MyCode) refers to programtemplate_kl05.o(MyData) for var
+    programtemplate_kl05.o(MyCode) refers to programtemplate_kl05.o(MyConst) for instr_str
+    programtemplate_kl05.o(RESET) refers to start.o(.ARM.__at_0x1FFFFC00) for __initial_sp
+    programtemplate_kl05.o(RESET) refers to programtemplate_kl05.o(MyCode) for Reset_Handler
+    programtemplate_kl05.o(RESET) refers to start.o(Start) for Dummy_Handler
+
+
+==============================================================================
+
+Image Symbol Table
+
+    Local Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    RESET                                    0x00000000   Section      192  programtemplate_kl05.o(RESET)
+    Exercise06_Lib.s                         0x00000000   Number         0  exercise06_lib.o ABSOLUTE
+    ProgramTemplate_KL05.s                   0x00000000   Number         0  programtemplate_kl05.o ABSOLUTE
+    Start.s                                  0x00000000   Number         0  start.o ABSOLUTE
+    dc.s                                     0x00000000   Number         0  dc.o ABSOLUTE
+    .ARM.__at_0xC0                           0x000000c0   Section       64  start.o(.ARM.__at_0xC0)
+    Exercise06_Lib                           0x00000100   Section       30  exercise06_lib.o(Exercise06_Lib)
+    MyCode                                   0x00000120   Section      640  programtemplate_kl05.o(MyCode)
+    Init_UART0_Polling                       0x00000159   Thumb Code   108  programtemplate_kl05.o(MyCode)
+    G_INSTR                                  0x000001c5   Thumb Code    24  programtemplate_kl05.o(MyCode)
+    I_INSTR                                  0x000001dd   Thumb Code    24  programtemplate_kl05.o(MyCode)
+    L_INSTR                                  0x000001f5   Thumb Code    36  programtemplate_kl05.o(MyCode)
+    P_INSTR                                  0x00000219   Thumb Code    36  programtemplate_kl05.o(MyCode)
+    ECHO_CMD                                 0x0000023d   Thumb Code    16  programtemplate_kl05.o(MyCode)
+    GetChar                                  0x0000024d   Thumb Code    22  programtemplate_kl05.o(MyCode)
+    PutChar                                  0x00000263   Thumb Code    22  programtemplate_kl05.o(MyCode)
+    GetStringSB                              0x00000279   Thumb Code    88  programtemplate_kl05.o(MyCode)
+    PutStringSB                              0x000002d1   Thumb Code    26  programtemplate_kl05.o(MyCode)
+    PutNumU                                  0x000002eb   Thumb Code    56  programtemplate_kl05.o(MyCode)
+    DIVU                                     0x00000323   Thumb Code    28  programtemplate_kl05.o(MyCode)
+    MyConst                                  0x000003a0   Section       44  programtemplate_kl05.o(MyConst)
+    instr_str                                0x000003a0   Data          33  programtemplate_kl05.o(MyConst)
+    crlf_str                                 0x000003c1   Data           3  programtemplate_kl05.o(MyConst)
+    len_str                                  0x000003c4   Data           8  programtemplate_kl05.o(MyConst)
+    .ARM.__at_0x400                          0x00000400   Section       16  start.o(.ARM.__at_0x400)
+    Start                                    0x00000410   Section      204  start.o(Start)
+    SystemInit                               0x0000041f   Thumb Code    60  start.o(Start)
+    SetClock48MHz                            0x0000045b   Thumb Code    82  start.o(Start)
+    .ARM.__at_0x1FFFFC00                     0x1ffffc00   Section      256  start.o(.ARM.__at_0x1FFFFC00)
+    MyData                                   0x1ffffd00   Section       80  programtemplate_kl05.o(MyData)
+    var                                      0x1ffffd00   Data          79  programtemplate_kl05.o(MyData)
+
+    Global Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    BuildAttributes$$THM_ISAv3M$S$PE$A:L22$X:L11$S22$IEEE1$IW$USESV6$~STKCKD$USESV7$~SHL$OSPACE$ROPI$EBA8$STANDARDLIB$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
+    __Vectors                                0x00000000   Data           0  programtemplate_kl05.o(RESET)
+    __Vectors_End                            0x000000c0   Data           0  programtemplate_kl05.o(RESET)
+    __Vectors_Size                           0x000000c0   Number         0  programtemplate_kl05.o ABSOLUTE
+    LengthStringSB                           0x00000101   Thumb Code    30  exercise06_lib.o(Exercise06_Lib)
+    Reset_Handler                            0x00000121   Thumb Code    56  programtemplate_kl05.o(MyCode)
+    Startup                                  0x00000411   Thumb Code    14  start.o(Start)
+    Dummy_Handler                            0x000004ad   Thumb Code     2  start.o(Start)
+    HardFault_Handler                        0x000004ad   Thumb Code     0  start.o(Start)
+    __initial_sp                             0x1ffffd00   Data           0  start.o(.ARM.__at_0x1FFFFC00)
+
+
+
+==============================================================================
+
+Memory Map of the image
+
+  Image Entry point : 0x00000121
+
+  Load Region LR_1 (Base: 0x00000000, Size: 0x0000062c, Max: 0xffffffff, ABSOLUTE)
+
+    Execution Region ER_RO (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x000004dc, Max: 0xffffffff, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x00000000   0x00000000   0x000000c0   Data   RO            2    RESET               programtemplate_kl05.o
+    0x000000c0   0x000000c0   0x00000040   Data   RO           11    .ARM.__at_0xC0      start.o
+    0x00000100   0x00000100   0x0000001e   Code   RO           19    Exercise06_Lib      Exercise06_Lib.lib(exercise06_lib.o)
+    0x0000011e   0x0000011e   0x00000002   PAD
+    0x00000120   0x00000120   0x00000280   Code   RO            1  * MyCode              programtemplate_kl05.o
+    0x000003a0   0x000003a0   0x0000002c   Data   RO            3    MyConst             programtemplate_kl05.o
+    0x000003cc   0x000003cc   0x00000034   PAD
+    0x00000400   0x00000400   0x00000010   Code   RO           12    .ARM.__at_0x400     start.o
+    0x00000410   0x00000410   0x000000cc   Code   RO           10    Start               start.o
+
+
+    Execution Region ER_RW (Exec base: 0x1ffffc00, Load base: 0x000004dc, Size: 0x00000150, Max: 0xffffffff, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x1ffffc00   0x000004dc   0x00000100   Data   RW           13    .ARM.__at_0x1FFFFC00  start.o
+    0x1ffffd00   0x000005dc   0x00000050   Data   RW            4    MyData              programtemplate_kl05.o
+
+
+    Execution Region ER_ZI (Exec base: 0x1ffffd50, Load base: 0x0000062c, Size: 0x00000000, Max: 0xffffffff, ABSOLUTE)
+
+    **** No section assigned to this execution region ****
+
+
+==============================================================================
+
+Image component sizes
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
+
+       640         98        236         80          0       1088   programtemplate_kl05.o
+       220         62         64        256          0        728   start.o
+
+    ----------------------------------------------------------------------
+       860        160        352        336          0       1816   Object Totals
+         0          0          0          0          0          0   (incl. Generated)
+         0          0         52          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Member Name
+
+        30          0          0          0          0         68   exercise06_lib.o
+
+    ----------------------------------------------------------------------
+        32          0          0          0          0         68   Library Totals
+         2          0          0          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Name
+
+        30          0          0          0          0         68   Exercise06_Lib.lib
+
+    ----------------------------------------------------------------------
+        32          0          0          0          0         68   Library Totals
+
+    ----------------------------------------------------------------------
+
+==============================================================================
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
+
+       892        160        352        336          0       1832   Grand Totals
+       892        160        352        336          0       1832   ELF Image Totals
+       892        160        352        336          0          0   ROM Totals
+
+==============================================================================
+
+    Total RO  Size (Code + RO Data)                 1244 (   1.21kB)
+    Total RW  Size (RW Data + ZI Data)               336 (   0.33kB)
+    Total ROM Size (Code + RO Data + RW Data)       1580 (   1.54kB)
+
+==============================================================================
+
