@@ -165,7 +165,6 @@ Q_REC_SZ EQU 18
             ENTRY
             EXPORT  Reset_Handler
             IMPORT  Startup
-			IMPORT LengthStringSB
 
 Reset_Handler  PROC  {}
 main
@@ -310,8 +309,7 @@ INIT_QUEUE
 ; *     R0, iff DEQUEUE successful
 ; *     psr
 ; */
-DEQUEUE
-            PROC {}
+DEQUEUE    PROC {}
             PUSH {R2, LR}
             ; Check if empty
             LDRB R2, [R1, #NUM_ENQD]
@@ -350,8 +348,7 @@ DEQUEUE_EXIT
 ; * Modified:
 ; *     psr
 ; */
-ENQUEUE
-            PROC {}
+ENQUEUE    PROC {}
             PUSH {R2, R3, LR}
             ; Check if full
             LDRB R2, [R1, #BUF_SIZE]
@@ -390,8 +387,7 @@ ENQUEUE_EXIT
 ; *     R2
 ; *     psr
 ; */
-POINTER_INC
-            PROC {}
+POINTER_INC PROC {}
             PUSH {R0, R3}
             ; Load pointer
             LDR R0, [R1, R2]
@@ -424,12 +420,13 @@ PutNumUB    PROC {}
 ; Reads from R0
 PutNumHex   PROC {}
             PUSH {R1-R4, LR}
-            LDR R1, #0xF0000000
+            LDR R1, =0xF0000000
             MOVS R3, #0
 PutNumHexLoop
             CMP R3, #8
             BEQ PutNumHexLoopExit
-            ANDS R2, R0, R1
+            MOVS R2, R0
+            ANDS R2, R2, R1
 
             ; Bring the active byte to the front
             LSRS R2, R2, R3
