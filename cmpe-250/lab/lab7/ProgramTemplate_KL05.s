@@ -224,81 +224,6 @@ CHECK
             B       .
             ENDP    ;main
 ;>>>>> begin subroutine code <<<<<
-    
-
-;*
-; Initialize board for polled serial I/O with UART0 through ports B pins 1
-; and 2, using: 8 data bits, no parity, and one stop bit at 9600 baud
-; Changes: LR, PC, PSR
-;*/
-Init_UART0_Polling PROC {}
-            ;Select MCGFLLCLK as UART0 clock source 
-            PUSH {R0, R1, R2}
-            
-            LDR   R0,=SIM_SOPT2 
-            LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
-            LDR   R2,[R0,#0] 
-            BICS  R2,R2,R1 
-            LDR   R1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
-            ORRS  R2,R2,R1 
-            STR   R2,[R0,#0] 
-            ;Set UART0 for external connection 
-            LDR   R0,=SIM_SOPT5 
-            LDR   R1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
-            LDR   R2,[R0,#0] 
-            BICS  R2,R2,R1 
-            STR   R2,[R0,#0] 
-            ;Enable UART0 module clock 
-            LDR   R0,=SIM_SCGC4 
-            LDR   R1,=SIM_SCGC4_UART0_MASK 
-            LDR   R2,[R0,#0] 
-            ORRS  R2,R2,R1 
-            STR   R2,[R0,#0] 
-            ;Enable PORT B module clock 
-            LDR   R0,=SIM_SCGC5 
-            LDR   R1,=SIM_SCGC5_PORTB_MASK 
-            LDR   R2,[R0,#0] 
-            ORRS  R2,R2,R1 
-            STR   R2,[R0,#0] 
-            ;Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
-            LDR     R0,=PORTB_PCR2 
-            LDR     R1,=PORT_PCR_SET_PTB2_UART0_RX 
-            STR     R1,[R0,#0] 
-            ; Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
-            LDR     R0,=PORTB_PCR1 
-            LDR     R1,=PORT_PCR_SET_PTB1_UART0_TX 
-            STR     R1,[R0,#0] 
-            ;Disable UART0 receiver and transmitter 
-            LDR   R0,=UART0_BASE 
-            MOVS  R1,#UART0_C2_T_R 
-            LDRB  R2,[R0,#UART0_C2_OFFSET] 
-            BICS  R2,R2,R1 
-            STRB  R2,[R0,#UART0_C2_OFFSET] 
-            ;Set UART0 for 9600 baud, 8N1 protocol 
-            MOVS  R1,#UART0_BDH_9600 
-            STRB  R1,[R0,#UART0_BDH_OFFSET] 
-            MOVS  R1,#UART0_BDL_9600 
-            STRB  R1,[R0,#UART0_BDL_OFFSET] 
-            MOVS  R1,#UART0_C1_8N1 
-            STRB  R1,[R0,#UART0_C1_OFFSET] 
-            MOVS  R1,#UART0_C3_NO_TXINV 
-            STRB  R1,[R0,#UART0_C3_OFFSET] 
-            MOVS  R1,#UART0_C4_NO_MATCH_OSR_16 
-            STRB  R1,[R0,#UART0_C4_OFFSET] 
-            MOVS  R1,#UART0_C5_NO_DMA_SSR_SYNC 
-            STRB  R1,[R0,#UART0_C5_OFFSET] 
-            MOVS  R1,#UART0_S1_CLEAR_FLAGS 
-            STRB  R1,[R0,#UART0_S1_OFFSET] 
-            MOVS  R1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
-            STRB  R1,[R0,#UART0_S2_OFFSET] 
-            ;Enable UART0 receiver and transmitter 
-            MOVS  R1,#UART0_C2_T_R 
-            STRB  R1,[R0,#UART0_C2_OFFSET] 
-
-            POP {R0, R1, R2}
-            BX LR
-            ENDP
-
 ; Attempts dequeue. Makes no modifications
 D_INSTR     PROC {}
             PUSH {R0-R1, LR}
@@ -392,6 +317,80 @@ S_INSTR     PROC {}
             POP {R0-R1, PC}
             ENDP
 
+;*
+; Initialize board for polled serial I/O with UART0 through ports B pins 1
+; and 2, using: 8 data bits, no parity, and one stop bit at 9600 baud
+; Changes: LR, PC, PSR
+;*/
+Init_UART0_Polling PROC {}
+            ;Select MCGFLLCLK as UART0 clock source 
+            PUSH {R0, R1, R2}
+            
+            LDR   R0,=SIM_SOPT2 
+            LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
+            LDR   R2,[R0,#0] 
+            BICS  R2,R2,R1 
+            LDR   R1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+            ORRS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Set UART0 for external connection 
+            LDR   R0,=SIM_SOPT5 
+            LDR   R1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+            LDR   R2,[R0,#0] 
+            BICS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Enable UART0 module clock 
+            LDR   R0,=SIM_SCGC4 
+            LDR   R1,=SIM_SCGC4_UART0_MASK 
+            LDR   R2,[R0,#0] 
+            ORRS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Enable PORT B module clock 
+            LDR   R0,=SIM_SCGC5 
+            LDR   R1,=SIM_SCGC5_PORTB_MASK 
+            LDR   R2,[R0,#0] 
+            ORRS  R2,R2,R1 
+            STR   R2,[R0,#0] 
+            ;Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
+            LDR     R0,=PORTB_PCR2 
+            LDR     R1,=PORT_PCR_SET_PTB2_UART0_RX 
+            STR     R1,[R0,#0] 
+            ; Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
+            LDR     R0,=PORTB_PCR1 
+            LDR     R1,=PORT_PCR_SET_PTB1_UART0_TX 
+            STR     R1,[R0,#0] 
+            ;Disable UART0 receiver and transmitter 
+            LDR   R0,=UART0_BASE 
+            MOVS  R1,#UART0_C2_T_R 
+            LDRB  R2,[R0,#UART0_C2_OFFSET] 
+            BICS  R2,R2,R1 
+            STRB  R2,[R0,#UART0_C2_OFFSET] 
+            ;Set UART0 for 9600 baud, 8N1 protocol 
+            MOVS  R1,#UART0_BDH_9600 
+            STRB  R1,[R0,#UART0_BDH_OFFSET] 
+            MOVS  R1,#UART0_BDL_9600 
+            STRB  R1,[R0,#UART0_BDL_OFFSET] 
+            MOVS  R1,#UART0_C1_8N1 
+            STRB  R1,[R0,#UART0_C1_OFFSET] 
+            MOVS  R1,#UART0_C3_NO_TXINV 
+            STRB  R1,[R0,#UART0_C3_OFFSET] 
+            MOVS  R1,#UART0_C4_NO_MATCH_OSR_16 
+            STRB  R1,[R0,#UART0_C4_OFFSET] 
+            MOVS  R1,#UART0_C5_NO_DMA_SSR_SYNC 
+            STRB  R1,[R0,#UART0_C5_OFFSET] 
+            MOVS  R1,#UART0_S1_CLEAR_FLAGS 
+            STRB  R1,[R0,#UART0_S1_OFFSET] 
+            MOVS  R1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
+            STRB  R1,[R0,#UART0_S2_OFFSET] 
+            ;Enable UART0 receiver and transmitter 
+            MOVS  R1,#UART0_C2_T_R 
+            STRB  R1,[R0,#UART0_C2_OFFSET] 
+
+            POP {R0, R1, R2}
+            BX LR
+            ENDP
+
+; Prints status. Makes no mosifications
 STATUS      PROC {}
             PUSH {R0-R1, LR}
 
