@@ -361,7 +361,7 @@ P_INSTR     PROC {}
             BL PutChar
             LDR R1, =QRECORD
             LDR R2, [R1, #BUF_SIZE]
-            LDR R3, [R1, #NUM_ENQD]
+            LDRB R3, [R1, #NUM_ENQD]
             CMP R2, R3
             BEQ P_INSTR_EXIT
             LDR R0, [R1, #OUT_PTR]
