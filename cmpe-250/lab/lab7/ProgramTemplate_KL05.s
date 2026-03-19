@@ -226,7 +226,7 @@ CHECK
 ;>>>>> begin subroutine code <<<<<
 ; Attempts dequeue. Makes no modifications
 D_INSTR     PROC {}
-            PUSH {R0-R1, LR}
+            PUSH {R0-R1}
             BL ECHO_CMD
             LDR R1, =QRECORD
             BL DEQUEUE
@@ -241,12 +241,13 @@ D_INSTR_PASS
             BL PutStringSB
 D_INSTR_CONT
             BL STATUS
-            POP {R0-R1, PC}
+            POP {R0-R1}
+            B POLL_LOOP
             ENDP
 
 ; Attempts enqueue. Makes no Modifications
 E_INSTR     PROC {}
-            PUSH {R0-R1, LR}
+            PUSH {R0-R1}
             BL ECHO_CMD
 
             LDR R0, =ENQU_S
@@ -266,22 +267,24 @@ E_INSTR_PASS
             BL PutStringSB
 E_INSTR_CONT
             BL STATUS
-            POP {R0-R1, PC}
+            POP {R0-R1}
+            B POLL_LOOP
             ENDP
 
 ; Print help string. Makes no modifications
 H_INSTR     PROC {}
-            PUSH {R0-R1, LR}
+            PUSH {R0-R1}
             BL ECHO_CMD
             LDR R0, =HELP_S
             MOVS R1, #MAX_STRING
             BL PutStringSB
-            POP {R0-R1, PC}
+            POP {R0-R1}
+            B POLL_LOOP
             ENDP
 
 ; Print Queue contents. Makes no modifications
 P_INSTR     PROC {}
-            PUSH {R0-R3, LR}
+            PUSH {R0-R3}
             BL ECHO_CMD
             MOVS R0, #'>'
             BL PutChar
@@ -304,17 +307,19 @@ P_INSTR_EXIT
             BL PutChar
             LDR R0, =CRLF_S
             MOVS R1, #MAX_STRING
-            POP {R0-R3, PC}
+            POP {R0-R3}
+            B POLL_LOOP
             ENDP
 
 ; Print status string. Makes no modifications
 S_INSTR     PROC {}
-            PUSH {R0-R1, LR}
+            PUSH {R0-R1}
             BL ECHO_CMD
             LDR R0, =STAT_S
             MOVS R1, #MAX_STRING
             BL PutStringSB
-            POP {R0-R1, PC}
+            POP {R0-R1}
+            B POLL_LOOP
             ENDP
 
 ;*
