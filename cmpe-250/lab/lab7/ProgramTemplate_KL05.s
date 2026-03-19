@@ -165,7 +165,7 @@ HEX_H EQU 0x48
 HEX_P EQU 0x50
 HEX_S EQU 0x53
 HEX_0 EQU 0x30
-MAX_STRING 0xF0
+MAX_STRING EQU 0x80
 
 
 ;***************************************************************
