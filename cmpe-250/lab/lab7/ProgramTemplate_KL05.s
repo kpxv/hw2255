@@ -242,7 +242,7 @@ D_INSTR_PASS
 D_INSTR_CONT
             BL STATUS
             POP {R0-R1}
-            B POLL_LOOP
+            B MAIN_LOOP
             ENDP
 
 ; Attempts enqueue. Makes no Modifications
@@ -268,7 +268,7 @@ E_INSTR_PASS
 E_INSTR_CONT
             BL STATUS
             POP {R0-R1}
-            B POLL_LOOP
+            B MAIN_LOOP
             ENDP
 
 ; Print help string. Makes no modifications
@@ -279,7 +279,7 @@ H_INSTR     PROC {}
             MOVS R1, #MAX_STRING
             BL PutStringSB
             POP {R0-R1}
-            B POLL_LOOP
+            B MAIN_LOOP
             ENDP
 
 ; Print Queue contents. Makes no modifications
@@ -308,7 +308,7 @@ P_INSTR_EXIT
             LDR R0, =CRLF_S
             MOVS R1, #MAX_STRING
             POP {R0-R3}
-            B POLL_LOOP
+            B MAIN_LOOP
             ENDP
 
 ; Print status string. Makes no modifications
@@ -319,7 +319,7 @@ S_INSTR     PROC {}
             MOVS R1, #MAX_STRING
             BL PutStringSB
             POP {R0-R1}
-            B POLL_LOOP
+            B MAIN_LOOP
             ENDP
 
 ;*
