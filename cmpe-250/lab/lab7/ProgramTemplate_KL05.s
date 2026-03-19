@@ -158,6 +158,8 @@ NUM_ENQD EQU 17
 Q_BUF_SZ EQU 80
 Q_REC_SZ EQU 18
 
+HEX_0 EQU 0x30
+
 ;****************************************************************
 ;Program
 ;Linker requires Reset_Handler
@@ -436,9 +438,9 @@ PutNumHexLoop
 
             CMP R2, #10
             BLT PutNumHexLow
-            ADDS R2, #0x10
+            ADDS R2, #0x7
 PutNumHexLow
-            ADDS R2, #0x21
+            ADDS R2, #HEX_0
 
             MOVS R4, R0
             MOVS R0, R2
@@ -450,6 +452,30 @@ PutNumHexLow
             B PutNumHexLoop
 PutNumHexLoopExit
             POP {R1-R4, PC}
+            ENDP
+
+;*
+; Gets a character from UART0_D
+; Return value in R0
+; Changes: R0, LR, PC, PSR
+;*/
+GetChar PROC {}
+            PUSH {R1}
+            MOVS R1, #UART0_S1_RDRF_MASK
+GetCharLoop
+            ; Wait for RDRF to be set
+            LDR R0, =UART0_S1
+            LDRB R0, [R0, #0]
+            ANDS R0, R0, R1
+            CMP R0, #0
+            beq  GetCharLoop
+
+            ; Read UART0_D
+            LDR R0, =UART0_D
+            LDRB R0, [R0, #0]
+
+            POP {R1}
+            BX LR
             ENDP
 
 ;*
@@ -476,59 +502,6 @@ PutCharLoop
             BX LR
             ENDP
 
-; Gets a string from user
-; Inputs:
-;   R1 : Buffer capacity
-;   R0 : Address of stored string
-; Outputs:
-;   A string at location in memory specified by R0
-GetStringSB PROC {R0-R7}
-            PUSH {R0-R4, LR}
-            CMP R1, #0
-            BEQ GetStringSBTerminate   ; String must have at least one character
-            SUBS R1, R1, #1
-            MOVS R2, R0
-            MOVS R3, #0
-GetStringSBLoop
-            BL GetChar
-            CMP R0, #0x0D
-            BEQ GetStringSBCleanup      ; End on return
-            CMP R0, #0x08
-            BEQ GetStringSBBackspace    ; Allow backspace
-            CMP R0, #0x7F
-            BEQ GetStringSBLoop         ; Get new character if control character
-            CMP R0, #0x1F
-            BLS GetStringSBLoop
-            
-            CMP R3, R1
-            BHS GetStringSBLoop         ; If buffer size reached, wait for return or backspace
-            
-            STRB R0, [R2, R3]           ; Store
-            ADDS R3, R3, #1             ; Increment string pointer
-            BL PutChar
-            B GetStringSBLoop
-	
-GetStringSBBackspace
-            CMP R3, #0
-            BEQ GetStringSBLoop         ; Only backspace if there are characters in the string
-            BL PutChar                  ; Remove character from the screen
-            MOVS R0, #0x20
-            BL PutChar
-            MOVS R0, #0x08
-            BL PutChar
-            SUBS R3, R3, #1             ; Decrement string poniter
-            B GetStringSBLoop
-		
-GetStringSBCleanup
-            MOVS R4, #0
-            STRB R4, [R2, R3]           ; Store NUL terminator
-			LDR R0, =crlf_str
-            MOVS R1, #MAX_STRING
-            BL PutStringSB              ; Print newline
-GetStringSBTerminate
-            POP {R0-R4, PC}
-            ENDP
-	
 ; Prints a string
 ; Inputs:
 ;   R0 : Memory addr of the string to print
