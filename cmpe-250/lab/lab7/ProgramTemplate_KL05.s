@@ -148,6 +148,15 @@ UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: UART0_S1_OR_MASK :OR:    UAR
 ;0-->0:RAF=receiver active flag; read-only 
 UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR: UART0_S2_RXEDGIF_MASK) 
 ;---------------------------------------------------------------
+IN_PTR EQU 0
+OUT_PTR EQU 4
+BUF_START EQU 8
+BUF_PAST EQU 12
+BUF_SIZE EQU 16
+NUM_ENQD EQU 17
+
+Q_BUF_SZ EQU 80
+Q_REC_SZ EQU 18
 
 ;****************************************************************
 ;Program
@@ -167,8 +176,35 @@ main
             BL      Startup
 ;---------------------------------------------------------------
 ;>>>>> begin main program code <<<<<
+            ; Init
+            LDR R0, =QBUFFER
+            LDR R1, =QRECORD
+            MOVS R2, #4
+            BL INIT_QUEUE
+            MOVS R0, 'h'
+            BL ENQUEUE
+            BL DEQUEUE
+
+            MOVS R0, 'h'
+            BL ENQUEUE
+            MOVS R0, 'e'
+            BL ENQUEUE
+            MOVS R0, 'l'
+            BL ENQUEUE
+            MOVS R0, 'o'
+            BL ENQUEUE
+            MOVS R0, 'A'
+            BL ENQUEUE
+            BL DEQUEUE
+            MOVS R0, 'A'
+            BL ENQUEUE
+            BL DEQUEUE
+            BL DEQUEUE
+            BL DEQUEUE
+            BL DEQUEUE
+            BL DEQUEUE
 ;>>>>>   end main program code <<<<<
-;Stay here
+            B .
             B       .
             ENDP    ;main
 ;>>>>> begin subroutine code <<<<<
@@ -181,7 +217,7 @@ main
 ;*/
 Init_UART0_Polling PROC {}
             ;Select MCGFLLCLK as UART0 clock source 
-            push {r0, r1, r2}
+            PUSH {R0, R1, R2}
             
             LDR   R0,=SIM_SOPT2 
             LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
@@ -244,6 +280,147 @@ Init_UART0_Polling PROC {}
             STRB  R1,[R0,#UART0_C2_OFFSET] 
 
             POP {R0, R1, R2}
+            BX LR
+            ENDP
+
+;**
+; * Initialize queue record
+; *
+; * Inputs:
+; *     R0 : buffer address
+; *     R1 : record address
+; *     R2 : queue capacity
+; * Outputs:
+; *     None
+; * Modified:
+; *     psr
+; */
+INIT_QUEUE
+            PUSH {R3}
+            ; In pointer
+            STR R0, [R1, #IN_PTR]
+            ; Out pointer
+            STR R0, [R1, #OUT_PTR]
+            ; Buffer start
+            STR R0, [R1, #BUF_START]
+            ; Buffer end
+            ADDS R3, R0, R2
+            SUBS R3, R3, #1
+            STR R3, [R1, #BUF_PAST]
+            ; Buffer size
+            STRB R2, [R1, #BUF_SIZE]
+            ; Number enqueued
+            MOVS R3, #0
+            STRB R3, [R1, #NUM_ENQD]
+            POP {R3}
+            BX LR
+
+;**
+; * Attempt to get char from queue
+; *
+; * Inputs:
+; *     R1 : record address
+; * Outputs:
+; *     R0 : dequeued character
+; *     psr : clear c iff successful
+; * Modified:
+; *     R0, iff DEQUEUE successful
+; *     psr
+; */
+DEQUEUE
+            PROC {}
+            PUSH {R2, LR}
+            ; Check if empty
+            LDRB R2, [R1, #NUM_ENQD]
+            CMP R2, #0
+            BEQ DEQUEUE_EMPTY
+            ; Get from queue
+            LDR R2, [R1, #OUT_PTR]
+            LDRB R0, [R2]
+            ; Increment pointer
+            MOVS R2, #OUT_PTR
+            BL POINTER_INC
+            ; Decrement num enqueued
+            LDRB R2, [R1, #NUM_ENQD]
+            SUBS R2, R2, #1
+            STRB R2, [R1, #NUM_ENQD]
+            ; Clear C flag
+            ADDS R2, #0
+            B DEQUEUE_EXIT
+DEQUEUE_EMPTY
+            ; Set C flag
+            MVNS R2, #0
+            ADDS R2, R2, #1
+DEQUEUE_EXIT
+            POP {R2, PC}
+            ENDP
+
+;**
+; * Attempt to put char in queue
+; *
+; * Inputs:
+; *     R0 : ENQUEUE char
+; *     R1 : record address
+; * Outputs:
+; *     psr: clear c iff ENQUEUE successful
+; * Modified:
+; *     psr
+; */
+ENQUEUE
+            PROC {}
+            PUSH {R2, R3, LR}
+            ; Check if full
+            LDRB R2, [R1, #BUF_SIZE]
+            LDRB R3, [R1, #NUM_ENQD]
+            CMP R2, R3
+            BEQ ENQUEUE_FULL
+            ; Store to queue
+            LDR R2, [R1, #IN_PTR]
+            STRB R0, [R2]
+            ; Increment in pointer
+            MOVS R2, #IN_PTR
+            BL POINTER_INC
+            ; Increment num enqueued
+            ADDS R3, R3, #1
+            STRB R3, [R1, #NUM_ENQD]
+            ; Clear C flag
+            ADDS R2, #0
+            B ENQUEUE_EXIT
+ENQUEUE_FULL
+            ; Set C flag
+            MVNS R2, #0
+ENQUEUE_EXIT
+            POP {R2, R3, PC}
+            ENDP
+
+;**
+; * Increment queue pointer
+; *
+; * Inputs:
+; *     R1 : record address
+; *     R2 : pointer offset from record
+; * Outputs:
+; *     R2 : incremented pointer
+; * Modifies:
+; *     R2
+; *     psr
+; */
+POINTER_INC
+            PROC {}
+            PUSH {R0, R3}
+            ; Load pointer
+            LDR R0, [R1, R2]
+            LDR R3, [R1, #BUF_PAST]
+            CMP R0, R3
+            BEQ POINTER_INC_WRAP
+            ADDS R0, R0, #1
+            B POINTER_INC_EXIT
+POINTER_INC_WRAP
+            LDR R0, [R1, #BUF_START]
+POINTER_INC_EXIT
+            STR R0, [R1, R2]
+            MOVS R2, R0
+            POP {R0, R3}
             BX LR
             ENDP
 
@@ -330,6 +507,10 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
+QBUFFER
+            SPACE Q_BUF_SZ
+QRECORD
+            SPACE Q_REC_SZ
 ;>>>>>   end variables here <<<<<
             ALIGN
             END
