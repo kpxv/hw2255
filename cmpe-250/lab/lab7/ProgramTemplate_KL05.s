@@ -158,14 +158,15 @@ NUM_ENQD EQU 17
 Q_BUF_SZ EQU 80
 Q_REC_SZ EQU 18
 
-HEX_a EQU 0x41
-HEX_D EQU 0x44
-HEX_E EQU 0x45
-HEX_H EQU 0x48
-HEX_P EQU 0x50
-HEX_S EQU 0x53
-HEX_0 EQU 0x30
+HEX_a EQU 'a'
+HEX_D EQU 'D'
+HEX_E EQU 'E'
+HEX_H EQU 'H'
+HEX_P EQU 'P'
+HEX_S EQU 'S'
+HEX_0 EQU '0'
 MAX_STRING EQU 0x80
+OFFSET_a_A EQU 0x20
 
 
 ;***************************************************************
@@ -416,7 +417,7 @@ STATUS      PROC {}
 
             LDR R1, =QRECORD
             LDRB R0, [R1, #NUM_ENQD]
-            BL PutNumUb
+            BL PutNumUB
 
             MOVS R1, #MAX_STRING
             LDR R0, =CRLF_S
