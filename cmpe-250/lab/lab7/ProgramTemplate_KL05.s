@@ -705,7 +705,7 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
-CMD_STR     DCD "Type a queue command (D,E,H,P,S):\0"
+CMD_STR     DCB "Type a queue command (D,E,H,P,S):\0"
 ;>>>>>   end constants here <<<<<
             ALIGN
 ;****************************************************************
