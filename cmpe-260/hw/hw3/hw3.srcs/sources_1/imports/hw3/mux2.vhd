@@ -20,9 +20,9 @@ architecture df of mux2 is
 
 begin
 
-    as_s   <= a and s after 1 ns;
     nots_s <= not s;
-    bs_s   <= b and nots_s after 1 ns;
+    as_s   <= a and nots_s after 1 ns;
+    bs_s   <= b and s after 1 ns;
     ab_s   <= as_s or bs_s after 2 ns;
     y      <= ab_s;
 

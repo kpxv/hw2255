@@ -16,8 +16,8 @@ end entity pg;
 
 architecture behv of pg is
 
-    signal ab_s : std_logic;
-    signal pg_s : std_logic;
+    signal ab_s : std_logic_vector(bign downto 0);
+    signal pg_s : std_logic_vector(bign downto 0);
 
     signal p_s : std_logic_vector(bign downto 0);
     signal g_s : std_logic_vector(bign downto 0);
@@ -33,10 +33,10 @@ begin
     end generate gen_p_l;
 
     gen_g_l : for i in 1 to bign generate
-        ab_s   <= a(i) and b(i) after 1 ns;
-        pg_s   <= p(i) and g(i - 1) after 1 ns;
-        g_s(i) <= ab_s or pg_s after 2 ns;
-        g(i)   <= g_s(i);
+        ab_s(i) <= a(i) and b(i) after 1 ns;
+        pg_s(i) <= p_s(i) and g_s(i - 1) after 1 ns;
+        g_s(i)  <= ab_s(i) or pg_s(i) after 2 ns;
+        g(i)    <= g_s(i);
     end generate gen_g_l;
 
 end architecture behv;
