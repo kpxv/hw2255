@@ -158,9 +158,17 @@ NUM_ENQD EQU 17
 Q_BUF_SZ EQU 80
 Q_REC_SZ EQU 18
 
+HEX_a EQU 0x41
+HEX_D EQU 0x44
+HEX_E EQU 0x45
+HEX_H EQU 0x48
+HEX_P EQU 0x50
+HEX_S EQU 0x53
 HEX_0 EQU 0x30
+MAX_STRING 0xF0
 
-;****************************************************************
+
+;***************************************************************
 ;Program
 ;Linker requires Reset_Handler
             AREA    MyCode,CODE,READONLY
@@ -183,10 +191,33 @@ main
             LDR R1, =QRECORD
             MOVS R2, #4
             BL INIT_QUEUE
-            LDR R0, =CMD_STR
-            MOVS R1, #0x10
-            BL GetChar
-            BL PutChar
+
+MAIN_LOOP
+            LDR R0, =CMD_S
+            MOVS R1, #MAX_STRING
+            BL PutStringSB 
+
+POLL_LOOP
+            BL GetChar          ; Poll for character
+            MOVS R4, R0         ; Allow logic with toUpper, but save polled character for printing
+            CMP R4, #HEX_a      ; Check whether the polled character is less then 'a'
+            BLT CHECK           ; If so, skip toUpper conversion
+TO_UPPER
+            SUBS R4, R4, #OFFSET_a_A    ; Else, convert character to uppercase.
+
+CHECK
+			CMP R4, #HEX_D      ; Check whether character is D
+			BEQ D_INSTR
+			CMP R4, #HEX_E      ; Check whether character is E
+			BEQ E_INSTR
+			CMP R4, #HEX_H      ; Check whether character is H
+			BEQ H_INSTR
+			CMP R4, #HEX_P      ; Check whether character is P
+			BEQ P_INSTR
+			CMP R4, #HEX_S      ; Check whether character is S
+			BEQ S_INSTR
+			
+			B POLL_LOOP         ; Loop
 ;>>>>>   end main program code <<<<<
             B .
             B       .
@@ -267,6 +298,149 @@ Init_UART0_Polling PROC {}
             BX LR
             ENDP
 
+; Attempts dequeue. Makes no modifications
+D_INSTR     PROC {}
+            PUSH {R0-R1, LR}
+            BL ECHO_CMD
+            LDR R1, =QRECORD
+            BL DEQUEUE
+            MOVS R1, #MAX_STRING
+            BCC D_INSTR_PASS
+            LDR R0, =FAIL_S
+            BL PutStringSB
+            B D_INSTR_CONT
+D_INSTR_PASS
+            BL PutChar
+            LDR R0, =CHAR_S
+            BL PutStringSB
+D_INSTR_CONT
+            BL STATUS
+            POP {R0-R1, PC}
+            ENDP
+
+; Attempts enqueue. Makes no Modifications
+E_INSTR     PROC {}
+            PUSH {R0-R1, LR}
+            BL ECHO_CMD
+
+            LDR R0, =ENQU_S
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            BL GetChar
+            BL PutChar
+            LDR R1, =QRECORD
+            BL ENQUEUE
+            MOVS R1, #MAX_STRING
+            BCC E_INSTR_PASS
+            LDR R0, =FAIL_S
+            BL PutStringSB
+            B E_INSTR_CONT
+E_INSTR_PASS
+            LDR R0, =SUCC_S
+            BL PutStringSB
+E_INSTR_CONT
+            BL STATUS
+            POP {R0-R1, PC}
+            ENDP
+
+; Print help string. Makes no modifications
+H_INSTR     PROC {}
+            PUSH {R0-R1, LR}
+            BL ECHO_CMD
+            LDR R0, =HELP_S
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            POP {R0-R1, PC}
+            ENDP
+
+; Print Queue contents. Makes no modifications
+P_INSTR     PROC {}
+            PUSH {R0-R3, LR}
+            BL ECHO_CMD
+            MOVS R0, #'>'
+            BL PutChar
+            LDR R1, =QRECORD
+            LDR R2, [R1, #BUF_SIZE]
+            LDR R3, [R1, #NUM_ENQD]
+            CMP R2, R3
+            BEQ P_INSTR_EXIT
+            LDR R0, [R1, #OUT_PTR]
+            LDR R3, [R1, #IN_PTR]
+            MOVS R2, #OUT_PTR
+P_INSTR_LOOP
+            LDR R0, [R2]
+            BL PutChar
+            BL POINTER_INC
+            CMP R2, R3
+            BNE P_INSTR_LOOP
+P_INSTR_EXIT
+            MOVS R0, #'<'
+            BL PutChar
+            LDR R0, =CRLF_S
+            MOVS R1, #MAX_STRING
+            POP {R0-R3, PC}
+            ENDP
+
+; Print status string. Makes no modifications
+S_INSTR     PROC {}
+            PUSH {R0-R1, LR}
+            BL ECHO_CMD
+            LDR R0, =STAT_S
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            POP {R0-R1, PC}
+            ENDP
+
+STATUS      PROC {}
+            PUSH {R0-R1, LR}
+
+            MOVS R1, #MAX_STRING
+            LDR R0, =STAT_IN_S
+            BL PutStringSB
+
+            LDR R1, =QRECORD
+            LDR R0, [R1, #IN_PTR]
+            BL PutNumHex
+
+            MOVS R1, #MAX_STRING
+            LDR R0, =STAT_OUT_S
+            BL PutStringSB
+
+            LDR R1, =QRECORD
+            LDR R0, [R1, #OUT_PTR]
+            BL PutNumHex
+
+            MOVS R1, #MAX_STRING
+            LDR R0, =STAT_NUM_S
+            BL PutStringSB
+
+            LDR R1, =QRECORD
+            LDRB R0, [R1, #NUM_ENQD]
+            BL PutNumUb
+
+            MOVS R1, #MAX_STRING
+            LDR R0, =CRLF_S
+            BL PutStringSB
+
+            POP  {R0-R1, PC}
+            ENDP
+
+; Print the char and newline
+; Inputs:
+;   R0 : The char to print
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+ECHO_CMD PROC {}
+            PUSH {R0, R1, LR}
+            BL PutChar
+            LDR R0, =CRLF_S
+			MOVS R1, #5
+            BL PutStringSB
+            POP {R0, R1, PC}
+            ENDP
+
 ;**
 ; * Initialize queue record
 ; *
@@ -321,8 +495,8 @@ DEQUEUE    PROC {}
             LDR R2, [R1, #OUT_PTR]
             LDRB R0, [R2]
             ; Increment pointer
-            MOVS R2, #OUT_PTR
             BL POINTER_INC
+            STR R2, [R1, #OUT_PTR]
             ; Decrement num enqueued
             LDRB R2, [R1, #NUM_ENQD]
             SUBS R2, R2, #1
@@ -361,8 +535,8 @@ ENQUEUE    PROC {}
             LDR R2, [R1, #IN_PTR]
             STRB R0, [R2]
             ; Increment in pointer
-            MOVS R2, #IN_PTR
             BL POINTER_INC
+            STR R2, [R1, #IN_PTR]
             ; Increment num enqueued
             ADDS R3, R3, #1
             STRB R3, [R1, #NUM_ENQD]
@@ -382,7 +556,7 @@ ENQUEUE_EXIT
 ; *
 ; * Inputs:
 ; *     R1 : record address
-; *     R2 : pointer offset from record
+; *     R2 : pointer
 ; * Outputs:
 ; *     R2 : incremented pointer
 ; * Modifies:
@@ -392,7 +566,7 @@ ENQUEUE_EXIT
 POINTER_INC PROC {}
             PUSH {R0, R3}
             ; Load pointer
-            LDR R0, [R1, R2]
+            MOVS R0, R2
             LDR R3, [R1, #BUF_PAST]
             CMP R0, R3
             BEQ POINTER_INC_WRAP
@@ -401,7 +575,6 @@ POINTER_INC PROC {}
 POINTER_INC_WRAP
             LDR R0, [R1, #BUF_START]
 POINTER_INC_EXIT
-            STR R0, [R1, R2]
             MOVS R2, R0
             POP {R0, R3}
             BX LR
@@ -678,7 +851,17 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
-CMD_STR     DCB "Type a queue command (D,E,H,P,S):\0"
+CMD_S       DCB "Type a queue command (D,E,H,P,S):", 0x00
+CRLF_S      DCB 0x0D, 0x0A, 0x00
+FAIL_S      DCB "Failure:        ", 0x00
+CHAR_S      DCB ":               ", 0x00
+STAT_S      DCB " Status:        ", 0x00
+SUCC_S      DCB "Success:        ", 0x00
+ENQU_S      DCB "Char to enqueue:", 0x00
+HELP_S      DCB "D (dequeue), E (enqueue), H (help), P (print), S (status)", 0x0D, 0x0A, 0x00
+STAT_IN_S   DCB "    In=0x", 0x00
+STAT_OUT_S  DCB "    Out=0x", 0x00
+STAT_NUM_S  DCB "    Num=0", 0x00
 ;>>>>>   end constants here <<<<<
             ALIGN
 ;****************************************************************
