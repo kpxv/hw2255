@@ -254,10 +254,10 @@ E_INSTR     PROC {}
             MOVS R1, #MAX_STRING
             BL PutStringSB
             BL GetChar
-            BL PutChar
+			BL ECHO_CMD
             LDR R1, =QRECORD
             BL ENQUEUE
-            MOVS R1, #MAX_STRING
+			
             BCC E_INSTR_PASS
             LDR R0, =FAIL_S
             BL PutStringSB
@@ -289,15 +289,14 @@ P_INSTR     PROC {}
             MOVS R0, #'>'
             BL PutChar
             LDR R1, =QRECORD
-            LDR R2, [R1, #BUF_SIZE]
             LDRB R3, [R1, #NUM_ENQD]
-            CMP R2, R3
+            CMP R3, #0
             BEQ P_INSTR_EXIT
             LDR R0, [R1, #OUT_PTR]
             LDR R3, [R1, #IN_PTR]
-            MOVS R2, #OUT_PTR
+            MOVS R2, R0
 P_INSTR_LOOP
-            LDR R0, [R2]
+            LDRB R0, [R2]
             BL PutChar
             BL POINTER_INC
             CMP R2, R3
@@ -307,6 +306,7 @@ P_INSTR_EXIT
             BL PutChar
             LDR R0, =CRLF_S
             MOVS R1, #MAX_STRING
+			BL PutStringSB
             POP {R0-R3}
             B MAIN_LOOP
             ENDP
@@ -318,6 +318,7 @@ S_INSTR     PROC {}
             LDR R0, =STAT_S
             MOVS R1, #MAX_STRING
             BL PutStringSB
+			BL STATUS
             POP {R0-R1}
             B MAIN_LOOP
             ENDP
@@ -601,18 +602,18 @@ PutNumUB    PROC {}
 PutNumHex   PROC {}
             PUSH {R1-R4, LR}
             LDR R1, =0xF0000000
-            MOVS R3, #0
+            MOVS R3, #8
 PutNumHexLoop
-            CMP R3, #8
+            CMP R3, #0
             BEQ PutNumHexLoopExit
-            MOVS R2, R0
-            ANDS R2, R2, R1
+            MOVS R2, R1
+            ANDS R2, R2, R0
 
             ; Bring the active byte to the front
-            LSRS R2, R2, R3
-            LSRS R2, R2, R3
-            LSRS R2, R2, R3
-            LSRS R2, R2, R3
+			MOVS R4, R3
+			SUBS R4, #1
+			LSLS R4, #2
+            LSRS R2, R2, R4
 
             CMP R2, #10
             BLT PutNumHexLow
@@ -626,7 +627,7 @@ PutNumHexLow
             MOVS R0, R4
 
             LSRS R1, #4
-            ADDS R3, R3, #1
+            SUBS R3, R3, #1
             B PutNumHexLoop
 PutNumHexLoopExit
             POP {R1-R4, PC}
@@ -859,7 +860,7 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 CMD_S       DCB "Type a queue command (D,E,H,P,S):", 0x00
 CRLF_S      DCB 0x0D, 0x0A, 0x00
 FAIL_S      DCB "Failure:        ", 0x00
-CHAR_S      DCB ":               ", 0x00
+CHAR_S      DCB ":              ", 0x00
 STAT_S      DCB " Status:        ", 0x00
 SUCC_S      DCB "Success:        ", 0x00
 ENQU_S      DCB "Char to enqueue:", 0x00

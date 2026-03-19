@@ -1,0 +1,143 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;*******************************************************
+                       *********
+    2 00000000         ;EQUates
+    3 00000000         ; Queue management record field offsets
+    4 00000000 00000000 
+                       IN_PTR  EQU              0
+    5 00000000 00000004 
+                       OUT_PTR EQU              4
+    6 00000000 00000008 
+                       BUF_STRT
+                               EQU              8
+    7 00000000 0000000C 
+                       BUF_PAST
+                               EQU              12
+    8 00000000 00000010 
+                       BUF_SIZE
+                               EQU              16
+    9 00000000 00000011 
+                       NUM_ENQD
+                               EQU              17
+   10 00000000         ; Queue structure sizes
+   11 00000000 00000004 
+                       Q_BUF_SZ
+                               EQU              4           ;Queue buffer conte
+                                                            nts
+   12 00000000 00000012 
+                       Q_REC_SZ
+                               EQU              18          ;Queue management r
+                                                            ecord
+   13 00000000         ; Queue delimiters for printed output
+   14 00000000 0000003E 
+                       Q_BEGIN_CH
+                               EQU              '>'
+   15 00000000 0000003C 
+                       Q_END_CH
+                               EQU              '<'
+                       
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
+work --depend=.\objects\exercise07_equ.d -o.\objects\exercise07_equ.o -I.\RTE\_
+Target_1 -IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include -IC:
+\Keil_v5\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_V
+ERSION SETA 524" --predefine="MKL05Z32xxx4 SETA 1" --list=.\listings\exercise07
+_equ.lst Exercise07_EQU.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+BUF_PAST 0000000C
+
+Symbol: BUF_PAST
+   Definitions
+      At line 7 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: BUF_PAST unused
+BUF_SIZE 00000010
+
+Symbol: BUF_SIZE
+   Definitions
+      At line 8 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: BUF_SIZE unused
+BUF_STRT 00000008
+
+Symbol: BUF_STRT
+   Definitions
+      At line 6 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: BUF_STRT unused
+IN_PTR 00000000
+
+Symbol: IN_PTR
+   Definitions
+      At line 4 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: IN_PTR unused
+NUM_ENQD 00000011
+
+Symbol: NUM_ENQD
+   Definitions
+      At line 9 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: NUM_ENQD unused
+OUT_PTR 00000004
+
+Symbol: OUT_PTR
+   Definitions
+      At line 5 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: OUT_PTR unused
+Q_BEGIN_CH 0000003E
+
+Symbol: Q_BEGIN_CH
+   Definitions
+      At line 14 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: Q_BEGIN_CH unused
+Q_BUF_SZ 00000004
+
+Symbol: Q_BUF_SZ
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+   Definitions
+      At line 11 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: Q_BUF_SZ unused
+Q_END_CH 0000003C
+
+Symbol: Q_END_CH
+   Definitions
+      At line 15 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: Q_END_CH unused
+Q_REC_SZ 00000012
+
+Symbol: Q_REC_SZ
+   Definitions
+      At line 12 in file Exercise07_EQU.s
+   Uses
+      None
+Comment: Q_REC_SZ unused
+10 symbols
+343 symbols in table
