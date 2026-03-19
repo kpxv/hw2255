@@ -177,32 +177,15 @@ main
 ;---------------------------------------------------------------
 ;>>>>> begin main program code <<<<<
             ; Init
+            BL Init_UART0_Polling
             LDR R0, =QBUFFER
             LDR R1, =QRECORD
             MOVS R2, #4
             BL INIT_QUEUE
-            MOVS R0, 'h'
-            BL ENQUEUE
-            BL DEQUEUE
-
-            MOVS R0, 'h'
-            BL ENQUEUE
-            MOVS R0, 'e'
-            BL ENQUEUE
-            MOVS R0, 'l'
-            BL ENQUEUE
-            MOVS R0, 'o'
-            BL ENQUEUE
-            MOVS R0, 'A'
-            BL ENQUEUE
-            BL DEQUEUE
-            MOVS R0, 'A'
-            BL ENQUEUE
-            BL DEQUEUE
-            BL DEQUEUE
-            BL DEQUEUE
-            BL DEQUEUE
-            BL DEQUEUE
+            LDR R0, =CMD_STR
+            MOVS R1, #0x10
+            BL GetChar
+            BL PutChar
 ;>>>>>   end main program code <<<<<
             B .
             B       .
@@ -349,7 +332,8 @@ DEQUEUE
             B DEQUEUE_EXIT
 DEQUEUE_EMPTY
             ; Set C flag
-            MVNS R2, #0
+            MOVS R2, #0
+            MVNS R2, R2
             ADDS R2, R2, #1
 DEQUEUE_EXIT
             POP {R2, PC}
@@ -388,7 +372,8 @@ ENQUEUE
             B ENQUEUE_EXIT
 ENQUEUE_FULL
             ; Set C flag
-            MVNS R2, #0
+            MOVS R2, #0
+            MVNS R2, R2
 ENQUEUE_EXIT
             POP {R2, R3, PC}
             ENDP
@@ -423,6 +408,228 @@ POINTER_INC_EXIT
             POP {R0, R3}
             BX LR
             ENDP
+
+; Put byte as decimal to terminal
+; Reads from R0
+; Changes: PC, PSR
+PutNumUB    PROC {}
+            PUSH {R1, LR}
+            MOVS R1, #0xFF
+            ANDS R1, R1, R0
+            BL PutNumU
+            POP {R1, PC}
+            ENDP
+
+; Put register as hex to terminal
+; Reads from R0
+PutNumHex   PROC {}
+            PUSH {R1-R4, LR}
+            LDR R1, #0xF0000000
+            MOVS R3, #0
+PutNumHexLoop
+            CMP R3, #8
+            BEQ PutNumHexLoopExit
+            ANDS R2, R0, R1
+
+            ; Bring the active byte to the front
+            LSRS R2, R2, R3
+            LSRS R2, R2, R3
+            LSRS R2, R2, R3
+            LSRS R2, R2, R3
+
+            CMP R2, #10
+            BLT PutNumHexLow
+            ADDS R2, #0x10
+PutNumHexLow
+            ADDS R2, #0x21
+
+            MOVS R4, R0
+            MOVS R0, R2
+            BL PutChar
+            MOVS R0, R4
+
+            LSRS R1, #4
+            ADDS R3, R3, #1
+            B PutNumHexLoop
+PutNumHexLoopExit
+            POP {R1-R4, PC}
+            ENDP
+
+;*
+; Puts a character into UART0_D
+; Reads from R0
+; Changes: LR, PC, PSR
+;*/
+PutChar PROC {}
+            PUSH {R1, R2}
+            MOVS R1, #UART0_S1_TDRE_MASK
+PutCharLoop
+            ; Wait for TDRE to be set
+            LDR R2, =UART0_S1
+            LDRB R2, [R2, #0]
+            ANDS R2, R2, R1
+            CMP R2, #0
+            beq PutCharLoop
+
+            ; Write UART0_D
+            LDR R2, =UART0_D
+            STRB R0, [R2, #0]
+
+            POP {R1, R2}
+            BX LR
+            ENDP
+
+; Gets a string from user
+; Inputs:
+;   R1 : Buffer capacity
+;   R0 : Address of stored string
+; Outputs:
+;   A string at location in memory specified by R0
+GetStringSB PROC {R0-R7}
+            PUSH {R0-R4, LR}
+            CMP R1, #0
+            BEQ GetStringSBTerminate   ; String must have at least one character
+            SUBS R1, R1, #1
+            MOVS R2, R0
+            MOVS R3, #0
+GetStringSBLoop
+            BL GetChar
+            CMP R0, #0x0D
+            BEQ GetStringSBCleanup      ; End on return
+            CMP R0, #0x08
+            BEQ GetStringSBBackspace    ; Allow backspace
+            CMP R0, #0x7F
+            BEQ GetStringSBLoop         ; Get new character if control character
+            CMP R0, #0x1F
+            BLS GetStringSBLoop
+            
+            CMP R3, R1
+            BHS GetStringSBLoop         ; If buffer size reached, wait for return or backspace
+            
+            STRB R0, [R2, R3]           ; Store
+            ADDS R3, R3, #1             ; Increment string pointer
+            BL PutChar
+            B GetStringSBLoop
+	
+GetStringSBBackspace
+            CMP R3, #0
+            BEQ GetStringSBLoop         ; Only backspace if there are characters in the string
+            BL PutChar                  ; Remove character from the screen
+            MOVS R0, #0x20
+            BL PutChar
+            MOVS R0, #0x08
+            BL PutChar
+            SUBS R3, R3, #1             ; Decrement string poniter
+            B GetStringSBLoop
+		
+GetStringSBCleanup
+            MOVS R4, #0
+            STRB R4, [R2, R3]           ; Store NUL terminator
+			LDR R0, =crlf_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB              ; Print newline
+GetStringSBTerminate
+            POP {R0-R4, PC}
+            ENDP
+	
+; Prints a string
+; Inputs:
+;   R0 : Memory addr of the string to print
+;   R1 : Capacity of the string
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+PutStringSB PROC {R0-R7}
+            PUSH {R0-R3, LR}
+            MOVS R2, R0
+            MOVS R3, #0
+PutStringSBLoop
+            CMP R3, R1
+            BEQ PutStringSBTerminate    ; Exit if buffer size exceeded
+            LDRB R0, [R2, R3]
+            CMP R0, #0
+            BEQ PutStringSBTerminate    ; Exit if NUL
+            
+            BL PutChar                  ; Print
+            ADDS R3, R3, #1             ; Increment string pointer
+            B PutStringSBLoop
+PutStringSBTerminate
+            POP {R0-R3, PC}
+            ENDP
+	
+; Print decimal of binary value
+; Inputs:
+;   R0 : The value to print
+; Outputs:
+;   None
+; Modifies:
+;   LR, PSR
+PutNumU PROC {}
+            PUSH {R0-R2, R4, LR}
+            CMP R0, #0
+            BEQ PutNumUPrintZero        ; Handle 0
+            MOVS R2, R0
+            MOVS R4, #0
+			MOVS R1, R0
+PutNumULoop
+            MOVS R0, #10
+            BL DIVU                     ; Divide by 10
+            PUSH {R1}                   ; Push remainder
+            ADDS R4, R4, #1             ; Increment digit counter
+            CMP R0, #0
+            BEQ PutNumUPop              ; If quotient is 0, exit
+			MOVS R1, R0
+            B PutNumULoop               ; Divide quotient by 10
+
+PutNumUPop
+            CMP R4, #0
+            BEQ PutNumUTerminate        ; If 0 left to print, exit
+            POP {R0}
+			ADDS R0, R0, #HEX_0         ; Convert from uint to char
+            BL PutChar
+            SUBS R4, R4, #1             ; Decrement digit counter
+            B PutNumUPop
+	
+PutNumUPrintZero
+            MOVS R0, #0x30
+            BL PutChar                  ; Print ascii 0
+            B PutNumUTerminate; LEAVE
+	
+PutNumUTerminate
+            POP {R0-R2, R4, PC}
+            ENDP
+
+; Get a quotient and a remainder
+; Inputs:
+;   R0 : The divisor
+;   R1 : The dividend
+; Outputs:
+;   R0 : The quotient
+;   R1 : The remainder
+; Modifies:
+;   LR, PSR
+DIVU PROC {R3-R14}
+            CMP R0, #0      ; SETS CARRY FLAG IF EQUAL
+            BEQ DIVU_END
+            PUSH {R2}
+            MOVS R2, #0
+DIVU_LOOP
+            CMP R1, R0
+            BLO DIVU_CLEANUP
+            SUBS R1, R1, R0
+            ADDS R2, R2, #1
+            B DIVU_LOOP
+DIVU_CLEANUP
+            MOVS R0, R2
+            ; CLEAR APSR FLAGS
+            MOVS R2, #1
+            ADDS R2, #1
+            POP {R2}
+DIVU_END
+            BX LR
+            ENDP
+
 
 ;>>>>>   end subroutine code <<<<<
             ALIGN
@@ -501,6 +708,7 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
+CMD_STR     DCD "Type a queue command (D,E,H,P,S):\0"
 ;>>>>>   end constants here <<<<<
             ALIGN
 ;****************************************************************
