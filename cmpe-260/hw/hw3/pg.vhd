@@ -14,7 +14,7 @@ entity pg is
     );
 end entity pg;
 
-architecture struct of pg is
+architecture behv of pg is
 
     signal ab_s : std_logic;
     signal pg_s : std_logic;
@@ -39,4 +39,4 @@ begin
         g(i)   <= g_s(i);
     end generate gen_g_l;
 
-end architecture struct;
+end architecture behv;

@@ -3,7 +3,7 @@ library ieee;
 
 entity p is
     generic (
-        n : integer := 5
+        n : integer := 4
     );
     port (
         p : in    std_logic_vector(n downto 1);
