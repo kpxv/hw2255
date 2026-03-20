@@ -43,99 +43,139 @@ representations. The exercise was successful.
 \section*{Procedure}
 
 A Keil MDK-ARM project was created. Provided libraries were added to Source
-Group 1 of the project. A subroutine \texttt{GetStringSB} was written using
-a previously written subroutine to recieve a single character. The subroutine
-stored a string from user input to a location in memory. It took as input R0,
-the address of the memory at which to store the string; and R1, the total
-allowable size of the string. If a backspace character was received, the memory
-pointer was decremented. If a return character was recieved, a NUL terminator
-was appended to the string and the subroutine exited. If a control character
-was recieved, it was ignored. If the string size was one less byte than the
-maximum, all inputs except return and backspace were ignored. Otherwise, the
-input was appended to the string and the string pointer was incremented.
+Group 1 of the project. A subroutine InitQueue was written to create a record
+structure describing the queue. The structure contained six fields: two 4-byte
+data pointers, two 4-byte buffer pointers, a 1-byte buffer size, and a 1-byte
+queue size. The data pointers were used to access queue data. The buffer
+pointers were used to bound the edges of the buffer. InitQueue took in a buffer
+start address, a buffer capacity in bytes, and a record address.
 
-A subroutine \texttt{PutStringSB} was written using a previously written
-subroutine to transmit a single character. The subroutine printed all
-characters until either the buffer size was reached or a NUL terminator was
-encountered.
+A subroutine Dequeue was written to get data from the queue. It took in the
+record address as input and gave a dequeued byte as output. If a dequeue
+operation was attempted on an empty queue, the PSR C flag was set. The
+subroutine compared the queue size to zreo to determine if the queue was empty.
+It read the data at the address specified in the data out pointer of the record
+to register R0. It incremented the data out pointer after use; if the data out
+pointer exceeded buffer bounds, it was set to the start of the buffer. The
+subroutine decremented the queue size contained in the record.
 
-A subroutine \texttt{PutNumU} was written using a previously written subroutine
-to perform unsigned division. The subroutine took input R0 as the number to
-transmit. It iteratively divided R0 and pushed the result to stack. It then
-iteratively popped bytes from the stack, converted them to ASCII characters,
-and transmitted them.
+A subroutine Enqueue was written to put data into the queue. It took in the
+record address and the byte to enqueue as inputs. If an enqueue operation was
+attempted on a full queue, the PSR C flag was set. The subroutine compared
+buffer size and queue size to determine if the queue was full. It stored byte
+0 of register R0 to the address contained the data in pointer of the record. It
+incremented the data in pointer after use. The data in pointer was incremented
+in the same manner as the data out pointer. The subroutine incremented the
+queue size contained in the record.
 
-A main program was written to display a basic user interface. It requested a
-one character input from the user and executed a different subroutine based on
-the input. If input was a \texttt{g} or \texttt{G}, it requested a string from
-the user using \texttt{GetStringSB}. If input was \texttt{p} or \texttt{P}, it
-printed the string using \texttt{PutStringSB}. If input was \texttt{l} or
-\texttt{L}, it printed the length of the string using \texttt{PutNumU}. If the
-input was \texttt{i} or \texttt{I}, it set the operative string to a NUL
-character.
+A subroutine PutNumUB was written as a wrapper around the PutNumU subroutine
+implemented in a previous exercise. PutNumUB extracted the least significant
+byte of an input and passed the byte as an argument to PutNumU, which converted
+the byte to decimal and sent it to the Universal Asynchronous
+Receiver/Transmitter (UART) in ASCII encoding.
 
-The program was translated and built. Target options were modified to allow the
-debugger to work with the flashed chip. The program was flashed to the KL05Z.
-The windows program PuTTY was configured to communicate with the chip. The
-program was tested with a variety of inputs, including control characters,
-return, backspace, and strings of max buffer length.
+A subroutine PutNumHex was written to convert a register to hexadecimal and
+send it in ASCII encoding to the UART. It took in a register as input. The
+subroutine iteratively masked and converted each nibble to a hexadecimal ASCII
+value. The mask position was adjusted by with logical right shifting. The ASCII
+value was sent to the PutChar subroutine written in a previous exercise.
+
+A TUI was implemented to request input from a user. The user was presented with
+five options: dequeue, enqueue, help, print, and status. The dequeue option
+attempted to dequeue an item using the Dequeue subroutine. If successful, it
+sent the dequeued character to the UART. The enqueue option attempted to
+enqueue an item using the Enqueue subroutine. The user was asked for a
+character to enqueue. The help option printed a string listing available
+options. The print option option printed the entire queue without modifying it.
+The status option printed the information contained in the record. Status
+information was also printed after enqueue and dequeue operations.
 
 \section*{Results}
 
-A demonstration of the UI is given in Figure \ref{fig:demo}.
+The TUI was tested using a variety of inputs. The complete test is given by
+Figure \ref{fig:demo}. It demonstrates each command under a variety of
+conditions. During the test, non-command characters were entered, but were
+successfully ignored.
 
 \begin{figure}[H]
 	\center
-	\includegraphics[width=0.8\textwidth]{assets/sc}
-	\caption{Demonstration of UI}
+	\includegraphics[height=0.95\textheight]{assets/sc}
+	\caption{Demonstration of TUI}
 	\label{fig:demo}
 \end{figure}
 
-Memory ranges are presented in Table \ref{tab:mem}.
+As seen in Figure \ref{fig:demo}, commands enqueue and dequeue were tested
+during queue full, queue empty, and queue partially full states. Each time, the
+command printed correctly the result of the operation, as well as the status
+of the queue record. Also shown is that the queue stays contained within the
+boundaries of the queue buffer: the data in and out pointers jump from
+\texttt{0x1FFFFD03} to \texttt{0x1FFFFD00}, because they have hit the edge of
+the buffer.
+
+A useful way by which to analyze a given assembly (or other) program is by
+examining its memory map. The memory map for the implemented program is
+presented in Table \ref{tab:mem}.
 
 \begin{table}[H]
 	\center
 	\caption{Memory Ranges}
 	\begin{tabular}{|c|c|c|}
 		\hline
-		            & Start Address & End Address \\
+		Symbol Name  & Start Address & End Address \\
 		\hline
 		\hline
-		MyCode      & 0x120         & 0x39f       \\
+		MyCode       & 0x00000410    & 0x000007a7  \\
 		\hline
-		Main        & 0x121         & 0x158       \\
+		CMD\_S       & 0x000001cc    & 0x000001ed  \\
 		\hline
-		var         & 0x1ffffd000   & 0x1ffffd04e \\
+		CRLF\_S      & 0x000001ee    & 0x000001f0  \\
 		\hline
-		instr\_str  & 0x3a0         & 0x3c0       \\
+		FAIL\_S      & 0x000001f1    & 0x00000201  \\
 		\hline
-		crlf\_str   & 0x3c1         & 0x3c3       \\
+		CHAR\_S      & 0x00000202    & 0x00000211  \\
 		\hline
-		len\_str    & 0x3c4         & 0x3cb       \\
+		STAT\_S      & 0x00000212    & 0x00000222  \\
 		\hline
-		GetStringSB & 0x279         & 0x2d0       \\
+		SUCC\_S      & 0x00000223    & 0x00000233  \\
 		\hline
-		PutStringSB & 0x2d1         & 0x2ea       \\
+		ENQU\_S      & 0x00000234    & 0x00000244  \\
 		\hline
-		PutNumU     & 0x2eb         & 0x322       \\
+		HELP\_S      & 0x00000245    & 0x00000280  \\
+		\hline
+		STAT\_IN\_S  & 0x00000281    & 0x0000028a  \\
+		\hline
+		STAT\_OUT\_S & 0x0000028b    & 0x00000295  \\
+		\hline
+		STAT\_NUM\_S & 0x00000296    & 0x0000029f  \\
+		\hline
+		QBUFFER      & 0x1ffffd00    & 0x1ffffd4f  \\
+		\hline
+		QRECORD      & 0x1ffffd50    & 0x1ffffd61  \\
 		\hline
 	\end{tabular}
 	\label{tab:mem}
 \end{table}
 
-The number of user-typed characters must be one fewer than the number of bytes
-allocated for the string to allow for a NUL terminator to be appended to the
-end of the string. \texttt{MAX\_STRING} is used to declare a variable, so it
-must be an EQUate and not a DCD.
+The MyCode symbol represents all executable code inside the program. According
+to Table \ref{tab:mem}, the MyCode area occupies 920 bytes of instructions.
+Thiss includes the main TUI program, as well as the command selection and
+execution subroutines. Various string constants were created to enable string
+printing. In total, they occupy 212 bytes of memory. Additionally, two
+variables were created in RAM to store the queue and the queue record. The
+queue record occupies 18 bytes of space. The queue buffer occupies 80 bytes of
+space. Thus, although only 4 bytes were used in program testing, this program
+could support a queue of up to 80 bytes in length without remapping RAM.
 
 \section*{Conclusion}
 
-The objective of this exercise was to design safe algorithms for string I/O, as
-well as to design a subroutine to convert an unsigned binary number into a
-decimal ASCII number. Subroutines used a set maximum string size to ensure
-no overflow could occur, regardless of input. In the future, safe string I/O
-should be used in any serious project to prevent exploitation or accidental
-breakages.
+The objective of this exercise was to design a circular FIFO queue, as well as
+to design  subroutines that could print a byte in decimal and a register in
+hexadecimal to the UART. The queue used a record to manage meta information,
+and used a buffer to store queue contents. In this program, the queue was used
+to facilitate a TUI menu, but in future exercises it may have more practical
+applications. For example, a queue may be used for interrupt transmition with
+the UART<F10>. Values to transmit may be enqueued, to be transmitted at the
+leisure of the connected device.
 
 \includepdf[pages=-]{assets/prelab}
 
