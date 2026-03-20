@@ -17,11 +17,14 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
 package globals is
+
     constant n : INTEGER := 4; -- Bit length of inputs
     constant m : INTEGER := 2; -- log_2 of N
     constant o : INTEGER := 4; -- Bit length of OP CODE
+
 end package globals;

@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
@@ -32,7 +33,10 @@ entity f_adder is
 end entity f_adder;
 
 architecture behv of f_adder is
+
 begin
+
     s    <= (a xor b) xor cin;
     cout <= (a and b) or (b and cin) or (a and cin);
+
 end architecture behv;

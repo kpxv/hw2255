@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
@@ -25,7 +26,8 @@ entity execute_tb is
 end entity execute_tb;
 
 architecture behv of execute_tb is
-    type     test_rec_t is record
+
+    type test_rec_t is record
         reg_write_r : std_logic;
         memto_reg_r : std_logic;
         mem_write_r : std_logic;
@@ -46,9 +48,9 @@ architecture behv of execute_tb is
         write_reg_r     : std_logic_vector(4 downto 0);
     end record test_rec_t;
 
-    type     test_arr_t is array (natural range <>) of test_rec_t;
+    type test_arr_t is array (natural range <>) of test_rec_t;
 
-    constant test_rec_arr    : test_arr_t :=
+    constant test_rec_arr : test_arr_t :=
     (
         (
             reg_write_r => '1',
@@ -272,25 +274,27 @@ architecture behv of execute_tb is
         )
     );
 
-    signal   reg_write_s     : std_logic;
-    signal   memto_reg_s     : std_logic;
-    signal   mem_write_s     : std_logic;
-    signal   alu_ctrl_s      : std_logic_vector(3 downto 0);
-    signal   alu_src_s       : std_logic;
-    signal   reg_dst_s       : std_logic;
-    signal   reg_srca_s      : std_logic_vector(31 downto 0);
-    signal   reg_srcb_s      : std_logic_vector(31 downto 0);
-    signal   rt_dest_s       : std_logic_vector(4 downto 0);
-    signal   rd_dest_s       : std_logic_vector(4 downto 0);
-    signal   sign_imm_s      : std_logic_vector(31 downto 0);
+    signal reg_write_s : std_logic;
+    signal memto_reg_s : std_logic;
+    signal mem_write_s : std_logic;
+    signal alu_ctrl_s  : std_logic_vector(3 downto 0);
+    signal alu_src_s   : std_logic;
+    signal reg_dst_s   : std_logic;
+    signal reg_srca_s  : std_logic_vector(31 downto 0);
+    signal reg_srcb_s  : std_logic_vector(31 downto 0);
+    signal rt_dest_s   : std_logic_vector(4 downto 0);
+    signal rd_dest_s   : std_logic_vector(4 downto 0);
+    signal sign_imm_s  : std_logic_vector(31 downto 0);
 
-    signal   reg_write_out_s : std_logic;
-    signal   memto_reg_out_s : std_logic;
-    signal   mem_write_out_s : std_logic;
-    signal   alu_result_s    : std_logic_vector(31 downto 0);
-    signal   write_data_s    : std_logic_vector(31 downto 0);
-    signal   write_reg_s     : std_logic_vector(4 downto 0);
+    signal reg_write_out_s : std_logic;
+    signal memto_reg_out_s : std_logic;
+    signal mem_write_out_s : std_logic;
+    signal alu_result_s    : std_logic_vector(31 downto 0);
+    signal write_data_s    : std_logic_vector(31 downto 0);
+    signal write_reg_s     : std_logic_vector(4 downto 0);
+
 begin
+
     uut : entity work.execute
         port map (
             reg_write_s,
@@ -315,7 +319,9 @@ begin
 
     stim_proc : process is
     begin
+
         for i in test_rec_arr'range loop
+
             reg_write_s <= test_rec_arr(i).reg_write_r;
             memto_reg_s <= test_rec_arr(i).memto_reg_r;
             mem_write_s <= test_rec_arr(i).mem_write_r;
@@ -348,10 +354,13 @@ begin
             assert test_rec_arr(i).write_reg_r = write_reg_s
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
+
         end loop;
 
         assert false
             report "TB Successful"
             severity failure;
-    end process;
+
+    end process stim_proc;
+
 end architecture behv;

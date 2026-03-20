@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
@@ -44,8 +45,11 @@ entity execute is
 end entity execute;
 
 architecture struct of execute is
+
     signal b_s : std_logic_vector(31 downto 0);
+
 begin
+
     reg_write_out <= reg_write;
     memto_reg_out <= memto_reg;
     mem_write_out <= mem_write;
@@ -64,4 +68,5 @@ begin
     write_data <= reg_srcb;
     write_reg  <= rt_dest when reg_dst = '0' else
                   rd_dest;
+
 end architecture struct;

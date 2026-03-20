@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
@@ -32,6 +33,7 @@ entity alu32 is
 end entity alu32;
 
 architecture struct of alu32 is
+
     signal or_result  : std_logic_vector(N - 1 downto 0);
     signal and_result : std_logic_vector(N - 1 downto 0);
     signal xor_result : std_logic_vector(N - 1 downto 0);
@@ -41,7 +43,9 @@ architecture struct of alu32 is
     signal add_result : std_logic_vector(N - 1 downto 0);
     signal sub_result : std_logic_vector(N - 1 downto 0);
     signal mul_result : std_logic_vector(N - 1 downto 0);
+
 begin
+
     -- Establish operations
     or_comp : entity work.orn
         generic map (
@@ -147,4 +151,5 @@ begin
         sub_result when "0101",
         mul_result when "0110",
         (others => '0') when others;
+
 end architecture struct;

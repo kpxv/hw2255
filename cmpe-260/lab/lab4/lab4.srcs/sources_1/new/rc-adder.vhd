@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
@@ -34,9 +35,12 @@ entity rc_adder is
 end entity rc_adder;
 
 architecture struct of rc_adder is
+
     signal c_s : std_logic_vector(n downto 0);
     signal b_s : std_logic_vector(n - 1 downto 0);
+
 begin
+
     c_s(0) <= op;
 
     gen_inv_l : for i in 0 to n - 1 generate
@@ -44,6 +48,7 @@ begin
     end generate gen_inv_l;
 
     add_l : for i in 0 to n - 1 generate
+
         f_adder_inst : entity work.f_adder(behv)
             port map (
                 a   => a(i),
@@ -55,4 +60,5 @@ begin
             );
 
     end generate add_l;
+
 end architecture struct;

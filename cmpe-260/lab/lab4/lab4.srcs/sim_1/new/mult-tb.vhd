@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
@@ -25,13 +26,14 @@ entity mult_tb is
 end entity mult_tb;
 
 architecture behv of mult_tb is
-    type     test_rec_t is record
+
+    type test_rec_t is record
         a_r : std_logic_vector(15 downto 0);
         b_r : std_logic_vector(15 downto 0);
         p_r : std_logic_vector(31 downto 0);
     end record test_rec_t;
 
-    type     test_arr_t is array (natural range <>) of test_rec_t;
+    type test_arr_t is array (natural range <>) of test_rec_t;
 
     constant test_rec_arr : test_arr_t :=
     (
@@ -97,11 +99,13 @@ architecture behv of mult_tb is
         )
     );
 
-    signal   a_s          : std_logic_vector(15 downto 0);
-    signal   b_s          : std_logic_vector(15 downto 0);
-    signal   p_s          : std_logic_vector(31 downto 0);
-    signal   clk          : std_logic;
+    signal a_s : std_logic_vector(15 downto 0);
+    signal b_s : std_logic_vector(15 downto 0);
+    signal p_s : std_logic_vector(31 downto 0);
+    signal clk : std_logic;
+
 begin
+
     uut : entity work.mult(struct)
         port map (
             a       => a_s,
@@ -111,15 +115,19 @@ begin
 
     clk_proc : process is
     begin
+
         clk <= '0';
         wait for 50 ns;
         clk <= '1';
         wait for 50 ns;
+
     end process clk_proc;
 
     stim_proc : process is
     begin
+
         for i in test_rec_arr'range loop
+
             wait until clk = '1';
             a_s <= test_rec_arr(i).a_r;
             b_s <= test_rec_arr(i).b_r;
@@ -129,10 +137,13 @@ begin
             assert test_rec_arr(i).p_r = p_s
                 report "Case failed on test #" & integer'image(i)
                 severity failure;
+
         end loop;
 
         wait until clk = '0';
         assert false
             severity failure;
+
     end process stim_proc;
+
 end architecture behv;

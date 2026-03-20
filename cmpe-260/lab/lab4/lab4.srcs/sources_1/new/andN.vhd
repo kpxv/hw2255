@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
@@ -32,9 +33,11 @@ entity andn is
 end entity andn;
 
 architecture behv of andn is
+
 begin
 
     generateand : for i in 0 to N - 1 generate
         Y(i) <= a(i) and b(i);
     end generate generateand;
+
 end architecture behv;

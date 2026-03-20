@@ -11,6 +11,7 @@
 --                 architectural description of a
 --                aluTB
 -------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
@@ -22,6 +23,7 @@ entity alutb is
 end entity alutb;
 
 architecture tb of alutb is
+
     component alu32 is
         port (
             a  : in    std_logic_vector(N - 1 downto 0);
@@ -31,12 +33,12 @@ architecture tb of alutb is
         );
     end component alu32;
 
-    signal a     : std_logic_vector(n - 1 downto 0);
-    signal b     : std_logic_vector(n - 1 downto 0);
-    signal op    : std_logic_vector(3 downto 0);
-    signal y     : std_logic_vector(n - 1 downto 0);
+    signal a  : std_logic_vector(n - 1 downto 0);
+    signal b  : std_logic_vector(n - 1 downto 0);
+    signal op : std_logic_vector(3 downto 0);
+    signal y  : std_logic_vector(n - 1 downto 0);
 
-    type   alu_tests is record
+    type alu_tests is record
         -- Test Inputs
         a  : std_logic_vector(31 downto 0);
         b  : std_logic_vector(31 downto 0);
@@ -45,7 +47,7 @@ architecture tb of alutb is
         y : std_logic_vector(31 downto 0);
     end record alu_tests;
 
-    type     test_array is array (natural range <>) of alu_tests;
+    type test_array is array (natural range <>) of alu_tests;
 
     constant tests : test_array :=
     (
@@ -241,7 +243,9 @@ architecture tb of alutb is
             y  => x"FFFFFFFE"
         )
     );
+
 begin
+
     alun_0 : component alu32
         port map (
             a  => a,
@@ -252,9 +256,11 @@ begin
 
     stim_proc : process is
     begin
+
         -- Renamed from test_vector_array to tests, because the latter was
         -- declared and the former wasn't. I assume it was a typo.
         for i in tests'range loop
+
             a  <= tests(i).a;
             b  <= tests(i).b;
             op <= tests(i).op;
@@ -264,10 +270,13 @@ begin
             assert tests(i).y = y
                 report "Edge case failed on test #" & integer'image(i)
                 severity failure;
+
         end loop;
 
         assert false
             report "Testbench Concluded."
             severity failure;
-    end process;
+
+    end process stim_proc;
+
 end architecture tb;

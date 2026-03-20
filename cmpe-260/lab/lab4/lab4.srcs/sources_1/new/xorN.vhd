@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
@@ -32,9 +33,11 @@ entity xorn is
 end entity xorn;
 
 architecture behv of xorn is
+
 begin
 
     generatexor : for i in 0 to N - 1 generate
         Y(i) <= a(i) xor b(i);
     end generate generatexor;
+
 end architecture behv;

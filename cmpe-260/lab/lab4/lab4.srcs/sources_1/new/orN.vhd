@@ -17,6 +17,7 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
+
 library ieee;
     use ieee.std_logic_1164.all;
 
@@ -32,9 +33,11 @@ entity orn is
 end entity orn;
 
 architecture behv of orn is
+
 begin
 
     generateor : for i in 0 to N - 1 generate
         Y(i) <= a(i) or b(i);
     end generate generateor;
+
 end architecture behv;
