@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+\usepackage{circuitikz}
+\usepackage{minted}
+% \usepackage{newtxtt}
+% \usepackage{newtxmath}
+
+\graphicspath{{./assets/}}
+\ctikzset{logic ports=ieee}
+
+\title{DSD II Homework 3}
+\author{Aden Perry}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+Code:
+
+\inputminted{vhdl}{hw3.srcs/sources_1/imports/hw3/pg.vhd}
+\inputminted{vhdl}{hw3.srcs/sources_1/imports/hw3/sum.vhd}
+\inputminted{vhdl}{hw3.srcs/sources_1/imports/hw3/p.vhd}
+\inputminted{vhdl}{hw3.srcs/sources_1/imports/hw3/ao.vhd}
+\inputminted{vhdl}{hw3.srcs/sources_1/imports/hw3/mux2.vhd}
+\inputminted{vhdl}{hw3.srcs/sources_1/imports/hw3/carryskipadd.vhd}
+
+Testbench:
+
+\inputminted{vhdl}{hw3.srcs/sim_1/new/carryskipadd-tb.vhd}
+
+The testbench passes.
+
+\begin{enumerate}
+	\item The maximum observed delay is approximately 25 ns.
+	\item Waits on an XOR and two ANDs for the first bit. Waits on an
+	      additional two AND gates for every bit after. Thus,
+          $(3 + 1 + 1) + 15 \cdot (1 + 1) = 35$ ns until the last carry-out is
+          trusted. There is one XOR gate after the second-to-last carry-in to
+          determine the final sum bit, which means the final sum bit is 36 ns.
+          This design is about 30\% faster.
+\end{enumerate}
+
+\end{document}

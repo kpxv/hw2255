@@ -44,6 +44,41 @@ architecture behv of carryskipadd_tb is
     constant tests : test_arr_t :=
     (
         (
+            a    => x"0000",
+            b    => x"0000",
+            cin  => '0',
+            s    => x"0000",
+            cout => '0'
+        ),
+        (
+            a    => x"0000",
+            b    => x"0000",
+            cin  => '1',
+            s    => x"0001",
+            cout => '0'
+        ),
+        (
+            a    => x"8000",
+            b    => x"8000",
+            cin  => '1',
+            s    => x"0001",
+            cout => '1'
+        ),
+        (
+            a    => x"AAAA",
+            b    => x"5555",
+            cin  => '0',
+            s    => x"FFFF",
+            cout => '0'
+        ),
+        (
+            a    => x"0002",
+            b    => x"0004",
+            cin  => '0',
+            s    => x"0006",
+            cout => '0'
+        ),
+        (
             a    => x"FFFF",
             b    => x"0000",
             cin  => '1',

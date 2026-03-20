@@ -3,9 +3,9 @@ library ieee;
 
 entity carryskipadd is
     generic (
-        n    : integer := 4;
+        n    : integer := 2;
         k    : integer := 4;
-        bign : integer := 16
+        bign : integer := 8
     );
     port (
         a   : in    std_logic_vector(bign downto 1);
@@ -76,9 +76,19 @@ begin
 
             end generate gen_mux2_l;
 
+            -- TODO: Ask Eric why this creates a latch
+            -- bigg_s(j + n * (i - 1)) <= aog_s(j + n * (i - 1)) when j /= n else
+            --                            muxg_s(i);
+
             -- Current G val is the result of the mux if at group edge, else the result of AO.
-            bigg_s(j + n * (i - 1)) <= aog_s(j + n * (i - 1)) when j /= n else
-                                       muxg_s(i);
+
+            gen_muxg_l : if j = n generate
+                bigg_s(j + n * (i - 1)) <= muxg_s(i);
+            end generate gen_muxg_l;
+
+            gen_aogg_l : if j /= n generate
+                bigg_s(j + n * (i - 1)) <= aog_s(j + n * (i - 1));
+            end generate gen_aogg_l;
 
         end generate gen_nbits_l;
 
