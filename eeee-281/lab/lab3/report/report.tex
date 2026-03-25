@@ -1,0 +1,171 @@
+\documentclass[EEEE]{KGCOEReport}
+
+\usepackage[backend=biber]{biblatex}
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{csquotes}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{amsmath}
+\usepackage{circuitikz}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{pdfpages}
+\usepackage{pgfplots, pgfplotstable}
+
+\graphicspath{./assets/}
+\addbibresource{./assets/bib.bib}
+
+\newcommand{\classCode}{EEEE 281}
+\newcommand{\className}{Circuits 1}
+
+\newcommand{\name}{Aden Perry}
+% \newcommand{\partnerName}{PARTNER}
+
+\newcommand{\LabSectionNum}{L7}
+
+\newcommand{\TAs}{Sol Holston}
+\newcommand{\exerciseNumber}{3}
+\newcommand{\exerciseDescription}{Thevenin Equivalent Circuits and Linearity}
+
+\newcommand{\dateDone}{2026-03-24}
+\newcommand{\dateSubmitted}{2026-03-31}
+
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+
+\section{Introduction and Theory}
+
+
+\subsection{Theory: Circuit Investigated}
+
+
+\subsection{Theory: LTspice Simulation}
+
+\begin{table}[H]
+	\center
+	\caption{Theory}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		$R_L$ $\Omega$ & $V_{OUT}$ V & $I_{OUT}$ A \\
+		\hline
+		\hline
+		2200           & 1.95556     & 0.000888889 \\
+		\hline
+		1000           & 1.90476     & 0.00190476  \\
+		\hline
+		470            & 1.80769     & 0.00384615  \\
+		\hline
+		100            & 1.33333     & 0.01333333  \\
+		\hline
+		68             & 1.15254     & 0.0169492   \\
+		\hline
+		47             & 0.969072    & 0.0206186   \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\pgfplotstableread{
+	X Y
+
+	0.000888889	1.95556
+	0.00190476 	1.90476
+	0.00384615 	1.80769
+	0.01333333 	1.33333
+	0.0169492  	1.15254
+	0.0206186  	0.969072
+}\theorytbl
+
+\begin{tikzpicture}
+	\begin{axis}[legend pos=outer north east]
+		\addplot [only marks, mark = *] table {\theorytbl};
+		\addplot [thick, red] table[
+				y={create col/linear regression={y=Y}}
+			] % compute a linear regression from the input table
+			{\theorytbl};
+		\addlegendentry{$y(x)$}
+		\addlegendentry{%
+			$\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
+				\pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$}
+	\end{axis}
+\end{tikzpicture}
+
+Theoretical $R_{TH} = 50$ ; Theoretical $V_{TH} = 2$
+
+
+
+\section{Hardware Experiment: Results and Discussion}
+
+\begin{table}[H]
+	\center
+	\caption{Hardware}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		$R_L$ $\Omega$ & $V_{OUT}$ V & $I_{OUT}$ A            \\
+		\hline
+		\hline
+		2200           & 1.9590      & 0.00089045 \\
+		\hline
+		1000           & 1.9056      & 0.00190560 \\
+		\hline
+		470            & 1.8053      & 0.00384106 \\
+		\hline
+		100            & 1.3166      & 0.01316600 \\
+		\hline
+		68             & 1.1353      & 0.01669559 \\
+		\hline
+		47             & 0.95256     & 0.02026723 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\pgfplotstableread{
+	X Y
+
+	0.00089045454545454551 1.9590
+	0.0019055999999999999 1.9056
+	0.0038410638297872337 1.8053
+	0.013166000000000001  1.3166
+	0.016695588235294118 1.1353
+	0.020267234042553192 0.95256
+
+}\hwtbl
+
+\begin{tikzpicture}
+	\begin{axis}[legend pos=outer north east]
+		\addplot [only marks, mark = *] table {\hwtbl};
+		\addplot [thick, red] table[
+				y={create col/linear regression={y=Y}}
+			] % compute a linear regression from the input table
+			{\hwtbl};
+		\addlegendentry{$y(x)$}
+		\addlegendentry{%
+			$\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
+				\pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$}
+	\end{axis}
+\end{tikzpicture}
+
+Hardware $R_{TH} = 52.03$ ; Hardware $V_{TH} = 2$
+
+\section{Conclusion}
+
+Having a positive (non-zero) Thevenin resistance decreases the output voltage
+from the input voltage.
+
+\section{Acknowledgements}
+
+The template for this Technical Memo was modified from a \LaTeX \ class created
+by Joshua Milas and Seth Gower, using the provided Tech Memo Template and
+example Tech Memo from the Advanced Course as inspiration.
+
+The Teaching Assistant, Sol Holston, verified that calculated, simulated, and
+measured values were correct.
+
+\printbibliography
+
+\end{document}
