@@ -1,5 +1,6 @@
-.set n, 8
+.set n, 4
 .set stack_buf_sz, 8*n+4
+.set num_sz, 4*n
 
 .set hex_0, 0x30
 .set hex_9, 0x3A
@@ -11,16 +12,10 @@
 .section .text
 .global _start
 _start:
-    ldr r0, =str
-    bl ReverseString
-    b .
-    ldr r0, =sum
-    ldr r1, =a1
-    ldr r2, =a2
-    movs r3, #n
-    bl AddIntMultiU
+    ldr r0, =storage
     movs r1, #n
-    bl PutHexIntMulti
+    bl GetHexIntMulti
+
     b .
 
 
@@ -70,10 +65,6 @@ aimu_loop:
   * Gets an n-word ASCII-encoded hex number from UART, terminated on return
   * keystroke, and stores it as binary in memory
   *
-  * TODO: Use GetStringSB. Prefer allocate string buffer on stack.
-  * TODO: Extra credit: Allow enter only significant digits of number.
-  * TODO: Extra credit: Allow upper or lowercase alpha characters.
-  *
   * Inputs:
   *     r0 : address to store binary number
   *     r1 : the length n of the number
@@ -83,7 +74,7 @@ aimu_loop:
   *     psr
   */
 GetHexIntMulti:
-    push {lr}
+    push {r0-r2, r4-r7, lr}
     // r4 : store address
     // r5 : length n
     // r6 : stack pointer
@@ -103,18 +94,47 @@ GetHexIntMulti:
 
     mov r6, sp
     movs r7, #0
-    subs r1, #2
+    movs r1, #num_sz
+    subs r1, #1
 ghim_store_in:
     ldrb r0, [r6, r7]
     cmp r0, #0
     beq ghim_end_store
     bl HexToBin
     bcs ghim_exit
+    movs r2, r0
+    adds r7, #1
+    ldrb r0, [r6, r7]
+    cmp r0, #0
+    beq ghim_pre_end_store
+    bl HexToBin
+    bcs ghim_exit
     lsls r0, #4
+    orrs r0, r0, r2
+    strb r0, [r4, r1]
+    cmp r1, #0
+    beq ghim_clean_exit
+    subs r1, #1
+    adds r7, #1
+    b ghim_store_in
+ghim_pre_end_store:
+    movs r0, r2
+ghim_end_store:
+    strb r0, [r4, r1]
+    movs r0, #0
+ghim_end_loop:
+    cmp r1, #0
+    beq ghim_clean_exit
+    subs r1, #1
 
+    strb r0, [r4, r1]
+    b ghim_end_loop
+ghim_clean_exit:
+    // Clear C flag
+    adds r0, #0
 ghim_exit:
     add sp, #stack_buf_sz
-    pop {pc}
+    pop {r0-r2, r4-r7, pc}
 
 
 
@@ -162,6 +182,16 @@ PutNumHex:
   * Placeholder
   */
 GetStringSB:
+    push {r1-r3}
+    ldr r1, =str
+    movs r3, #0
+gssb_loop:
+    ldrb r2, [r1, r3]
+    strb r2, [r0, r3]
+    adds r3, #1
+    cmp r2, #0
+    bne gssb_loop
+    pop {r1-r3}
     bx lr
 
 
@@ -213,6 +243,7 @@ rs_reverse:
   * Inputs:
   *     r0 : byte to convert
   * Outputs:
+  *     r0 : converted byte
   *     psr : clear c iff valid input
   * Modifies:
   *     psr
@@ -237,7 +268,7 @@ htb_tooffsetbin:
 htb_tobin:
     subs r0, #hex_0
     cmp r0, #0xF
-    bht htb_fail
+    bhi htb_fail
 htb_pass:
     // Clear C flag
     adds r0, #0
@@ -255,4 +286,5 @@ htb_exit:
 sum: .word 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
 a1: .word 0x00001111, 0x00002222, 0x00003333, 0x00004444, 0x00005555, 0x00006666, 0x00007777, 0x00008888
 a2: .word 0x00100000, 0x00200000, 0x00300000, 0x00400000, 0x00500000, 0x00600000, 0x00700000, 0x00800000
-str: .byte 'a', 'b', 'c', 'd', 'e', 'f', 0x00
+str: .byte '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 0x00
+storage: .skip stack_buf_sz
