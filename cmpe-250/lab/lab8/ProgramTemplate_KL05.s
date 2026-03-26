@@ -353,7 +353,7 @@ invalid_loop
 ; */
 PrintNewline PROC {R0-R1}
             PUSH {R0-R1, LR}
-            LDR R0, =crlf_s
+            LDR R0, =CRLF_STR
             MOVS R1, #MAX_STRING
             BL MAX_STRING
             POP {R0-R1, pc}
@@ -687,7 +687,7 @@ GetStringSBBackspace
 GetStringSBCleanup
             MOVS R4, #0
             STRB R4, [R2, R3]           ; Store NUL terminator
-			LDR R0, =crlf_str
+			LDR R0, =CRLF_STR
             MOVS R1, #MAX_STRING
             BL PutStringSB              ; Print newline
 GetStringSBTerminate
@@ -876,7 +876,7 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
-crlf_s      DCB 0x0D, 0x0A, 0x00
+CRLF_STR      DCB 0x0D, 0x0A, 0x00
 prompt_1    DCB "Enter first 128-but hex number:     0x", 0x00
 prompt_2    DCB "Enter 128-but hex number to add:    0x", 0x00
 prompt_err  DCB "Invalid number--try again:          0x", 0x00
