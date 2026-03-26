@@ -194,7 +194,6 @@ main_num_1
             BL Invalid
 
 main_num_2
-            BL PrintNewline
             ;/ Get second number
             LDR R0, =prompt_2
             MOVS R1, #MAX_STRING
@@ -206,7 +205,6 @@ main_num_2
             BL Invalid
 
 main_sum
-            BL PrintNewline
             ;/ Print sum
             LDR R0, =sum_str
             MOVS R1, #MAX_STRING
@@ -328,7 +326,6 @@ Invalid     PROC {R0-R1, R4-R5}
             MOVS R4, R0
             MOVS R5, R1
 invalid_loop
-            BL PrintNewline
             LDR R0, =prompt_err
             MOVS R1, #MAX_STRING
             BL PutStringSB
