@@ -371,19 +371,26 @@ PrintNewline PROC {R0-R1}
 ; * Modifies:
 ; *     psr
 ; */
-AddIntMultiU PROC {R0-R6}
-            PUSH {R3-R6}
+AddIntMultiU PROC {R0-R7}
+            PUSH {R3-R7, LR}
             ;   R4 : addend store / sum
             ;   R5 : addend store
             ;   R6 : hold APSR
+			;   R7 : Address store
+			MOVS R7, R0
             LSLS R3, #2
             ;  Clear carry
             ADDS R0, R0, #0
             MRS R6, APSR
 aimu_loop
             SUBS R3, R3, #4
-            LDR R4, [R1, R3]
-            LDR R5, [R2, R3]
+            LDR R0, [R1, R3]
+			BL ReverseRegister
+			MOVS R4, R0
+            LDR R0, [R2, R3]
+			BL ReverseRegister
+			MOVS R5, R0
+			MOVS R0, R7
             ;  Restore APSR flags
             MSR APSR, R6
             ADCS R4, R4, R5
@@ -394,9 +401,51 @@ aimu_loop
             BNE aimu_loop
             ;  Set C if addition overflowed
             MSR APSR, R6
-            POP {R3-R6}
-            BX LR
+            POP {R3-R7, PC}
             ENDP
+				
+				
+				
+;**
+; * Reverse register byte order
+; *
+; * Inputs:
+; * 	R0 : register to reverse
+; * Outputs:
+; * 	R0 : reversed register
+; * Modifies:
+; * 	psr
+; */
+ReverseRegister PROC {R1-R3}
+			PUSH {R1-R3}
+			MOVS R1, R0
+			MOVS R2, R0
+			MOVS R3, #0xFF
+			ANDS R1, R1, R3
+			LSLS R1, #24
+			MOVS R0, R1
+			
+			MOVS R1, R2
+			LSLS R3, #8
+			ANDS R1, R1, R3
+			LSLS R1, #8
+			ORRS R0, R0, R1
+			
+			MOVS R1, R2
+			LSLS R3, #8
+			ANDS R1, R1, R3
+			LSRS R1, #8
+			ORRS R0, R0, R1
+			
+			MOVS R1, R2
+			LSLS R3, #8
+			ANDS R1, R1, R3
+			LSRS R1, #24
+			ORRS R0, R1
+			POP {R1-R3}
+			BX LR
+			ENDP
+			
 
 
 
