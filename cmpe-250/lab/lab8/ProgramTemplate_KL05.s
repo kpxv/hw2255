@@ -330,7 +330,7 @@ Invalid     PROC {R0-R1, R4-R5}
 invalid_loop
             BL PrintNewline
             LDR R0, =prompt_err
-            MOVS R0, #MAX_STRING
+            MOVS R1, #MAX_STRING
             BL PutStringSB
             MOVS R1, R5
             MOVS R0, R4
@@ -355,7 +355,7 @@ PrintNewline PROC {R0-R1}
             PUSH {R0-R1, LR}
             LDR R0, =CRLF_STR
             MOVS R1, #MAX_STRING
-            BL MAX_STRING
+            BL PutStringSB
             POP {R0-R1, pc}
             ENDP
 
