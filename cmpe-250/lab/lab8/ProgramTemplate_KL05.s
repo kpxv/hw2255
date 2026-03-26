@@ -148,26 +148,19 @@ UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: UART0_S1_OR_MASK :OR:    UAR
 ;0-->0:RAF=receiver active flag; read-only 
 UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR: UART0_S2_RXEDGIF_MASK) 
 ;---------------------------------------------------------------
-IN_PTR EQU 0
-OUT_PTR EQU 4
-BUF_START EQU 8
-BUF_PAST EQU 12
-BUF_SIZE EQU 16
-NUM_ENQD EQU 17
 
-Q_BUF_SZ EQU 80
-Q_REC_SZ EQU 18
+n           EQU  4
+stack_buf_sz  EQU 8*n+4
+num_sz      EQU 4*n
 
-HEX_a EQU 'a'
-HEX_D EQU 'D'
-HEX_E EQU 'E'
-HEX_H EQU 'H'
-HEX_P EQU 'P'
-HEX_S EQU 'S'
-HEX_0 EQU '0'
-MAX_STRING EQU 0x80
-OFFSET_a_A EQU 0x20
+putstr_buf_sz  EQU 0x8000
 
+hex_0       EQU 0x30
+hex_9       EQU 0x3A
+hex_A       EQU 0x41
+hex_a       EQU 0x61
+hex_a_A     EQU 0x20
+hex_A_10    EQU 0x7
 
 ;***************************************************************
 ;Program
@@ -188,211 +181,61 @@ main
 ;>>>>> begin main program code <<<<<
             ; Init
             BL Init_UART0_Polling
-            LDR R0, =QBUFFER
-            LDR R1, =QRECORD
-            MOVS R2, #4
-            BL INIT_QUEUE
 
-MAIN_LOOP
-            ; Print command string
-            LDR R0, =CMD_S
-            MOVS R1, #MAX_STRING
-            BL PutStringSB 
+main_num_1
+            ;/ Get first number
+            ldr r0, =prompt_1
+            movs r1, #putstr_buf_sz
+            bl PutStringSB
+            ldr r0, =num1
+            movs r1, #n
+            bl GetHexIntMulti
+            bcc main_num_2
+            bl Invalid
 
-POLL_LOOP
-            BL GetChar          ; Poll for character
-            MOVS R4, R0         ; Allow logic with toUpper, but save polled character for printing
-            CMP R4, #HEX_a      ; Check whether the polled character is less then 'a'
-            BLT CHECK           ; If so, skip toUpper conversion
-TO_UPPER
-            SUBS R4, R4, #OFFSET_a_A    ; Else, convert character to uppercase.
+main_num_2
+            bl PrintNewline
+            ;/ Get second number
+            ldr r0, =prompt_2
+            movs r1, #putstr_buf_sz
+            bl PutStringSB
+            ldr r0, =num2
+            movs r1, #n
+            bl GetHexIntMulti
+            bcc main_sum
+            bl Invalid
 
-CHECK
-			CMP R4, #HEX_D      ; Check whether character is D
-			BEQ D_INSTR
-			CMP R4, #HEX_E      ; Check whether character is E
-			BEQ E_INSTR
-			CMP R4, #HEX_H      ; Check whether character is H
-			BEQ H_INSTR
-			CMP R4, #HEX_P      ; Check whether character is P
-			BEQ P_INSTR
-			CMP R4, #HEX_S      ; Check whether character is S
-			BEQ S_INSTR
-			
-			B POLL_LOOP         ; Loop
+main_sum
+            bl PrintNewline
+            ;/ Print sum
+            ldr r0, =sum_str
+            movs r1, #putstr_buf_sz
+            bl PutStringSB
+            ldr r0, =sum
+            ldr r1, =num1
+            ldr r2, =num2
+            movs r3, #n
+            bl AddIntMultiU
+            bcc main_print_sum
+
+            ldr r0, =overflow_str
+            movs r1, #putstr_buf_sz
+            bl PutStringSB
+            bl PrintNewline
+            b main_num_1
+
+main_print_sum
+            ldr r0, =sum
+            movs r1, #n
+            bl PutHexIntMulti
+            bl PrintNewline
+
+            b main_num_1
+
 ;>>>>>   end main program code <<<<<
-            B .
             B       .
             ENDP    ;main
 ;>>>>> begin subroutine code <<<<<
-;**
-; * Runs the D isntruction
-; *
-; * Inputs:
-; *     R0 : the input character
-; * Outputs:
-; *     None
-; * Modified:
-; *     psr
-; */
-D_INSTR     PROC {R0-R1}
-            PUSH {R0-R1}
-            ; Print input char and newline
-            BL ECHO_CMD
-            ; Attempt dequeue
-            LDR R1, =QRECORD
-            BL DEQUEUE
-            MOVS R1, #MAX_STRING
-            BCC D_INSTR_PASS
-            ; If unsuccessful, print fail string
-            LDR R0, =FAIL_S
-            BL PutStringSB
-            B D_INSTR_CONT
-D_INSTR_PASS
-            ; Else, print the dequeued character
-            BL PutChar
-            LDR R0, =CHAR_S
-            BL PutStringSB
-D_INSTR_CONT
-            ; Print status of the record
-            BL STATUS
-            POP {R0-R1}
-            B MAIN_LOOP
-            ENDP
-
-;**
-; * Runs the E isntruction
-; *
-; * Inputs:
-; *     R0 : the input character
-; * Outputs:
-; *     None
-; * Modified:
-; *     psr
-; */
-E_INSTR     PROC {R0-R1}
-            PUSH {R0-R1}
-            ; Print input char and newline
-            BL ECHO_CMD
-            ; Get character to enqueue
-            LDR R0, =ENQU_S
-            MOVS R1, #MAX_STRING
-            BL PutStringSB
-            BL GetChar
-            ; Print the character selected and newline
-			BL ECHO_CMD
-            ; Attempt enqueue
-            LDR R1, =QRECORD
-            BL ENQUEUE
-            BCC E_INSTR_PASS
-            ; If unsuccessful, print fail string
-            LDR R0, =FAIL_S
-            BL PutStringSB
-            B E_INSTR_CONT
-E_INSTR_PASS
-            ; Else, print success string
-            LDR R0, =SUCC_S
-            BL PutStringSB
-E_INSTR_CONT
-            ; Print status of the record
-            BL STATUS
-            POP {R0-R1}
-            B MAIN_LOOP
-            ENDP
-
-;**
-; * Runs the H isntruction
-; *
-; * Inputs:
-; *     R0 : the input character
-; * Outputs:
-; *     None
-; * Modified:
-; *     psr
-; */
-H_INSTR     PROC {R0-R1}
-            PUSH {R0-R1}
-            ; Print input char and newline
-            BL ECHO_CMD
-            ; Print help string
-            LDR R0, =HELP_S
-            MOVS R1, #MAX_STRING
-            BL PutStringSB
-            ; Return
-            POP {R0-R1}
-            B MAIN_LOOP
-            ENDP
-
-;**
-; * Runs the P isntruction
-; *
-; * Inputs:
-; *     R0 : the input character
-; * Outputs:
-; *     None
-; * Modified:
-; *     psr
-; */
-P_INSTR     PROC {R0-R3}
-            PUSH {R0-R3}
-            ; Print the input char and newline
-            BL ECHO_CMD
-            ; Print left delimiter
-            MOVS R0, #'>'
-            BL PutChar
-            ; Exit if the queue is empty
-            LDR R1, =QRECORD
-            LDRB R3, [R1, #NUM_ENQD]
-            CMP R3, #0
-            BEQ P_INSTR_EXIT
-            ; Load in and out pointers
-            LDR R0, [R1, #OUT_PTR]
-            LDR R3, [R1, #IN_PTR]
-            MOVS R2, R0
-P_INSTR_LOOP
-            ; Print the value at the pointer in r2
-            LDRB R0, [R2]
-            BL PutChar
-            ; Increment the r2 pointer
-            BL POINTER_INC
-            ; Exit when r2 pointer is the same as the in pointer
-            CMP R2, R3
-            BNE P_INSTR_LOOP
-P_INSTR_EXIT
-            ; Print right delimiter and newline
-            MOVS R0, #'<'
-            BL PutChar
-            LDR R0, =CRLF_S
-            MOVS R1, #MAX_STRING
-			BL PutStringSB
-            ; Return
-            POP {R0-R3}
-            B MAIN_LOOP
-            ENDP
-
-;**
-; * Runs the S isntruction
-; *
-; * Inputs:
-; *     R0 : the input character
-; * Outputs:
-; *     None
-; * Modified:
-; *     psr
-; */
-S_INSTR     PROC {R0-R1}
-            PUSH {R0-R1}
-            ; Print the input char and newline
-            BL ECHO_CMD
-            LDR R0, =STAT_S
-            MOVS R1, #MAX_STRING
-            BL PutStringSB
-            ; Print the record status
-			BL STATUS
-            ; Return
-            POP {R0-R1}
-            B MAIN_LOOP
-            ENDP
 
 ;*
 ; Initialize board for polled serial I/O with UART0 through ports B pins 1
@@ -467,223 +310,293 @@ Init_UART0_Polling PROC {}
             BX LR
             ENDP
 
+
+
 ;**
-; * Print the status of the queue record
+; * Tells user string was invalid and prompts to try again
 ; *
 ; * Inputs:
-; *     None
+; *     r0 : address of number to store
+; *     r1 : word length
 ; * Outputs:
 ; *     None
-; * Modified:
-; *     psr
-; */
-STATUS      PROC {R0-R1}
-            PUSH {R0-R1, LR}
-            ; Print the in pointer string
-            MOVS R1, #MAX_STRING
-            LDR R0, =STAT_IN_S
-            BL PutStringSB
-            ; Print the in pointer
-            LDR R1, =QRECORD
-            LDR R0, [R1, #IN_PTR]
-            BL PutNumHex
-            ; Print the out pointer string
-            MOVS R1, #MAX_STRING
-            LDR R0, =STAT_OUT_S
-            BL PutStringSB
-            ; Print the out pointer
-            LDR R1, =QRECORD
-            LDR R0, [R1, #OUT_PTR]
-            BL PutNumHex
-            ; Print the number enqueued string
-            MOVS R1, #MAX_STRING
-            LDR R0, =STAT_NUM_S
-            BL PutStringSB
-            ; Print the number enqueued
-            LDR R1, =QRECORD
-            LDRB R0, [R1, #NUM_ENQD]
-            BL PutNumUB
-            ; Print newline
-            MOVS R1, #MAX_STRING
-            LDR R0, =CRLF_S
-            BL PutStringSB
-            ; Return
-            POP  {R0-R1, PC}
-            ENDP
-
-; Print the char and newline
-; Inputs:
-;   R0 : The char to print
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-ECHO_CMD PROC {}
-            PUSH {R0, R1, LR}
-            ; Print char
-            BL PutChar
-            ; Print newline
-            LDR R0, =CRLF_S
-			MOVS R1, #5
-            BL PutStringSB
-            POP {R0, R1, PC}
-            ENDP
-
-;**
-; * Initialize queue record
-; *
-; * Inputs:
-; *     R0 : buffer address
-; *     R1 : record address
-; *     R2 : buffer capacity
-; * Outputs:
-; *     None
-; * Modified:
-; *     psr
-; */
-INIT_QUEUE  PROC {R0-R3}
-            PUSH {R3}
-            ; In pointer
-            STR R0, [R1, #IN_PTR]
-            ; Out pointer
-            STR R0, [R1, #OUT_PTR]
-            ; Buffer start
-            STR R0, [R1, #BUF_START]
-            ; Buffer end
-            ADDS R3, R0, R2
-            SUBS R3, R3, #1
-            STR R3, [R1, #BUF_PAST]
-            ; Buffer size
-            STRB R2, [R1, #BUF_SIZE]
-            ; Number enqueued
-            MOVS R3, #0
-            STRB R3, [R1, #NUM_ENQD]
-            POP {R3}
-            BX LR
-            ENDP
-
-;**
-; * Attempt to get char from queue
-; *
-; * Inputs:
-; *     R1 : record address
-; * Outputs:
-; *     R0 : dequeued character
-; *     psr : clear c iff successful
-; * Modified:
-; *     R0, iff DEQUEUE successful
-; *     psr
-; */
-DEQUEUE    PROC {R0-R2}
-            PUSH {R2, LR}
-            ; Check if empty
-            LDRB R2, [R1, #NUM_ENQD]
-            CMP R2, #0
-            BEQ DEQUEUE_EMPTY
-            ; Get from queue
-            LDR R2, [R1, #OUT_PTR]
-            LDRB R0, [R2]
-            ; Increment pointer
-            BL POINTER_INC
-            STR R2, [R1, #OUT_PTR]
-            ; Decrement num enqueued
-            LDRB R2, [R1, #NUM_ENQD]
-            SUBS R2, R2, #1
-            STRB R2, [R1, #NUM_ENQD]
-            ; Clear C flag
-            ADDS R2, #0
-            B DEQUEUE_EXIT
-DEQUEUE_EMPTY
-            ; Set C flag
-            MOVS R2, #0
-            MVNS R2, R2
-            ADDS R2, R2, #1
-DEQUEUE_EXIT
-            POP {R2, PC}
-            ENDP
-
-;**
-; * Attempt to put char in queue
-; *
-; * Inputs:
-; *     R0 : ENQUEUE char
-; *     R1 : record address
-; * Outputs:
-; *     psr: clear c iff ENQUEUE successful
-; * Modified:
-; *     psr
-; */
-ENQUEUE    PROC {R0-R3}
-            PUSH {R2-R3, LR}
-            ; Check if full
-            LDRB R2, [R1, #BUF_SIZE]
-            LDRB R3, [R1, #NUM_ENQD]
-            CMP R2, R3
-            BEQ ENQUEUE_FULL
-            ; Store to queue
-            LDR R2, [R1, #IN_PTR]
-            STRB R0, [R2]
-            ; Increment in pointer
-            BL POINTER_INC
-            STR R2, [R1, #IN_PTR]
-            ; Increment num enqueued
-            ADDS R3, R3, #1
-            STRB R3, [R1, #NUM_ENQD]
-            ; Clear C flag
-            ADDS R2, #0
-            B ENQUEUE_EXIT
-ENQUEUE_FULL
-            ; Set C flag
-            MOVS R2, #0
-            MVNS R2, R2
-ENQUEUE_EXIT
-            POP {R2-R3, PC}
-            ENDP
-
-;**
-; * Increment queue pointer
-; *
-; * Inputs:
-; *     R1 : record address
-; *     R2 : pointer
-; * Outputs:
-; *     R2 : incremented pointer
 ; * Modifies:
-; *     R2
 ; *     psr
 ; */
-POINTER_INC PROC {R0-R3}
-            PUSH {R0, R3}
-            ; Load end of buffer
-            MOVS R0, R2
-            LDR R3, [R1, #BUF_PAST]
-            ; If pointer is at the end of the buffer
-            CMP R0, R3
-            ; Wrap
-            BEQ POINTER_INC_WRAP
-            ; Else increment
-            ADDS R0, R0, #1
-            B POINTER_INC_EXIT
-POINTER_INC_WRAP
-            ; Wrap by setting pointer to start of buffer
-            LDR R0, [R1, #BUF_START]
-POINTER_INC_EXIT
-            ; Return
-            MOVS R2, R0
-            POP {R0, R3}
-            BX LR
+Invalid     PROC {R0-R1, R4-R5}
+            push {r4-r5, lr}
+            movs r4, r0
+            movs r5, r1
+invalid_loop
+            bl PrintNewline
+            ldr r0, =prompt_err
+            movs r0, #putstr_buf_sz
+            bl PutStringSB
+            movs r1, r5
+            movs r0, r4
+            bl GetHexIntMulti
+            bcs invalid_loop
+            pop {r4-r5, pc}
             ENDP
 
-; Put byte as decimal to terminal
-; Reads from R0
-; Changes: PC, PSR
-PutNumUB    PROC {R0-R1}
-            PUSH {R0-R1, LR}
-            MOVS R1, #0xFF
-            ANDS R0, R0, R1
-            BL PutNumU
-            POP {R0-R1, PC}
+
+
+;**
+; * Prints a newline and carriage return
+; *
+; * Inputs:
+; *     None
+; * Outputs:
+; *     None
+; * Modifies:
+; *     psr
+; */
+PrintNewline PROC{R0-R1}
+            push {r0-r1, lr}
+            ldr r0, =crlf_s
+            movs r1, #putstr_buf_sz
+            bl putstr_buf_sz
+            pop {r0-r1, pc}
             ENDP
+
+
+
+;**
+; * Adds n unsigned words together
+; *
+; * Inputs:
+; *     r0 : address to store sum
+; *     r1 : start address of the first addend
+; *     r2 : start address of the second addend
+; *     r3 : the length n of the numbers
+; * Outputs:
+; *     psr : clear c iff valid n-word number returned
+; * Modifies:
+; *     psr
+; */
+AddIntMultiU PROC {R0-R6}
+            push {r3-r6}
+            ;   r4 : addend store / sum
+            ;   r5 : addend store
+            ;   r6 : hold apsr
+            lsls r3, #2
+            ;  Clear carry
+            adds r0, r0, #0
+            mrs r6, apsr
+aimu_loop
+            subs r3, r3, #4
+            ldr r4, [r1, r3]
+            ldr r5, [r2, r3]
+            ;  Restore apsr flags
+            msr apsr, r6
+            adcs r4, r4, r5
+            ;  Store apsr flags
+            mrs r6, apsr
+            str r4, [r0, r3]
+            cmp r3, #0
+            bne aimu_loop
+            ;  Set C if addition overflowed
+            msr apsr, r6
+            pop {r3-r6}
+            bx lr
+            ENDP
+
+
+
+;**
+; * Gets an n-word ASCII-encoded hex number from UART, terminated on return
+; * keystroke, and stores it as binary in memory
+; *
+; * Inputs:
+; *     r0 : address to store binary number
+; *     r1 : the length n of the number
+; * Outputs:
+; *     psr : clear c iff valid n-word number returned
+; * Modifies:
+; *     psr
+; */
+GetHexIntMulti PROC {R0-R2, R4-R7}
+            push {r0-r2, r4-r7, lr}
+            ;  r4 : store address
+            ;  r5 : length n
+            ;  r6 : stack pointer
+            movs r4, r0
+            movs r5, r1
+            ;  Use stack as buffer
+            ;  In Thumb 1, cannot easily make dynamic buffer in stack. Uses an EQUate instead.
+            sub sp, #stack_buf_sz
+            mov r0, sp
+            ;  Find length of string buffer
+            lsls r1, #3
+            adds r1, #1
+            ;  Get input from user
+            bl GetStringSB
+            ;  Put LSB closest to the stack pointer
+            bl ReverseString
+
+            mov r6, sp
+            movs r7, #0
+            movs r1, #num_sz
+            subs r1, #1
+ghim_store_in
+            ldrb r0, [r6, r7]
+            cmp r0, #0
+            beq ghim_end_store
+            bl HexToBin
+            bcs ghim_exit
+            movs r2, r0
+            adds r7, #1
+            ldrb r0, [r6, r7]
+            cmp r0, #0
+            beq ghim_pre_end_store
+            bl HexToBin
+            bcs ghim_exit
+            lsls r0, #4
+            orrs r0, r0, r2
+            strb r0, [r4, r1]
+            cmp r1, #0
+            beq ghim_clean_exit
+            subs r1, #1
+            adds r7, #1
+            b ghim_store_in
+ghim_pre_end_store
+            movs r0, r2
+ghim_end_store
+            strb r0, [r4, r1]
+            movs r0, #0
+ghim_end_loop
+            cmp r1, #0
+            beq ghim_clean_exit
+            subs r1, #1
+
+            strb r0, [r4, r1]
+            b ghim_end_loop
+ghim_clean_exit
+            ;  Clear C flag
+            adds r0, #0
+ghim_exit
+            add sp, #stack_buf_sz
+            pop {r0-r2, r4-r7, pc}
+            ENDP
+
+
+
+;**
+; * Outputs an n-word ASCII-encoded hex number to UART
+; *
+; * Inputs:
+; *     r0 : start address of number
+; *     r1 : the length n of the number
+; * Outputs:
+; *     None
+; * Modifies:
+; *     psr
+; */
+PutHexIntMulti
+            push {r0-r1, r4, lr}
+            ;  r0 : arg for PutNumHex
+            ;  r1 : loop counter
+            ;  r4 : word address
+            movs r4, r0
+phim_loop
+            ;  Print the ith word
+            ldr r0, [r4]
+            bl PutNumHex
+            ;  Increment counters
+            adds r4, #4
+            subs r1, #1
+            ;  Loop
+            cmp r1, #0
+            bne phim_loop
+            pop {r0-r1, r4, pc}
+
+
+
+;**
+; * Reverses a nul-terminated string in place
+; *
+; * Inputs:
+; *     r0 : input string address
+; * Outputs:
+; *     None
+; * Modifies:
+; *     psr
+; */
+ReverseString
+            push {r4-r7}
+            ;  r0 : input address
+            ;  r4 : input offset
+            ;  r5 : output offset
+            ;  r6 : temporary byte storage
+            ;  r7 : temporary byte storage
+            movs r4, #0
+            movs r5, #0
+            ;  Search for NUL terminator
+rs_find_nul
+            ldrb r6, [r0, r4]
+            adds r4, #1
+            cmp r6, #0
+            bne rs_find_nul
+            subs r4, #2
+rs_reverse
+            ;  Swap bytes from either end of the string
+            ldrb r6, [r0, r4]
+            ldrb r7, [r0, r5]
+            strb r6, [r0, r5]
+            strb r7, [r0, r4]
+            subs r4, #1
+            adds r5, #1
+            cmp r4, r5
+            bge rs_reverse
+            pop{r4-r7}
+            bx lr
+
+
+
+;**
+; * Convert an ASCII char byte to a binary nibble.
+; *
+; * Inputs:
+; *     r0 : byte to convert
+; * Outputs:
+; *     r0 : converted byte
+; *     psr : clear c iff valid input
+; * Modifies:
+; *     psr
+; */
+HexToBin
+            ;  Must be at least hex 0
+            cmp r0, #hex_0
+            blo htb_fail
+            ;  Must not be between hex 9 and hex A
+            cmp r0, #hex_9
+            blo htb_tolower
+            cmp r0, #hex_A
+            blo htb_fail
+htb_tolower
+            cmp r0, #hex_a
+            blo htb_tooffsetbin
+            subs r0, #hex_a_A
+htb_tooffsetbin
+            cmp r0, #hex_A
+            blo htb_tobin
+            subs r0, #hex_A_10
+htb_tobin
+            subs r0, #hex_0
+            cmp r0, #0xF
+            bhi htb_fail
+htb_pass
+            ;  Clear C flag
+            adds r0, #0
+            b htb_exit
+htb_fail
+            ;  Set C flag
+            movs r0, #1
+            subs r0, #1
+htb_exit
+            bx lr
+
+
 
 ; Put register as hex to terminal
 ; Reads from R0
@@ -724,6 +637,60 @@ PutNumHexLow
 PutNumHexLoopExit
             POP {R1-R4, PC}
             ENDP
+
+; Gets a string from user
+; Inputs:
+;   R1 : Buffer capacity
+;   R0 : Address of stored string
+; Outputs:
+;   A string at location in memory specified by R0
+GetStringSB PROC {R0-R7}
+            PUSH {R0-R4, LR}
+            CMP R1, #0
+            BEQ GetStringSBTerminate   ; String must have at least one character
+            SUBS R1, R1, #1
+            MOVS R2, R0
+            MOVS R3, #0
+GetStringSBLoop
+            BL GetChar
+            CMP R0, #0x0D
+            BEQ GetStringSBCleanup      ; End on return
+            CMP R0, #0x08
+            BEQ GetStringSBBackspace    ; Allow backspace
+            CMP R0, #0x7F
+            BEQ GetStringSBLoop         ; Get new character if control character
+            CMP R0, #0x1F
+            BLS GetStringSBLoop
+            
+            CMP R3, R1
+            BHS GetStringSBLoop         ; If buffer size reached, wait for return or backspace
+            
+            STRB R0, [R2, R3]           ; Store
+            ADDS R3, R3, #1             ; Increment string pointer
+            BL PutChar
+            B GetStringSBLoop
+	
+GetStringSBBackspace
+            CMP R3, #0
+            BEQ GetStringSBLoop         ; Only backspace if there are characters in the string
+            BL PutChar                  ; Remove character from the screen
+            MOVS R0, #0x20
+            BL PutChar
+            MOVS R0, #0x08
+            BL PutChar
+            SUBS R3, R3, #1             ; Decrement string poniter
+            B GetStringSBLoop
+		
+GetStringSBCleanup
+            MOVS R4, #0
+            STRB R4, [R2, R3]           ; Store NUL terminator
+			LDR R0, =crlf_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB              ; Print newline
+GetStringSBTerminate
+            POP {R0-R4, PC}
+            ENDP
+
 
 ;*
 ; Gets a character from UART0_D
@@ -799,48 +766,6 @@ PutStringSBTerminate
             POP {R0-R3, PC}
             ENDP
 	
-; Print decimal of binary value
-; Inputs:
-;   R0 : The value to print
-; Outputs:
-;   None
-; Modifies:
-;   LR, PSR
-PutNumU PROC {}
-            PUSH {R0-R2, R4, LR}
-            CMP R0, #0
-            BEQ PutNumUPrintZero        ; Handle 0
-            MOVS R2, R0
-            MOVS R4, #0
-			MOVS R1, R0
-PutNumULoop
-            MOVS R0, #10
-            BL DIVU                     ; Divide by 10
-            PUSH {R1}                   ; Push remainder
-            ADDS R4, R4, #1             ; Increment digit counter
-            CMP R0, #0
-            BEQ PutNumUPop              ; If quotient is 0, exit
-			MOVS R1, R0
-            B PutNumULoop               ; Divide quotient by 10
-
-PutNumUPop
-            CMP R4, #0
-            BEQ PutNumUTerminate        ; If 0 left to print, exit
-            POP {R0}
-			ADDS R0, R0, #HEX_0         ; Convert from uint to char
-            BL PutChar
-            SUBS R4, R4, #1             ; Decrement digit counter
-            B PutNumUPop
-	
-PutNumUPrintZero
-            MOVS R0, #0x30
-            BL PutChar                  ; Print ascii 0
-            B PutNumUTerminate; LEAVE
-	
-PutNumUTerminate
-            POP {R0-R2, R4, PC}
-            ENDP
-
 ; Get a quotient and a remainder
 ; Inputs:
 ;   R0 : The divisor
@@ -870,7 +795,6 @@ DIVU_CLEANUP
 DIVU_END
             BX LR
             ENDP
-
 
 ;>>>>>   end subroutine code <<<<<
             ALIGN
@@ -949,27 +873,21 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 ;Constants
             AREA    MyConst,DATA,READONLY
 ;>>>>> begin constants here <<<<<
-CMD_S       DCB "Type a queue command (D,E,H,P,S):", 0x00
-CRLF_S      DCB 0x0D, 0x0A, 0x00
-FAIL_S      DCB "Failure:        ", 0x00
-CHAR_S      DCB ":              ", 0x00
-STAT_S      DCB " Status:        ", 0x00
-SUCC_S      DCB "Success:        ", 0x00
-ENQU_S      DCB "Char to enqueue:", 0x00
-HELP_S      DCB "D (dequeue), E (enqueue), H (help), P (print), S (status)", 0x0D, 0x0A, 0x00
-STAT_IN_S   DCB "    In=0x", 0x00
-STAT_OUT_S  DCB "    Out=0x", 0x00
-STAT_NUM_S  DCB "    Num=0", 0x00
+crlf_s      DCB 0x0D, 0x0A, 0x00
+prompt_1    DCB "Enter first 128-but hex number:     0x", 0x00
+prompt_2    DCB "Enter 128-but hex number to add:    0x", 0x00
+prompt_err  DCB "Invalid number--try again:          0x", 0x00
+sum_str     DCB "Sum:                                0x", 0x00
+overflow_str  DCB "OVERFLOW", 0x00
 ;>>>>>   end constants here <<<<<
             ALIGN
 ;****************************************************************
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
-QBUFFER
-            SPACE Q_BUF_SZ
-QRECORD
-            SPACE Q_REC_SZ
+num1        SPACE num_sz
+num2        SPACE num_sz
+sum         SPACE num_sz
 ;>>>>>   end variables here <<<<<
             ALIGN
             END

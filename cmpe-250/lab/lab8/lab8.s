@@ -2,6 +2,8 @@
 .set stack_buf_sz, 8*n+4
 .set num_sz, 4*n
 
+.set putstr_buf_sz, 0x8000
+
 .set hex_0, 0x30
 .set hex_9, 0x3A
 .set hex_A, 0x41
@@ -12,11 +14,103 @@
 .section .text
 .global _start
 _start:
-    ldr r0, =storage
+main_num_1:
+    // Get first number
+    ldr r0, =prompt_1
+    movs r1, #putstr_buf_sz
+    bl PutStringSB
+    ldr r0, =num1
     movs r1, #n
     bl GetHexIntMulti
+    bcc main_num_2
+    bl Invalid
 
+main_num_2:
+    bl PrintNewline
+    // Get second number
+    ldr r0, =prompt_2
+    movs r1, #putstr_buf_sz
+    bl PutStringSB
+    ldr r0, =num2
+    movs r1, #n
+    bl GetHexIntMulti
+    bcc main_sum
+    bl Invalid
+
+main_sum:
+    bl PrintNewline
+    // Print sum
+    ldr r0, =sum_str
+    movs r1, #putstr_buf_sz
+    bl PutStringSB
+    ldr r0, =sum
+    ldr r1, =num1
+    ldr r2, =num2
+    movs r3, #n
+    bl AddIntMultiU
+    bcc main_print_sum
+
+    ldr r0, =overflow_str
+    movs r1, #putstr_buf_sz
+    bl PutStringSB
+    bl PrintNewline
+    b main_num_1
+
+main_print_sum:
+    ldr r0, =sum
+    movs r1, #n
+    bl PutHexIntMulti
+    bl PrintNewline
+
+    b main_num_1
     b .
+
+
+
+/**
+  * Tells user string was invalid and prompts to try again
+  *
+  * Inputs:
+  *     r0 : address of number to store
+  *     r1 : word length
+  * Outputs:
+  *     None
+  * Modifies:
+  *     psr
+  */
+Invalid:
+    push {r4-r5, lr}
+    movs r4, r0
+    movs r5, r1
+invalid_loop:
+    bl PrintNewline
+    ldr r0, =prompt_err
+    movs r0, #putstr_buf_sz
+    bl PutStringSB
+    movs r1, r5
+    movs r0, r4
+    bl GetHexIntMulti
+    bcs invalid_loop
+    pop {r4-r5, pc}
+
+
+
+/**
+  * Prints a newline and carriage return
+  *
+  * Inputs:
+  *     None
+  * Outputs:
+  *     None
+  * Modifies:
+  *     psr
+  */
+PrintNewline:
+    push {r0-r1, lr}
+    ldr r0, =crlf_s
+    movs r1, #putstr_buf_sz
+    bl putstr_buf_sz
+    pop {r0-r1, pc}
 
 
 
@@ -181,9 +275,17 @@ PutNumHex:
 /**
   * Placeholder
   */
+PutStringSB:
+    bx lr
+
+
+
+/**
+  * Placeholder
+  */
 GetStringSB:
     push {r1-r3}
-    ldr r1, =str
+    ldr r1, =test_num
     movs r3, #0
 gssb_loop:
     ldrb r2, [r1, r3]
@@ -283,8 +385,15 @@ htb_exit:
 
 
 .section .data
-sum: .word 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
-a1: .word 0x00001111, 0x00002222, 0x00003333, 0x00004444, 0x00005555, 0x00006666, 0x00007777, 0x00008888
-a2: .word 0x00100000, 0x00200000, 0x00300000, 0x00400000, 0x00500000, 0x00600000, 0x00700000, 0x00800000
-str: .byte '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 0x00
-storage: .skip stack_buf_sz
+num1: .skip num_sz
+num2: .skip num_sz
+sum:  .skip num_sz
+
+crlf_s: .byte 0x0D, 0x0A, 0x00
+prompt_1:   .asciz "Enter first 128-but hex number:     0x"
+prompt_2:   .asciz "Enter 128-but hex number to add:    0x"
+prompt_err: .asciz "Invalid number--try again:          0x"
+sum_str:    .asciz "Sum:                                0x"
+overflow_str: .asciz "OVERFLOW"
+
+test_num: .asciz "0123456789abcdef"
