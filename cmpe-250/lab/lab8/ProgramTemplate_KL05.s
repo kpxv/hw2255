@@ -21,7 +21,7 @@
 ;****************************************************************
 ;EQUates
 ;--------------------------------------------------------------- 
-;PORTx_PCRn (Port x pin control register n [for pin n]) 
+;PORTx_PCRn (Port x pin control register N [for pin N]) 
 ;___->10-08:Pin mux control (select 0 to 8) 
 ;Use provided PORT_PCR_MUX_SELECT_2_MASK 
 ;--------------------------------------------------------------- 
@@ -149,18 +149,18 @@ UART0_S1_CLEAR_FLAGS  EQU  (UART0_S1_IDLE_MASK :OR: UART0_S1_OR_MASK :OR:    UAR
 UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  EQU  (UART0_S2_LBKDIF_MASK :OR: UART0_S2_RXEDGIF_MASK) 
 ;---------------------------------------------------------------
 
-n           EQU  4
-stack_buf_sz  EQU 8*n+4
-num_sz      EQU 4*n
+N           EQU  4
+STACK_BUF_SZ  EQU 8*N+4
+NUM_SZ      EQU 4*N
 
-putstr_buf_sz  EQU 0x8000
+MAX_STRING  EQU 0xFF
 
-hex_0       EQU 0x30
-hex_9       EQU 0x3A
-hex_A       EQU 0x41
-hex_a       EQU 0x61
-hex_a_A     EQU 0x20
-hex_A_10    EQU 0x7
+HEX_0       EQU 0x30
+HEX_9       EQU 0x3A
+HEX_A       EQU 0x41
+HEX_a       EQU 0x61
+HEX_a_A     EQU 0x20
+HEX_A_10    EQU 0x7
 
 ;***************************************************************
 ;Program
@@ -184,53 +184,53 @@ main
 
 main_num_1
             ;/ Get first number
-            ldr r0, =prompt_1
-            movs r1, #putstr_buf_sz
-            bl PutStringSB
-            ldr r0, =num1
-            movs r1, #n
-            bl GetHexIntMulti
-            bcc main_num_2
-            bl Invalid
+            LDR R0, =prompt_1
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            LDR R0, =num1
+            MOVS R1, #N
+            BL GetHexIntMulti
+            BCC main_num_2
+            BL Invalid
 
 main_num_2
-            bl PrintNewline
+            BL PrintNewline
             ;/ Get second number
-            ldr r0, =prompt_2
-            movs r1, #putstr_buf_sz
-            bl PutStringSB
-            ldr r0, =num2
-            movs r1, #n
-            bl GetHexIntMulti
-            bcc main_sum
-            bl Invalid
+            LDR R0, =prompt_2
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            LDR R0, =num2
+            MOVS R1, #N
+            BL GetHexIntMulti
+            BCC main_sum
+            BL Invalid
 
 main_sum
-            bl PrintNewline
+            BL PrintNewline
             ;/ Print sum
-            ldr r0, =sum_str
-            movs r1, #putstr_buf_sz
-            bl PutStringSB
-            ldr r0, =sum
-            ldr r1, =num1
-            ldr r2, =num2
-            movs r3, #n
-            bl AddIntMultiU
-            bcc main_print_sum
+            LDR R0, =sum_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            LDR R0, =sum
+            LDR R1, =num1
+            LDR R2, =num2
+            MOVS R3, #N
+            BL AddIntMultiU
+            BCC main_print_sum
 
-            ldr r0, =overflow_str
-            movs r1, #putstr_buf_sz
-            bl PutStringSB
-            bl PrintNewline
-            b main_num_1
+            LDR R0, =overflow_str
+            MOVS R1, #MAX_STRING
+            BL PutStringSB
+            BL PrintNewline
+            B main_num_1
 
 main_print_sum
-            ldr r0, =sum
-            movs r1, #n
-            bl PutHexIntMulti
-            bl PrintNewline
+            LDR R0, =sum
+            MOVS R1, #N
+            BL PutHexIntMulti
+            BL PrintNewline
 
-            b main_num_1
+            B main_num_1
 
 ;>>>>>   end main program code <<<<<
             B       .
@@ -316,27 +316,27 @@ Init_UART0_Polling PROC {}
 ; * Tells user string was invalid and prompts to try again
 ; *
 ; * Inputs:
-; *     r0 : address of number to store
-; *     r1 : word length
+; *     R0 : address of number to store
+; *     R1 : word length
 ; * Outputs:
 ; *     None
 ; * Modifies:
 ; *     psr
 ; */
 Invalid     PROC {R0-R1, R4-R5}
-            push {r4-r5, lr}
-            movs r4, r0
-            movs r5, r1
+            PUSH {R4-R5, LR}
+            MOVS R4, R0
+            MOVS R5, R1
 invalid_loop
-            bl PrintNewline
-            ldr r0, =prompt_err
-            movs r0, #putstr_buf_sz
-            bl PutStringSB
-            movs r1, r5
-            movs r0, r4
-            bl GetHexIntMulti
-            bcs invalid_loop
-            pop {r4-r5, pc}
+            BL PrintNewline
+            LDR R0, =prompt_err
+            MOVS R0, #MAX_STRING
+            BL PutStringSB
+            MOVS R1, R5
+            MOVS R0, R4
+            BL GetHexIntMulti
+            BCS invalid_loop
+            POP {R4-R5, pc}
             ENDP
 
 
@@ -351,164 +351,165 @@ invalid_loop
 ; * Modifies:
 ; *     psr
 ; */
-PrintNewline PROC{R0-R1}
-            push {r0-r1, lr}
-            ldr r0, =crlf_s
-            movs r1, #putstr_buf_sz
-            bl putstr_buf_sz
-            pop {r0-r1, pc}
+PrintNewline PROC {R0-R1}
+            PUSH {R0-R1, LR}
+            LDR R0, =crlf_s
+            MOVS R1, #MAX_STRING
+            BL MAX_STRING
+            POP {R0-R1, pc}
             ENDP
 
 
 
 ;**
-; * Adds n unsigned words together
+; * Adds N unsigned words together
 ; *
 ; * Inputs:
-; *     r0 : address to store sum
-; *     r1 : start address of the first addend
-; *     r2 : start address of the second addend
-; *     r3 : the length n of the numbers
+; *     R0 : address to store sum
+; *     R1 : start address of the first addend
+; *     R2 : start address of the second addend
+; *     R3 : the length N of the numbers
 ; * Outputs:
-; *     psr : clear c iff valid n-word number returned
+; *     psr : clear c iff valid N-word number returned
 ; * Modifies:
 ; *     psr
 ; */
 AddIntMultiU PROC {R0-R6}
-            push {r3-r6}
-            ;   r4 : addend store / sum
-            ;   r5 : addend store
-            ;   r6 : hold apsr
-            lsls r3, #2
+            PUSH {R3-R6}
+            ;   R4 : addend store / sum
+            ;   R5 : addend store
+            ;   R6 : hold APSR
+            LSLS R3, #2
             ;  Clear carry
-            adds r0, r0, #0
-            mrs r6, apsr
+            ADDS R0, R0, #0
+            MRS R6, APSR
 aimu_loop
-            subs r3, r3, #4
-            ldr r4, [r1, r3]
-            ldr r5, [r2, r3]
-            ;  Restore apsr flags
-            msr apsr, r6
-            adcs r4, r4, r5
-            ;  Store apsr flags
-            mrs r6, apsr
-            str r4, [r0, r3]
-            cmp r3, #0
-            bne aimu_loop
+            SUBS R3, R3, #4
+            LDR R4, [R1, R3]
+            LDR R5, [R2, R3]
+            ;  Restore APSR flags
+            MSR APSR, R6
+            ADCS R4, R4, R5
+            ;  Store APSR flags
+            MRS R6, APSR
+            STR R4, [R0, R3]
+            CMP R3, #0
+            BNE aimu_loop
             ;  Set C if addition overflowed
-            msr apsr, r6
-            pop {r3-r6}
-            bx lr
+            MSR APSR, R6
+            POP {R3-R6}
+            BX LR
             ENDP
 
 
 
 ;**
-; * Gets an n-word ASCII-encoded hex number from UART, terminated on return
+; * Gets an N-word ASCII-encoded hex number from UART, terminated on return
 ; * keystroke, and stores it as binary in memory
 ; *
 ; * Inputs:
-; *     r0 : address to store binary number
-; *     r1 : the length n of the number
+; *     R0 : address to store binary number
+; *     R1 : the length N of the number
 ; * Outputs:
-; *     psr : clear c iff valid n-word number returned
+; *     psr : clear c iff valid N-word number returned
 ; * Modifies:
 ; *     psr
 ; */
 GetHexIntMulti PROC {R0-R2, R4-R7}
-            push {r0-r2, r4-r7, lr}
-            ;  r4 : store address
-            ;  r5 : length n
-            ;  r6 : stack pointer
-            movs r4, r0
-            movs r5, r1
+            PUSH {R0-R2, R4-R7, LR}
+            ;  R4 : store address
+            ;  R5 : length N
+            ;  R6 : stack pointer
+            MOVS R4, R0
+            MOVS R5, R1
             ;  Use stack as buffer
             ;  In Thumb 1, cannot easily make dynamic buffer in stack. Uses an EQUate instead.
-            sub sp, #stack_buf_sz
-            mov r0, sp
+            SUB SP, #STACK_BUF_SZ
+            MOV R0, SP
             ;  Find length of string buffer
-            lsls r1, #3
-            adds r1, #1
+            LSLS R1, #3
+            ADDS R1, #1
             ;  Get input from user
-            bl GetStringSB
+            BL GetStringSB
             ;  Put LSB closest to the stack pointer
-            bl ReverseString
+            BL ReverseString
 
-            mov r6, sp
-            movs r7, #0
-            movs r1, #num_sz
-            subs r1, #1
+            MOV R6, SP
+            MOVS R7, #0
+            MOVS R1, #NUM_SZ
+            SUBS R1, #1
 ghim_store_in
-            ldrb r0, [r6, r7]
-            cmp r0, #0
-            beq ghim_end_store
-            bl HexToBin
-            bcs ghim_exit
-            movs r2, r0
-            adds r7, #1
-            ldrb r0, [r6, r7]
-            cmp r0, #0
-            beq ghim_pre_end_store
-            bl HexToBin
-            bcs ghim_exit
-            lsls r0, #4
-            orrs r0, r0, r2
-            strb r0, [r4, r1]
-            cmp r1, #0
-            beq ghim_clean_exit
-            subs r1, #1
-            adds r7, #1
-            b ghim_store_in
+            LDRB R0, [R6, R7]
+            CMP R0, #0
+            BEQ ghim_end_store
+            BL HexToBin
+            BCS ghim_exit
+            MOVS R2, R0
+            ADDS R7, #1
+            LDRB R0, [R6, R7]
+            CMP R0, #0
+            BEQ ghim_pre_end_store
+            BL HexToBin
+            BCS ghim_exit
+            LSLS R0, #4
+            orrs R0, R0, R2
+            STRB R0, [R4, R1]
+            CMP R1, #0
+            BEQ ghim_clean_exit
+            SUBS R1, #1
+            ADDS R7, #1
+            B ghim_store_in
 ghim_pre_end_store
-            movs r0, r2
+            MOVS R0, R2
 ghim_end_store
-            strb r0, [r4, r1]
-            movs r0, #0
+            STRB R0, [R4, R1]
+            MOVS R0, #0
 ghim_end_loop
-            cmp r1, #0
-            beq ghim_clean_exit
-            subs r1, #1
+            CMP R1, #0
+            BEQ ghim_clean_exit
+            SUBS R1, #1
 
-            strb r0, [r4, r1]
-            b ghim_end_loop
+            STRB R0, [R4, R1]
+            B ghim_end_loop
 ghim_clean_exit
             ;  Clear C flag
-            adds r0, #0
+            ADDS R0, #0
 ghim_exit
-            add sp, #stack_buf_sz
-            pop {r0-r2, r4-r7, pc}
+            ADD SP, #STACK_BUF_SZ
+            POP {R0-R2, R4-R7, pc}
             ENDP
 
 
 
 ;**
-; * Outputs an n-word ASCII-encoded hex number to UART
+; * Outputs an N-word ASCII-encoded hex number to UART
 ; *
 ; * Inputs:
-; *     r0 : start address of number
-; *     r1 : the length n of the number
+; *     R0 : start address of number
+; *     R1 : the length N of the number
 ; * Outputs:
 ; *     None
 ; * Modifies:
 ; *     psr
 ; */
-PutHexIntMulti
-            push {r0-r1, r4, lr}
-            ;  r0 : arg for PutNumHex
-            ;  r1 : loop counter
-            ;  r4 : word address
-            movs r4, r0
+PutHexIntMulti PROC {R0-R1, R4}
+            PUSH {R0-R1, R4, LR}
+            ;  R0 : arg for PutNumHex
+            ;  R1 : loop counter
+            ;  R4 : word address
+            MOVS R4, R0
 phim_loop
             ;  Print the ith word
-            ldr r0, [r4]
-            bl PutNumHex
+            LDR R0, [R4]
+            BL PutNumHex
             ;  Increment counters
-            adds r4, #4
-            subs r1, #1
+            ADDS R4, #4
+            SUBS R1, #1
             ;  Loop
-            cmp r1, #0
-            bne phim_loop
-            pop {r0-r1, r4, pc}
+            CMP R1, #0
+            BNE phim_loop
+            POP {R0-R1, R4, pc}
+            ENDP
 
 
 
@@ -516,40 +517,41 @@ phim_loop
 ; * Reverses a nul-terminated string in place
 ; *
 ; * Inputs:
-; *     r0 : input string address
+; *     R0 : input string address
 ; * Outputs:
 ; *     None
 ; * Modifies:
 ; *     psr
 ; */
-ReverseString
-            push {r4-r7}
-            ;  r0 : input address
-            ;  r4 : input offset
-            ;  r5 : output offset
-            ;  r6 : temporary byte storage
-            ;  r7 : temporary byte storage
-            movs r4, #0
-            movs r5, #0
+ReverseString PROC {R0, R4-R7}
+            PUSH {R4-R7}
+            ;  R0 : input address
+            ;  R4 : input offset
+            ;  R5 : output offset
+            ;  R6 : temporary byte storage
+            ;  R7 : temporary byte storage
+            MOVS R4, #0
+            MOVS R5, #0
             ;  Search for NUL terminator
 rs_find_nul
-            ldrb r6, [r0, r4]
-            adds r4, #1
-            cmp r6, #0
-            bne rs_find_nul
-            subs r4, #2
+            LDRB R6, [R0, R4]
+            ADDS R4, #1
+            CMP R6, #0
+            BNE rs_find_nul
+            SUBS R4, #2
 rs_reverse
             ;  Swap bytes from either end of the string
-            ldrb r6, [r0, r4]
-            ldrb r7, [r0, r5]
-            strb r6, [r0, r5]
-            strb r7, [r0, r4]
-            subs r4, #1
-            adds r5, #1
-            cmp r4, r5
-            bge rs_reverse
-            pop{r4-r7}
-            bx lr
+            LDRB R6, [R0, R4]
+            LDRB R7, [R0, R5]
+            STRB R6, [R0, R5]
+            STRB R7, [R0, R4]
+            SUBS R4, #1
+            ADDS R5, #1
+            CMP R4, R5
+            BGE rs_reverse
+            POP {R4-R7}
+            BX LR
+            ENDP
 
 
 
@@ -557,44 +559,45 @@ rs_reverse
 ; * Convert an ASCII char byte to a binary nibble.
 ; *
 ; * Inputs:
-; *     r0 : byte to convert
+; *     R0 : byte to convert
 ; * Outputs:
-; *     r0 : converted byte
+; *     R0 : converted byte
 ; *     psr : clear c iff valid input
 ; * Modifies:
 ; *     psr
 ; */
-HexToBin
+HexToBin    PROC {}
             ;  Must be at least hex 0
-            cmp r0, #hex_0
-            blo htb_fail
+            CMP R0, #HEX_0
+            BLO htb_fail
             ;  Must not be between hex 9 and hex A
-            cmp r0, #hex_9
-            blo htb_tolower
-            cmp r0, #hex_A
-            blo htb_fail
+            CMP R0, #HEX_9
+            BLO htb_tolower
+            CMP R0, #HEX_A
+            BLO htb_fail
 htb_tolower
-            cmp r0, #hex_a
-            blo htb_tooffsetbin
-            subs r0, #hex_a_A
+            CMP R0, #HEX_a
+            BLO htb_tooffsetbin
+            SUBS R0, #HEX_a_A
 htb_tooffsetbin
-            cmp r0, #hex_A
-            blo htb_tobin
-            subs r0, #hex_A_10
+            CMP R0, #HEX_A
+            BLO htb_tobin
+            SUBS R0, #HEX_A_10
 htb_tobin
-            subs r0, #hex_0
-            cmp r0, #0xF
-            bhi htb_fail
+            SUBS R0, #HEX_0
+            CMP R0, #0xF
+            BHI htb_fail
 htb_pass
             ;  Clear C flag
-            adds r0, #0
-            b htb_exit
+            ADDS R0, #0
+            B htb_exit
 htb_fail
             ;  Set C flag
-            movs r0, #1
-            subs r0, #1
+            MOVS R0, #1
+            SUBS R0, #1
 htb_exit
-            bx lr
+            BX LR
+            ENDP
 
 
 
@@ -623,7 +626,7 @@ PutNumHexLoop
             ; Add 7 (offset from 9 to a)
             ADDS R2, #0x7
 PutNumHexLow
-            ; For all bytes, add the 0x00 to ASCII 0 offset
+            ; For all bytes, ADD the 0x00 to ASCII 0 offset
             ADDS R2, #HEX_0
             ; Print the char
             MOVS R4, R0
@@ -706,7 +709,7 @@ GetCharLoop
             LDRB R0, [R0, #0]
             ANDS R0, R0, R1
             CMP R0, #0
-            beq  GetCharLoop
+            BEQ  GetCharLoop
 
             ; Read UART0_D
             LDR R0, =UART0_D
@@ -730,7 +733,7 @@ PutCharLoop
             LDRB R2, [R2, #0]
             ANDS R2, R2, R1
             CMP R2, #0
-            beq PutCharLoop
+            BEQ PutCharLoop
 
             ; Write UART0_D
             LDR R2, =UART0_D
@@ -885,9 +888,9 @@ overflow_str  DCB "OVERFLOW", 0x00
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
-num1        SPACE num_sz
-num2        SPACE num_sz
-sum         SPACE num_sz
+num1        SPACE NUM_SZ
+num2        SPACE NUM_SZ
+sum         SPACE NUM_SZ
 ;>>>>>   end variables here <<<<<
             ALIGN
             END
