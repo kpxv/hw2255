@@ -27,8 +27,10 @@ entity mult_tb is
 end entity mult_tb;
 
 architecture behv of mult_tb is
+
     constant n : integer := 32;
-    constant halfn : integer := integer(ceil(real(n) / real(2)));
+    -- Find n ceiling divide 2. VHDL ints get truncated, so add 1 to get ceiling
+    constant halfn : integer := (n + 1) / 2;
 
     type test_rec_t is record
         a_r : std_logic_vector(halfn - 1 downto 0);
@@ -71,16 +73,16 @@ architecture behv of mult_tb is
             p_r => (4 downto 3 => '1', others => '0')
         ),
         (
-            -- 0xFF..F * 0xFF..F = 00..01 FF..FE
+            -- 0xFF..F * 0xFF..F = 0xFF..FE 00..01
             a_r => (others => '1'),
             b_r => (others => '1'),
-            p_r => (halfn - 1 downto 1 => '1', others => '0')
+            p_r => (halfn downto 1 => '0', others => '1')
         ),
         (
-            -- 0xFF..F * 0xFF..FE = 00.01 FF.FD
+            -- 0xFF..F * 0xFF..FE = FF..FD 00.02
             a_r => (others => '1'),
             b_r => (0 => '0', others => '1'),
-            p_r => (halfn - 1 downto 2 => '1', 0 => '1', others => '0')
+            p_r => (halfn + 1 => '0', halfn - 1 downto 2 => '0', 0 => '0', others => '1')
         ),
         (
             -- 8 * 2 = 16
@@ -122,9 +124,9 @@ architecture behv of mult_tb is
 begin
 
     uut : entity work.mult(struct)
-    generic map (
-    n => n
-)
+        generic map (
+            n => n
+        )
         port map (
             a       => a_s,
             b       => b_s,
@@ -153,13 +155,16 @@ begin
             wait until clk = '0';
 
             assert test_rec_arr(i).p_r = p_s
-                report "Case failed on test #" & integer'image(i)
-                severity failure;
+                report "Case failed on test #" & integer'image(i) &
+                       ". Inputs: 0x" & to_hstring(a_s) & " and 0x" & to_hstring(b_s) &
+                       ". Expected: 0x" & to_hstring(test_rec_arr(i).p_r) &
+                       ". Got: 0x" & to_hstring(p_s) & ".";
 
         end loop;
 
         wait until clk = '0';
         assert false
+            report "Testbench conluded."
             severity failure;
 
     end process stim_proc;

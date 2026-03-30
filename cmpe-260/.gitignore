@@ -4,3 +4,4 @@
 *.sim/
 *.ip_user_files/
 *.cf
+*.ghw

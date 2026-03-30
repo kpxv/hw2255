@@ -23,8 +23,8 @@ library ieee;
 
 package globals is
 
-    constant n : INTEGER := 4; -- Bit length of inputs
-    constant m : INTEGER := 2; -- log_2 of N
-    constant o : INTEGER := 4; -- Bit length of OP CODE
+    constant n : INTEGER := 32; -- Bit length of inputs
+    constant m : INTEGER := 5;  -- log_2 of N
+    constant o : INTEGER := 4;  -- Bit length of OP CODE
 
 end package globals;
