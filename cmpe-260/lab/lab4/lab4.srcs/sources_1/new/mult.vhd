@@ -24,7 +24,7 @@ library ieee;
 
 entity mult is
     generic (
-        -- Should be an integer power of 2 greater than or equal to 4 (or maybe 2)
+        -- Should be an integer power of 2 greater than or equal to 4.
         n : integer := 32
     );
     port (

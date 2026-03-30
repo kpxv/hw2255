@@ -26,11 +26,12 @@ entity mult_tb is
 end entity mult_tb;
 
 architecture behv of mult_tb is
+    constant n : integer := 32;
 
     type test_rec_t is record
-        a_r : std_logic_vector(15 downto 0);
-        b_r : std_logic_vector(15 downto 0);
-        p_r : std_logic_vector(31 downto 0);
+        a_r : std_logic_vector(n / 2 - 1 downto 0);
+        b_r : std_logic_vector(n / 2 - 1 downto 0);
+        p_r : std_logic_vector(n - 1 downto 0);
     end record test_rec_t;
 
     type test_arr_t is array (natural range <>) of test_rec_t;
@@ -38,75 +39,78 @@ architecture behv of mult_tb is
     constant test_rec_arr : test_arr_t :=
     (
         (
-            a_r => x"0000",
-            b_r => x"0000",
-            p_r => x"00000000"
+            a_r => std_logic_vector(to_unsigned(0, n / 2)),
+            b_r => std_logic_vector(to_unsigned(0, n / 2)),
+            p_r => std_logic_vector(to_unsigned(0, n))
         ),
         (
-            a_r => x"0001",
-            b_r => x"0000",
-            p_r => x"00000000"
+            a_r => std_logic_vector(to_unsigned(1, n / 2)),
+            b_r => std_logic_vector(to_unsigned(0, n / 2)),
+            p_r => std_logic_vector(to_unsigned(0, n))
         ),
         (
-            a_r => x"0001",
-            b_r => x"0001",
-            p_r => x"00000001"
+            a_r => std_logic_vector(to_unsigned(1, n / 2)),
+            b_r => std_logic_vector(to_unsigned(1, n / 2)),
+            p_r => std_logic_vector(to_unsigned(1, n))
         ),
         (
-            a_r => x"0002",
-            b_r => x"0002",
-            p_r => x"00000004"
+            a_r => std_logic_vector(to_unsigned(2, n / 2)),
+            b_r => std_logic_vector(to_unsigned(2, n / 2)),
+            p_r => std_logic_vector(to_unsigned(4, n))
         ),
         (
-            a_r => x"0003",
-            b_r => x"0008",
-            p_r => x"00000018"
+            a_r => std_logic_vector(to_unsigned(3, n / 2)),
+            b_r => std_logic_vector(to_unsigned(8, n / 2)),
+            p_r => std_logic_vector(to_unsigned(24, n))
         ),
         (
-            a_r => x"FFFF",
-            b_r => x"FFFF",
-            p_r => x"FFFE0001"
+            a_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 1, n / 2)),
+            b_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 1, n / 2)),
+            p_r => std_logic_vector(to_unsigned((2 ** (n / 2) - 1) ** 2, n))
         ),
         (
-            a_r => x"FFFF",
-            b_r => x"FFFE",
-            p_r => x"FFFD0002"
+            a_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 1, n / 2)),
+            b_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 2, n / 2)),
+            p_r => std_logic_vector(to_unsigned((2 ** (n / 2) - 1) * (2 ** (n / 2) - 2), n))
         ),
         (
-            a_r => x"0008",
-            b_r => x"0002",
-            p_r => x"00000010"
+            a_r => std_logic_vector(to_unsigned(8, n / 2)),
+            b_r => std_logic_vector(to_unsigned(2, n / 2)),
+            p_r => std_logic_vector(to_unsigned(16, n))
         ),
         (
-            a_r => x"0008",
-            b_r => x"0008",
-            p_r => x"00000040"
+            a_r => std_logic_vector(to_unsigned(8, n / 2)),
+            b_r => std_logic_vector(to_unsigned(8, n / 2)),
+            p_r => std_logic_vector(to_unsigned(64, n))
         ),
         (
-            a_r => x"000A",
-            b_r => x"0001",
-            p_r => x"0000000A"
+            a_r => std_logic_vector(to_unsigned(10, n / 2)),
+            b_r => std_logic_vector(to_unsigned(1, n / 2)),
+            p_r => std_logic_vector(to_unsigned(10, n))
         ),
         (
-            a_r => x"0010",
-            b_r => x"0010",
-            p_r => x"00000100"
+            a_r => std_logic_vector(to_unsigned(16, n / 2)),
+            b_r => std_logic_vector(to_unsigned(16, n / 2)),
+            p_r => std_logic_vector(to_unsigned(256, n))
         ),
         (
-            a_r => x"0003",
-            b_r => x"0004",
-            p_r => x"0000000C"
+            a_r => std_logic_vector(to_unsigned(3, n / 2)),
+            b_r => std_logic_vector(to_unsigned(4, n / 2)),
+            p_r => std_logic_vector(to_unsigned(12, n))
         )
     );
 
-    signal a_s : std_logic_vector(15 downto 0);
-    signal b_s : std_logic_vector(15 downto 0);
-    signal p_s : std_logic_vector(31 downto 0);
+    signal a_s : std_logic_vector(n / 2 - 1 downto 0);
+    signal b_s : std_logic_vector(n / 2 - 1 downto 0);
+    signal p_s : std_logic_vector(n - 1 downto 0);
     signal clk : std_logic;
 
 begin
 
     uut : entity work.mult(struct)
+    generic map (
+    n => n
+)
         port map (
             a       => a_s,
             b       => b_s,
