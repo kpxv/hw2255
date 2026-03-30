@@ -21,16 +21,18 @@
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
+    use ieee.math_real.all;
 
 entity mult_tb is
 end entity mult_tb;
 
 architecture behv of mult_tb is
     constant n : integer := 32;
+    constant halfn : integer := integer(ceil(real(n) / real(2)));
 
     type test_rec_t is record
-        a_r : std_logic_vector(n / 2 - 1 downto 0);
-        b_r : std_logic_vector(n / 2 - 1 downto 0);
+        a_r : std_logic_vector(halfn - 1 downto 0);
+        b_r : std_logic_vector(halfn - 1 downto 0);
         p_r : std_logic_vector(n - 1 downto 0);
     end record test_rec_t;
 
@@ -39,69 +41,81 @@ architecture behv of mult_tb is
     constant test_rec_arr : test_arr_t :=
     (
         (
-            a_r => std_logic_vector(to_unsigned(0, n / 2)),
-            b_r => std_logic_vector(to_unsigned(0, n / 2)),
-            p_r => std_logic_vector(to_unsigned(0, n))
+            -- 0 * 0 = 0
+            a_r => (others => '0'),
+            b_r => (others => '0'),
+            p_r => (others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(1, n / 2)),
-            b_r => std_logic_vector(to_unsigned(0, n / 2)),
-            p_r => std_logic_vector(to_unsigned(0, n))
+            -- 1 * 0 = 0
+            a_r => (0 => '1', others => '0'),
+            b_r => (others => '0'),
+            p_r => (others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(1, n / 2)),
-            b_r => std_logic_vector(to_unsigned(1, n / 2)),
-            p_r => std_logic_vector(to_unsigned(1, n))
+            -- 1 * 1 = 1
+            a_r => (0 => '1', others => '0'),
+            b_r => (0 => '1', others => '0'),
+            p_r => (0 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(2, n / 2)),
-            b_r => std_logic_vector(to_unsigned(2, n / 2)),
-            p_r => std_logic_vector(to_unsigned(4, n))
+            -- 2 * 2 = 4
+            a_r => (1 => '1', others => '0'),
+            b_r => (1 => '1', others => '0'),
+            p_r => (2 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(3, n / 2)),
-            b_r => std_logic_vector(to_unsigned(8, n / 2)),
-            p_r => std_logic_vector(to_unsigned(24, n))
+            -- 3 * 8 = 24
+            a_r => (1 downto 0 => '1', others => '0'),
+            b_r => (3 => '1', others => '0'),
+            p_r => (4 downto 3 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 1, n / 2)),
-            b_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 1, n / 2)),
-            p_r => std_logic_vector(to_unsigned((2 ** (n / 2) - 1) ** 2, n))
+            -- 0xFF..F * 0xFF..F = 00..01 FF..FE
+            a_r => (others => '1'),
+            b_r => (others => '1'),
+            p_r => (halfn - 1 downto 1 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 1, n / 2)),
-            b_r => std_logic_vector(to_unsigned(2 ** (n / 2) - 2, n / 2)),
-            p_r => std_logic_vector(to_unsigned((2 ** (n / 2) - 1) * (2 ** (n / 2) - 2), n))
+            -- 0xFF..F * 0xFF..FE = 00.01 FF.FD
+            a_r => (others => '1'),
+            b_r => (0 => '0', others => '1'),
+            p_r => (halfn - 1 downto 2 => '1', 0 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(8, n / 2)),
-            b_r => std_logic_vector(to_unsigned(2, n / 2)),
-            p_r => std_logic_vector(to_unsigned(16, n))
+            -- 8 * 2 = 16
+            a_r => (3 => '1', others => '0'),
+            b_r => (1 => '1', others => '0'),
+            p_r => (4 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(8, n / 2)),
-            b_r => std_logic_vector(to_unsigned(8, n / 2)),
-            p_r => std_logic_vector(to_unsigned(64, n))
+            -- 8 * 8 = 64
+            a_r => (3 => '1', others => '0'),
+            b_r => (3 => '1', others => '0'),
+            p_r => (6 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(10, n / 2)),
-            b_r => std_logic_vector(to_unsigned(1, n / 2)),
-            p_r => std_logic_vector(to_unsigned(10, n))
+            -- 10 * 1 = 10
+            a_r => (3 => '1', 1 => '1', others => '0'),
+            b_r => (0 => '1', others => '0'),
+            p_r => (3 => '1', 1 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(16, n / 2)),
-            b_r => std_logic_vector(to_unsigned(16, n / 2)),
-            p_r => std_logic_vector(to_unsigned(256, n))
+            -- 16 * 16 = 256
+            a_r => (4 => '1', others => '0'),
+            b_r => (4 => '1', others => '0'),
+            p_r => (8 => '1', others => '0')
         ),
         (
-            a_r => std_logic_vector(to_unsigned(3, n / 2)),
-            b_r => std_logic_vector(to_unsigned(4, n / 2)),
-            p_r => std_logic_vector(to_unsigned(12, n))
+            -- 3 * 4 = 12
+            a_r => (1 downto 0 => '1', others => '0'),
+            b_r => (2 => '1', others => '0'),
+            p_r => (3 downto 2 => '1', others => '0')
         )
     );
 
-    signal a_s : std_logic_vector(n / 2 - 1 downto 0);
-    signal b_s : std_logic_vector(n / 2 - 1 downto 0);
+    signal a_s : std_logic_vector(halfn - 1 downto 0);
+    signal b_s : std_logic_vector(halfn - 1 downto 0);
     signal p_s : std_logic_vector(n - 1 downto 0);
     signal clk : std_logic;
 
