@@ -23,7 +23,7 @@
 \newcommand{\exerciseNumber}{4}
 \newcommand{\exerciseDescription}{Execute Stage}
 \newcommand{\dateDone}{2026-03-03}
-\newcommand{\dateSubmitted}{2026-03-20}
+\newcommand{\dateSubmitted}{2026-03-29}
 
 \begin{document}
 
@@ -32,28 +32,19 @@
 \section*{Abstract}
 \addcontentsline{toc}{section}{Abstract}
 
-The purpose of this exercise was to design, implement, and test an n-bit
-Arithmetic Logic Unit (ALU) to support multiplication, addition, loigcal left-
-and right-shifts, arithmetic right-shifts, logical AND, logical OR, and logical
-XOR; as well as to create an execute stage to map input flags and register and
-memory values to the ALU. The partial n-bit ALU from Laboratory Exercise One
-was expanded upon with a carry-save multiplier and a ripple-carry adder.
-Testbenches were written for the multiplier, the expanded ALU, and the complete
-execute stage. Behavioral, post-synthesis timing, and post-implementation
-timing simulations were ran using the testbenches. N was set to four, and the
-expanded ALU was flashed to a Basys3 FPGA. All tests passed and the hardware
-implementation worked as expected; the exercise was successful.
-
-The purpose of this exercise was to design, implement, and test the execute
-stage of a MIPS processor. The execute stage featured an Arithmetic Logic Unit
-(ALU) that supported eight operations: multiplication, addition, logical left-
-and right-shift, arithmetic right-shift, and logical AND, OR, and XOR. The
-execute stage mapped flags and register and memory values into the ALU.
-Testbenches were written for the ALU, the multiplier, and the execute stage.
-Testbenches were run with behavioral, post-synthesis timing, and
-post-implementation timing simulations. All three testbenches passed,
-confirming the correctness of the ALU, multiplier, and the execute stage. Thus,
-the exercise was successful.
+The purpose of this exercise was to design and implement an n-bit multiplier
+in an ALU and the wrapper for the Execute Stage of a MIPS processor, as well as
+to test the entire Execute Stage and its components. Multiplier designs were
+considered, and the carry-save design was selected to be implemented for its
+speed. The multiplier functionality was added to a previously implemented n-bit
+ALU design. An Execute Stage wrapper was implemented to process input signals
+and determine the correct input for the ALU and the correct outputs for
+destination registers. The multiplier was tested against a testbench designed
+to ensure correctness when handling carries, large numbers, small numbers, the
+number 0, and the number 1. The entire Execute Stage was tested against a
+testbench that verified the functionality of signal resolution and of each
+basic ALU operation. All tests for both testbenches passed; the exercise was
+successful.
 
 \section*{Design Methodology}
 \addcontentsline{toc}{section}{Design Methodology}
