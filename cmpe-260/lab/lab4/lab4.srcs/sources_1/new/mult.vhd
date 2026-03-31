@@ -25,11 +25,13 @@ library ieee;
 entity mult is
     generic (
         -- Should be an integer power of 2 greater than or equal to 4.
-        n : integer := 32
+        n : integer := 6;
+        halfn : integer := (n + 1) / 2
     );
     port (
-        a : in    std_logic_vector(n / 2 - 1 downto 0);
-        b : in    std_logic_vector(n / 2 - 1 downto 0);
+        -- Find n ceiling divide 2. VHDL ints get truncated, so add 1 to get ceiling
+        a : in    std_logic_vector(halfn - 1 downto 0);
+        b : in    std_logic_vector(halfn - 1 downto 0);
 
         product : out   std_logic_vector(n - 1 downto 0)
     );
@@ -37,9 +39,9 @@ end entity mult;
 
 architecture struct of mult is
 
-    type mres_arr_t is array(0 to n / 2 - 1) of std_logic_vector(n / 2 - 1 downto 0);
+    type mres_arr_t is array(0 to halfn - 1) of std_logic_vector(halfn - 1 downto 0);
 
-    type rsum_arr_t is array(0 to integer(ceil(log2(real(n)))), 0 to n / 2 - 1) of std_logic_vector(n - 1 downto 0);
+    type rsum_arr_t is array(0 to integer(ceil(log2(real(n)))) - 1, 0 to halfn - 1) of std_logic_vector(n - 1 downto 0);
 
     signal mult_result_s : mres_arr_t;
     signal rsum_s        : rsum_arr_t;
@@ -48,9 +50,9 @@ begin
 
     -- Generate products
 
-    gen_mres_row_l : for i in 0 to n / 2 - 1 generate
+    gen_mres_row_l : for i in 0 to halfn - 1 generate
 
-        gen_mres_cell_l : for j in 0 to n / 2 - 1 generate
+        gen_mres_cell_l : for j in 0 to halfn - 1 generate
             mult_result_s(i)(j) <= a(j) and b(i);
         end generate gen_mres_cell_l;
 
@@ -58,7 +60,7 @@ begin
 
     -- Backfill products with 0's
 
-    gen_expanded_prod_l : for j in 0 to n / 2 - 1 generate
+    gen_expanded_prod_l : for j in 0 to halfn - 1 generate
 
         proc_expanded_prod_l : process (all) is
 
@@ -67,7 +69,7 @@ begin
         begin
 
             sum_vec_v                         := (others => '0');
-            sum_vec_v(n / 2 - 1 + j downto j) := mult_result_s(j);
+            sum_vec_v(halfn - 1 + j downto j) := mult_result_s(j);
             rsum_s(0, j)                      <= sum_vec_v;
 
         end process proc_expanded_prod_l;
@@ -78,7 +80,7 @@ begin
 
     gen_big_sum_l : for i in 1 to integer(ceil(log2(real(n)))) - 1 generate
 
-        gen_prod_sum_l : for j in 0 to n / 2 - 1 generate
+        gen_prod_sum_l : for j in 0 to halfn - 1 generate
 
             gen_sum_exit_l : if j < n / (2 ** (i + 1)) generate
 
