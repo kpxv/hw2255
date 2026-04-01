@@ -26,11 +26,12 @@
 
 \newcommand{\TAs}{Sol Holston}
 \newcommand{\exerciseNumber}{3}
-\newcommand{\exerciseDescription}{Thevenin Equivalent Circuits and Linearity}
+\newcommand{\exerciseDescription}{Thevenin Circuits}
 
 \newcommand{\dateDone}{2026-03-24}
 \newcommand{\dateSubmitted}{2026-03-31}
 
+\pgfplotsset{compat=1.18}
 
 \begin{document}
 
@@ -38,37 +39,93 @@
 
 \section*{Abstract}
 
+The purpose of this exercise was to examine an approximately linear circuit
+with unknown internals and determine the Thevenin equivalent resistance and
+voltage. The circuit was simulated using LTSpice. Several DC Bias point
+simulations were conducted. The simulated values were used to estimate the
+Thevenin equivalent voltage and resistance. The circuit was implemented in
+hardware by connecting a resistive load to a function generator. The voltage
+across the load and the current through the load were measured to calculate
+and approximate Thevenin equivalent voltage and resistance. The estimated and
+measured Thevenin equivalent voltages and resistances were similar; the
+exercise was successful.
 
 \section{Introduction and Theory}
 
+The objective of this laboratory was to apply several loads to an unknown
+circuit; to measure the voltage across and current through each load; and to
+find an approximate Thevenin equivalent resistance and voltage to represent
+the circuit.
 
 \subsection{Theory: Circuit Investigated}
 
+There exist several methods to determine the Thevenin equivalent voltage and
+resistance of a known circuit; however, none of them are practical to
+experimentally determine the Thevenin equivalents of a circuit with unknown
+elements. Neither test signals nor inspection may be used, because the circuit
+is unknown. Shorting the circuit may damage it.
+
+Instead, multiple resistive loads may be applied. By measuring the voltage
+across and the current through each load, the Thevenin resistance can be
+approximated by plotting the measured voltages with respect to the measured
+currents and examining the slope of the line of best fit. The Thevenin voltage
+can be found at the $y$-intercept of the line of best fit.
 
 \subsection{Theory: LTspice Simulation}
 
+The circuit was simluated in LTspice. The schematic is shown in Figure
+\ref{fig:lts}.
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.5\textwidth]{./assets/lts.png}
+	\caption{Unknown Circuit with Load in LTspice}
+	\label{fig:lts}
+\end{figure}
+
+The LTspice given in Figure \ref{fig:lts} was used to run a DC Bias point
+simulation. The simulation results are given in Figure \ref{fig:lts-sim}.
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.75\textwidth]{./assets/lts-sim.png}
+	\caption{Simulation of Unknown Circuit with Load in LTspice}
+	\label{fig:lts-sim}
+\end{figure}
+
+The results given in Figure \ref{fig:lts-sim} show simulated voltage
+$V = 1.95556$ and simulated current $I = 0.000889$. Just these values are not
+of much help in determining the Thevenin equivalents. Many simulations were run
+with resistances of 2200, 1000, 470, 100, 68, and 47 ohm loads. The results of
+each simulation is given in Table \ref{tab:sim}.
+
 \begin{table}[H]
 	\center
-	\caption{Theory}
+	\caption{Simulation Results of Unknown Circuit with Loads in LTSpice}
 	\begin{tabular}{|c|c|c|}
 		\hline
-		$R_L$ $\Omega$ & $V_{OUT}$ V & $I_{OUT}$ A \\
+		$R_L$ ($\Omega$) & $V_{OUT}$ (V) & $I_{OUT}$ (A) \\
 		\hline
 		\hline
-		2200           & 1.95556     & 0.000888889 \\
+		2200             & 1.95556       & 0.000888889   \\
 		\hline
-		1000           & 1.90476     & 0.00190476  \\
+		1000             & 1.90476       & 0.00190476    \\
 		\hline
-		470            & 1.80769     & 0.00384615  \\
+		470              & 1.80769       & 0.00384615    \\
 		\hline
-		100            & 1.33333     & 0.01333333  \\
+		100              & 1.33333       & 0.01333333    \\
 		\hline
-		68             & 1.15254     & 0.0169492   \\
+		68               & 1.15254       & 0.0169492     \\
 		\hline
-		47             & 0.969072    & 0.0206186   \\
+		47               & 0.969072      & 0.0206186     \\
 		\hline
 	\end{tabular}
+	\label{tab:sim}
 \end{table}
+
+The data given in Table \ref{tab:sim} was plotted and a line of best fit was
+calculated using the \LaTeX \ \textsc{pgfplots} package. The plot is given in Figure
+\ref{fig:sim-plot}.
 
 \pgfplotstableread{
 	X Y
@@ -81,48 +138,63 @@
 	0.0206186  	0.969072
 }\theorytbl
 
-\begin{tikzpicture}
-	\begin{axis}[legend pos=outer north east]
-		\addplot [only marks, mark = *] table {\theorytbl};
-		\addplot [thick, red] table[
-				y={create col/linear regression={y=Y}}
-			] % compute a linear regression from the input table
-			{\theorytbl};
-		\addlegendentry{$y(x)$}
-		\addlegendentry{%
-			$\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
-				\pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$}
-	\end{axis}
-\end{tikzpicture}
+\begin{figure}[H]
+	\center
+	\begin{tikzpicture}
+		\begin{axis}[legend pos=outer north east]
+			\addplot [only marks, mark = *] table {\theorytbl};
+			\addplot [thick, red] table[
+					y={create col/linear regression={y=Y}}
+				] % compute a linear regression from the input table
+				{\theorytbl};
+			\addlegendentry{$y(x)$}
+			\addlegendentry{%
+				$\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
+					\pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Plot of Simulation Results}
+	\label{fig:sim-plot}
+\end{figure}
 
-Theoretical $R_{TH} = 50$ ; Theoretical $V_{TH} = 2$
-
-
+Thus, a Thevenin resistance of 50 $\Omega$ and a Thevenin voltage of 2 V can be
+estimated.
 
 \section{Hardware Experiment: Results and Discussion}
 
+The unknown circuit was implemented using a function generator. Amplitude was
+set to 0.1 Vpp, offset was set to 1 V, and output impedance was set to High-Z.
+Multiple resistors were connected as loads to the function generator. A
+multimeter was used to measure the value of the voltage across and the current
+through each load. The measured values are given in Table \ref{tab:hw}.
+
 \begin{table}[H]
 	\center
-	\caption{Hardware}
+	\caption{Hardware Results of Unknown Circuit with Loads}
 	\begin{tabular}{|c|c|c|}
 		\hline
-		$R_L$ $\Omega$ & $V_{OUT}$ V & $I_{OUT}$ A            \\
+		$R_L$ ($\Omega$) & $V_{OUT}$ (V) & $I_{OUT}$ (A) \\
 		\hline
 		\hline
-		2200           & 1.9590      & 0.00089045 \\
+		2200             & 1.9590        & 0.00089045    \\
 		\hline
-		1000           & 1.9056      & 0.00190560 \\
+		1000             & 1.9056        & 0.00190560    \\
 		\hline
-		470            & 1.8053      & 0.00384106 \\
+		470              & 1.8053        & 0.00384106    \\
 		\hline
-		100            & 1.3166      & 0.01316600 \\
+		100              & 1.3166        & 0.01316600    \\
 		\hline
-		68             & 1.1353      & 0.01669559 \\
+		68               & 1.1353        & 0.01669559    \\
 		\hline
-		47             & 0.95256     & 0.02026723 \\
+		47               & 0.95256       & 0.02026723    \\
 		\hline
 	\end{tabular}
+	\label{tab:hw}
 \end{table}
+
+The data given in Table \ref{tab:hw} was plotted and a line of best fit was
+calculated using the \LaTeX \ \textsc{pgfplots} package. The plot is given in
+Figure \ref{fig:hw-plot}.
 
 \pgfplotstableread{
 	X Y
@@ -136,28 +208,52 @@ Theoretical $R_{TH} = 50$ ; Theoretical $V_{TH} = 2$
 
 }\hwtbl
 
-\begin{tikzpicture}
-	\begin{axis}[legend pos=outer north east]
-		\addplot [only marks, mark = *] table {\hwtbl};
-		\addplot [thick, red] table[
-				y={create col/linear regression={y=Y}}
-			] % compute a linear regression from the input table
-			{\hwtbl};
-		\addlegendentry{$y(x)$}
-		\addlegendentry{%
-			$\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
-				\pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$}
-	\end{axis}
-\end{tikzpicture}
+\begin{figure}[H]
+	\center
+	\begin{tikzpicture}
+		\begin{axis}[legend pos=outer north east]
+			\addplot [only marks, mark = *] table {\hwtbl};
+			\addplot [thick, red] table[
+					y={create col/linear regression={y=Y}}
+				] % compute a linear regression from the input table
+				{\hwtbl};
+			\addlegendentry{$y(x)$}
+			\addlegendentry{%
+				$\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
+					\pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Plot of Hardware Results}
+	\label{fig:hw-plot}
+\end{figure}
 
-Hardware $R_{TH} = 52.03$ ; Hardware $V_{TH} = 2$
+
+
+Thus, an approximate Thevenin resistance of 52.03 $\Omega$ and a Thevenin
+voltage of 2 V was measured. There is a 4.06\% error between the simulated and
+measured Thevenin resistances, and no error between simulated and measured
+Thevenin voltages. Both error values are well within acceptable bounds.
 
 \section{Conclusion}
 
-Having a positive (non-zero) Thevenin resistance decreases the output voltage
-from the input voltage.
+The Thevenin equivalences of an unknown circuit were simulated and measured
+by connecting several load resistors of varying resistances and finding the
+ratio of change in voltage over change in current. Although other methods for
+determining Thevenin equivalences may fail during experimental use, load
+resistances are a safe way to approximate them. From the experiment, it was
+determined that having a positive (non-zero) Thevenin resistance decreases the
+measured load voltage from the voltage source; and that the higher the
+Thevenin resistance, the greater the decrease in measured load voltage. All
+measurements were within reasonable ranges of their simulated counterparts. The
+exercise was successful.
 
 \section{Acknowledgements}
+
+Methods described inthe the textbook \textit{Fundamentals of Electric Circuits,
+	7th Edition} \cite{fec} were considered to find Thevenin equivalents.
+
+The \textsc{pgfplots} \cite{pgf} manual was consulted in the creation of
+Figures \ref{fig:sim-plot} and \ref{fig:hw-plot}.
 
 The template for this Technical Memo was modified from a \LaTeX \ class created
 by Joshua Milas and Seth Gower, using the provided Tech Memo Template and
