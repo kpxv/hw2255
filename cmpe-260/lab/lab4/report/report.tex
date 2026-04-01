@@ -23,7 +23,7 @@
 \newcommand{\exerciseNumber}{4}
 \newcommand{\exerciseDescription}{Execute Stage}
 \newcommand{\dateDone}{2026-03-03}
-\newcommand{\dateSubmitted}{2026-03-29}
+\newcommand{\dateSubmitted}{2026-04-01}
 
 \begin{document}
 
@@ -51,10 +51,210 @@ successful.
 
 Two designs were considered for implementation of the multiplier: the ripple
 carry multiplier, and the carry-save multiplier. The latter was chosen for
-implementation due to lower propogation delay. 
+implementation due to lower propagation delay. The multiplier emitted an N-bit
+output and took in two half-N-bit inputs. The multiplier was broken into two
+parts: finding partial products and summing partial products. Each bit of the
+first input vector was multiplied by each bit of the second input vector to
+generate half-N vectors, each containing a partial product.
+
+Four designs were considered to add the partial products: tree-style or
+cascading addition, and bit-forwarding or backfilling with 0s. A tree-style
+bit-forwarding was chosen. Tree-style addition is faster than cascading
+addition because operations can be carried out in parallel. Bit-forwarding is
+more efficient than backfilling with 0s; it uses fewer transistors, and the
+carry signal does not need to ripple through as many adders. The adder took as
+input two vectors of generic length, as well as a generic to specify the size
+of the offset between the input vectors. It emitted an output vector whose
+width was calculated using the input widths and the offset size. Bits from 0 to
+the lower offset of the first input vector were forwarded to the output vector;
+bits from the lower offset to the upper offset were summed using full adders;
+and bits above the upper offset were processed with half adders to propagate
+the carry through the output vector.
+
+In order to perform tree-style sums, a recursive VHDL entity was defined. It
+took as input an array of generic size of the vectors to sum and a generic
+specifying the offset used to calculate the final addition in the tree. It
+emitted as output one vector representing the sum of the tree. If more than 2
+vectors were provided in the array, it called called itself twice and provided
+each instance with half the input array. Otherwise, it created an instance of
+the bit-forwarding adder to add the elements in the array. This entity only
+specified how to combine bit-forwarding adders and how to map the partial
+product vectors to them; it did not create any transistors or other logic.
+
+Due to time constraints and the complexities involved in created a generic
+tree-style bit-forwarding adder, this multiplier only supports N values that
+are powers of 2. Using either cascading-style, backfilling, or both would make
+it much more easily possilble to support any N value, but at the cost of slower
+or less efficient hardware.
+
+A complete MIPS Execute Stage was implemented. The input signals RegWrite,
+MemtoReg, and MemWrite were directly forwarded to the output. The RegSrcA
+signal was forwarded to the output as WriteData. The input RegDst was used to
+choose whether to map RtDest or RdDest to the WriteReg output. The signal
+ALUSrc was used to select between RegSrcB and SignImm. The selected signal was
+mapped as an input vector to an ALU. RegSrcA was used as the other input vector
+to the ALU. The ALUCtrl signal was passed as input to the ALU, and used to
+determine the ALU operation to be executed. The output of the ALU was mapped
+to the output signal ALUResult.
+
+The Execute Stage instantiated an ALU capable of 9 operations: logical OR,
+logical AND, logical XOR, logical shift left, logical shift right, arithmetic
+shift right, addition, subtraction, and multiplication. The first six
+operations were implemented in a previous exercise. The above multiplier was
+instantiated to handle multiplication. To handle addition and subtraction, a
+new VHDL entity was created.
+
+A simple, generic ripple-carry adder was designed. It took as inputs two N-bit
+vectors. To support subtraction, it also took in a one-bit operation toggle.
+The second input vector was XORed with the toggle, such that the vector was
+NOTed if the toggle was active. A chain of N full adders was created. The
+carry-in of the chain was assigned as the toggle. Thus, enabling the toggle
+found the two's complement of the second input vector. The adder gave as
+outputs a sum vector, calculated from the full adders; as well as a
+carry-out, taken from the last full adder in the chain.
 
 \section*{Results and Analysis}
 \addcontentsline{toc}{section}{Results and Analysis}
+
+In order to verify the correctness of the multiplier design, a testbench was
+created containing 12 tests. Because the multiplier was of generic size, test
+cases either used small numbers or were also written generically. Tests were
+chosen to ensure multiplication by 0 and 1 worked and to ensure multiplications
+with several carries and partial products worked. Additional test cases were
+included to simulate normal usage. Any multiplier size N greater than or equal
+to 16 can be tested with the test bench. A behavioral simulation of the
+testbench was run with N = 32. The waveform is shown in Figure
+\ref{fig:mlt-behv}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-behv}
+    \caption{Waveform for Behavioral Testbench of Multiplier}
+    \label{fig:mlt-behv}
+\end{figure}
+
+The waveform shown in Figure \ref{fig:mlt-behv} shows that all tests passed and
+that the design was implemented correctly.
+
+For example, the ability to multiply by 0 was tested between 50 ns and 150 ns,
+as shown in Figure \ref{fig:mlt-behv-1}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-behv-1}
+    \caption{Waveform for Behavioral Multiply by 0 Test}
+    \label{fig:mlt-behv-1}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-behv-2}
+    \caption{Waveform for Behavioral Multiply by Fs Test}
+    \label{fig:mlt-behv-2}
+\end{figure}
+
+
+
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-synt}
+    \caption{Waveform for Post-Synthesis Timing Testbench of Multiplier}
+    \label{fig:mlt-synt}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-synt-1}
+    \caption{Waveform for Post-Synthesis Timing Multiply by 0 Test}
+    \label{fig:mlt-synt-1}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-synt-2}
+    \caption{Waveform for Post-Synthesis Timing Multiply by Fs Test}
+    \label{fig:mlt-synt-2}
+\end{figure}
+
+
+
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-pimp}
+    \caption{Waveform for Post-Implementation Timing Testbench of Multiplier}
+    \label{fig:mlt-pimp}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-pimp-1}
+    \caption{Waveform for Post-Implementation Timing Multiply by 0 Test}
+    \label{fig:mlt-pimp-1}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-pimp-2}
+    \caption{Waveform for Post-Implementation Timing Multiply by Fs Test}
+    \label{fig:mlt-pimp-2}
+\end{figure}
+
+
+
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-behv}
+    \caption{Waveform for Behavioral Testbench of Execute Stage}
+    \label{fig:exc-behv}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-behv-1}
+    \caption{Waveform for Behavioral Add Test}
+    \label{fig:exc-behv-1}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-behv-2}
+    \caption{Waveform for Behavioral Multiply Test}
+    \label{fig:exc-behv-2}
+\end{figure}
+
+
+
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-synt}
+    \caption{Waveform for Post-Synthesis Timing Testbench of Execute Stage}
+    \label{fig:exc-synt}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-synt-1}
+    \caption{Waveform for Post-Synthesis Timing Add Test}
+    \label{fig:exc-synt-1}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-synt-2}
+    \caption{Waveform for Post-Synthesis Timing Multiply Test}
+    \label{fig:exc-synt-2}
+\end{figure}
+
+
+
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-pimp}
+    \caption{Waveform for Post-Implementation Timing Testbench of Execute Stage}
+    \label{fig:exc-pimp}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-pimp-1}
+    \caption{Waveform for Post-Implementation Timing Add Test}
+    \label{fig:exc-pimp-1}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-pimp-2}
+    \caption{Waveform for Post-Implementation Timing Multiply Test}
+    \label{fig:exc-pimp-2}
+\end{figure}
+
 
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
