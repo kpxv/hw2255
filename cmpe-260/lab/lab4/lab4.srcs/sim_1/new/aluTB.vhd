@@ -24,15 +24,6 @@ end entity alutb;
 
 architecture tb of alutb is
 
-    component alu32 is
-        port (
-            a  : in    std_logic_vector(N - 1 downto 0);
-            b  : in    std_logic_vector(N - 1 downto 0);
-            op : in    std_logic_vector(3 downto 0);
-            y  : out   std_logic_vector(N - 1 downto 0)
-        );
-    end component alu32;
-
     signal a  : std_logic_vector(n - 1 downto 0);
     signal b  : std_logic_vector(n - 1 downto 0);
     signal op : std_logic_vector(3 downto 0);
@@ -246,7 +237,7 @@ architecture tb of alutb is
 
 begin
 
-    alun_0 : component alu32
+    alu32_inst : entity work.alu32(struct)
         port map (
             a  => a,
             b  => b,

@@ -57,7 +57,7 @@ begin
     b_s <= reg_srcb when alu_src = '0' else
            sign_imm;
 
-    alu32_inst : entity work.alu32
+    alu32_inst : entity work.alu32(struct)
         port map (
             a  => reg_srca,
             b  => b_s,

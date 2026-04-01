@@ -28,7 +28,7 @@ end entity mult_tb;
 
 architecture behv of mult_tb is
 
-    constant n : integer := 6;
+    constant n : integer := 64;
     -- Find n ceiling divide 2. VHDL ints get truncated, so add 1 to get ceiling
     constant halfn : integer := (n + 1) / 2;
 
@@ -66,12 +66,12 @@ architecture behv of mult_tb is
             b_r => (1 => '1', others => '0'),
             p_r => (2 => '1', others => '0')
         ),
-        -- (
-        --     -- 3 * 8 = 24
-        --     a_r => (1 downto 0 => '1', others => '0'),
-        --     b_r => (3 => '1', others => '0'),
-        --     p_r => (4 downto 3 => '1', others => '0')
-        -- ),
+        (
+            -- 3 * 8 = 24
+            a_r => (1 downto 0 => '1', others => '0'),
+            b_r => (3 => '1', others => '0'),
+            p_r => (4 downto 3 => '1', others => '0')
+        ),
         (
             -- 0xFF..F * 0xFF..F = 0xFF..FE 00..01
             a_r => (others => '1'),
@@ -84,30 +84,30 @@ architecture behv of mult_tb is
             b_r => (0 => '0', others => '1'),
             p_r => (halfn + 1 => '0', halfn - 1 downto 2 => '0', 0 => '0', others => '1')
         ),
-        -- (
-        --     -- 8 * 2 = 16
-        --     a_r => (3 => '1', others => '0'),
-        --     b_r => (1 => '1', others => '0'),
-        --     p_r => (4 => '1', others => '0')
-        -- ),
-        -- (
-        --     -- 8 * 8 = 64
-        --     a_r => (3 => '1', others => '0'),
-        --     b_r => (3 => '1', others => '0'),
-        --     p_r => (6 => '1', others => '0')
-        -- ),
-        -- (
-        --     -- 10 * 1 = 10
-        --     a_r => (3 => '1', 1 => '1', others => '0'),
-        --     b_r => (0 => '1', others => '0'),
-        --     p_r => (3 => '1', 1 => '1', others => '0')
-        -- ),
-        -- (
-        --     -- 16 * 16 = 256
-        --     a_r => (4 => '1', others => '0'),
-        --     b_r => (4 => '1', others => '0'),
-        --     p_r => (8 => '1', others => '0')
-        -- ),
+        (
+            -- 8 * 2 = 16
+            a_r => (3 => '1', others => '0'),
+            b_r => (1 => '1', others => '0'),
+            p_r => (4 => '1', others => '0')
+        ),
+        (
+            -- 8 * 8 = 64
+            a_r => (3 => '1', others => '0'),
+            b_r => (3 => '1', others => '0'),
+            p_r => (6 => '1', others => '0')
+        ),
+        (
+            -- 10 * 1 = 10
+            a_r => (3 => '1', 1 => '1', others => '0'),
+            b_r => (0 => '1', others => '0'),
+            p_r => (3 => '1', 1 => '1', others => '0')
+        ),
+        (
+            -- 16 * 16 = 256
+            a_r => (4 => '1', others => '0'),
+            b_r => (4 => '1', others => '0'),
+            p_r => (8 => '1', others => '0')
+        ),
         (
             -- 3 * 4 = 12
             a_r => (1 downto 0 => '1', others => '0'),
@@ -125,8 +125,7 @@ begin
 
     uut : entity work.mult(struct)
         generic map (
-            n => n,
-            halfn => halfn
+            n => n
         )
         port map (
             a       => a_s,

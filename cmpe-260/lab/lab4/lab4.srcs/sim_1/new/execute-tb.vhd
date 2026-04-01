@@ -295,26 +295,26 @@ architecture behv of execute_tb is
 
 begin
 
-    uut : entity work.execute
+    uut : entity work.execute(struct)
         port map (
-            reg_write_s,
-            memto_reg_s,
-            mem_write_s,
-            alu_ctrl_s,
-            alu_src_s,
-            reg_dst_s,
-            reg_srca_s,
-            reg_srcb_s,
-            rt_dest_s,
-            rd_dest_s,
-            sign_imm_s,
+            reg_write => reg_write_s,
+            memto_reg => memto_reg_s,
+            mem_write => mem_write_s,
+            alu_ctrl  => alu_ctrl_s,
+            alu_src   => alu_src_s,
+            reg_dst   => reg_dst_s,
+            reg_srca  => reg_srca_s,
+            reg_srcb  => reg_srcb_s,
+            rt_dest   => rt_dest_s,
+            rd_dest   => rd_dest_s,
+            sign_imm  => sign_imm_s,
 
-            reg_write_out_s,
-            memto_reg_out_s,
-            mem_write_out_s,
-            alu_result_s,
-            write_data_s,
-            write_reg_s
+            reg_write_out => reg_write_out_s,
+            memto_reg_out => memto_reg_out_s,
+            mem_write_out => mem_write_out_s,
+            alu_result    => alu_result_s,
+            write_data    => write_data_s,
+            write_reg     => write_reg_s
         );
 
     stim_proc : process is
