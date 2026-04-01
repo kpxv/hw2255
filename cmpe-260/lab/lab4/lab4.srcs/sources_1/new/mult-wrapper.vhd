@@ -50,7 +50,7 @@ begin
 
     gen_one_slv_l : if arr_n = 1 generate
         sum(out_vec_len - 1 downto out_vec_len - calc_inwidth(out_vec_len, offset)) <= a(0);
-        sum(out_vec_len - calc_inwidth(out_vec_len, offset) - 1 downto 0) <= (others => '0');
+        sum(out_vec_len - calc_inwidth(out_vec_len, offset) - 1 downto 0)           <= (others => '0');
     end generate gen_one_slv_l;
 
     gen_two_slv_l : if arr_n = 2 generate
@@ -73,7 +73,7 @@ begin
         wrapper_left_inst : entity work.mult_wrapper(struct)
             generic map (
                 in_vec_len  => in_vec_len,
-                out_vec_len => calc_inwidth(out_vec_len, arr_n / 2 ),
+                out_vec_len => calc_inwidth(out_vec_len, arr_n / 2),
                 offset      => offset / 2,
                 arr_n       => arr_n / 2
             )
@@ -81,12 +81,12 @@ begin
                 a   => a(0 to arr_n / 2 - 1),
                 sum => res_left_s
             );
-            
+
         -- Generate right tree addition
         wrapper_right_inst : entity work.mult_wrapper(struct)
             generic map (
                 in_vec_len  => in_vec_len,
-                out_vec_len => calc_inwidth(out_vec_len, (arr_n + 1) / 2 ),
+                out_vec_len => calc_inwidth(out_vec_len, (arr_n + 1) / 2),
                 offset      => offset / 2,
                 arr_n       => (arr_n + 1) / 2
             )

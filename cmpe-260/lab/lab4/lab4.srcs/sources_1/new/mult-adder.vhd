@@ -64,6 +64,7 @@ begin
     end generate gen_sums_l;
 
     gen_carry_sum_l : for i in in_vec_len to in_vec_len + offset - 1 generate
+
         carry_sum_inst : entity work.f_adder(behv)
             port map (
                 a   => '0',
@@ -73,6 +74,7 @@ begin
                 s    => y_s(i),
                 cout => c_s(i + 1)
             );
+
     end generate gen_carry_sum_l;
 
     gen_sum_bit_l : if offset = 1 generate

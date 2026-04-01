@@ -38,6 +38,7 @@ package body mult_adder_pkg is
         in_offset : integer
     ) return integer is
     begin
+
         -- report "out_n: " & integer'image(out_n);
         -- report "in_offset: " & integer'image(in_offset);
 
