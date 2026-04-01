@@ -1,16 +1,19 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/17/2026 07:27:00 PM
--- Design Name:
+-- Design Name: Multiplier Summation Wrapper
 -- Module Name: mult_wrapper - struct
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: ALU Multiplication
+-- Target Devices: Basys3
+-- Tool Versions: VHDL 2008
+-- Description: Sums the vectors inside the input array using tree-based
+-- addition. Later indices get shifted left. For the most part, this entity is
+-- only used to instruct the synthesizer how to place mult_adders.
 --
--- Dependencies:
+-- Dependencies: mult_wrapper (recursive), mult_wrapper_pkg, mult_adder,
+-- mult_adder_pkg, numeric_std, std_logic_1164
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -36,6 +39,7 @@ entity mult_wrapper is
         arr_n : integer
     );
     port (
+        -- array of vectors to sum
         a   : in    slv_arr_t(0 to arr_n - 1)(in_vec_len - 1 downto 0);
         sum : out   std_logic_vector(out_vec_len - 1 downto 0)
     );
@@ -48,10 +52,16 @@ architecture struct of mult_wrapper is
 
 begin
 
+    -- Base case. Only used when multiplier n is not a power of 2; functionality
+    -- currently broken.
+
     gen_one_slv_l : if arr_n = 1 generate
+        -- Frontfill with 0s
         sum(out_vec_len - 1 downto out_vec_len - calc_inwidth(out_vec_len, offset)) <= a(0);
         sum(out_vec_len - calc_inwidth(out_vec_len, offset) - 1 downto 0)           <= (others => '0');
     end generate gen_one_slv_l;
+
+    -- Base case. Calculate sum on array vectors
 
     gen_two_slv_l : if arr_n = 2 generate
 
@@ -67,6 +77,9 @@ begin
             );
 
     end generate gen_two_slv_l;
+
+    -- General recursion. Recurse to find sum of each half of array, then sum
+    -- the two halves.
 
     gen_reduce_slv_l : if arr_n > 2 generate
         -- Generate left tree addition
@@ -85,7 +98,9 @@ begin
         -- Generate right tree addition
         wrapper_right_inst : entity work.mult_wrapper(struct)
             generic map (
-                in_vec_len  => in_vec_len,
+                in_vec_len => in_vec_len,
+                -- Different calc_inwidth inputs for when multiplier n is not
+                -- a power of 2; functionality currently broken.
                 out_vec_len => calc_inwidth(out_vec_len, (arr_n + 1) / 2),
                 offset      => offset / 2,
                 arr_n       => (arr_n + 1) / 2

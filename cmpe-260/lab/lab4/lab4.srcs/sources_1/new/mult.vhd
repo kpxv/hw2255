@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/17/2026 07:27:00 PM
--- Design Name:
+-- Design Name: Carry-save bit-forwarding multiplier
 -- Module Name: mult - struct
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: ALU Multiplication
+-- Target Devices: Basys3
+-- Tool Versions: VHDL 2008
+-- Description: Performs multiplication with carry-save multiplier.
 --
--- Dependencies:
+-- Dependencies: mult_wrapper, mult_wrapper_pkg, std_logic_1164, numeric_std
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -25,8 +25,8 @@ library ieee;
 
 entity mult is
     generic (
-        -- Must be a power of two
-        n : integer := 8
+        -- Output widht. Must be a power of two.
+        n : integer := 32
     );
     port (
         a : in    std_logic_vector(n / 2 - 1 downto 0);
@@ -47,7 +47,7 @@ architecture struct of mult is
 
 begin
 
-    -- Generate products
+    -- Generate intermediary products
 
     gen_mres_row_l : for i in 0 to halfn - 1 generate
 
@@ -58,6 +58,7 @@ begin
         input_arr(i) <= mult_result_s(i);
     end generate gen_mres_row_l;
 
+    -- Sum all intermediary results
     prod_inst : entity work.mult_wrapper(struct)
         generic map (
             in_vec_len  => halfn,

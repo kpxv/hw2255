@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/17/2026 07:27:00 PM
--- Design Name:
+-- Design Name: Full Adder
 -- Module Name: f_adder - behv
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: ALU Multiplication
+-- Target Devices: Basys3
+-- Tool Versions: VHDL 2008
+-- Description: implements a full adder
 --
--- Dependencies:
+-- Dependencies: std_logic_1164
 --
 -- Revision:
 -- Revision 0.01 - File Created

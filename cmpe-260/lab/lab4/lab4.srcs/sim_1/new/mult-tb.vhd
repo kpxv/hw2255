@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/17/2026 10:37:46 PM
--- Design Name:
+-- Design Name: Multiplication Testbench
 -- Module Name: mult_tb - behv
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: ALU Multiplication
+-- Target Devices: Testbench
+-- Tool Versions: VHDL 2008
+-- Description: Tests N-bit multiplier
 --
--- Dependencies:
+-- Dependencies: std_logic_1164, numeric_std, mult
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -21,16 +21,15 @@
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
-    use ieee.math_real.all;
 
 entity mult_tb is
 end entity mult_tb;
 
 architecture behv of mult_tb is
 
-    constant n : integer := 64;
+    constant n : integer := 32;
     -- Find n ceiling divide 2. VHDL ints get truncated, so add 1 to get ceiling
-    constant halfn : integer := (n + 1) / 2;
+    constant halfn : integer := n / 2;
 
     type test_rec_t is record
         a_r : std_logic_vector(halfn - 1 downto 0);
@@ -124,9 +123,6 @@ architecture behv of mult_tb is
 begin
 
     uut : entity work.mult(struct)
-        generic map (
-            n => n
-        )
         port map (
             a       => a_s,
             b       => b_s,
@@ -158,7 +154,8 @@ begin
                 report "Case failed on test #" & integer'image(i) &
                        ". Inputs: 0x" & to_hstring(a_s) & " and 0x" & to_hstring(b_s) &
                        ". Expected: 0x" & to_hstring(test_rec_arr(i).p_r) &
-                       ". Got: 0x" & to_hstring(p_s) & ".";
+                       ". Got: 0x" & to_hstring(p_s) & "."
+                severity failure;
 
         end loop;
 

@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/18/2026 12:58:23 AM
--- Design Name:
+-- Design Name: Execute Testbench
 -- Module Name: execute_tb - behv
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: Execute Stage
+-- Target Devices: Testbench
+-- Tool Versions: VHDL 2008
+-- Description: Tests the execute stage
 --
--- Dependencies:
+-- Dependencies: std_logic_1164, numeric_std, execute
 --
 -- Revision:
 -- Revision 0.01 - File Created
