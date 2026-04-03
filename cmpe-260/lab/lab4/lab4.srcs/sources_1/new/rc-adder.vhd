@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/17/2026 07:27:00 PM
--- Design Name:
+-- Design Name: Ripple Carry adder
 -- Module Name: rc_adder - struct
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: ALU Multiplication
+-- Target Devices: Basys3
+-- Tool Versions: VHDL 2008
+-- Description: ripple carry adder that combines full adders
 --
--- Dependencies:
+-- Dependencies: std_logic_1164, f_adder
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -42,6 +42,8 @@ architecture struct of rc_adder is
 begin
 
     c_s(0) <= op;
+
+    -- Handle subtraction
 
     gen_inv_l : for i in 0 to n - 1 generate
         b_s(i) <= b(i) xor op;

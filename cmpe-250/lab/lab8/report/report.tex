@@ -1,0 +1,143 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 250}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L1}
+\newcommand{\LabInstructor}{Chongzhou Fang}
+
+\newcommand{\TAs}{Eddie Satowski \\ Eric Reed \\ Khoi Pham}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Chongzhou Fang}
+\newcommand{\exerciseNumber}{8}
+\newcommand{\exerciseDescription}{Multiprecision Arithmetic}
+\newcommand{\dateDone}{2026-03-19}
+\newcommand{\dateSubmitted}{2025-03-28}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+The purpose of this exercise was to design a program written in Keil ARM-v6-M
+Assembly using the Thumb 1 instruction set capable of performing addition
+operations on numbers of arbitrary word length stored in memory. The ADCS
+instruction was used to add successive word chunks of the number while
+respecting the Carry flag. A basic TUI was implemented to get an n-word number
+from a user; user input was case-insensitive, and leading zeroes were optional.
+The program was tested with various inputs to ensure overflow, carry, and
+inputs of different lengths worked as expeceted. The exercise was successful,
+as all test inputs produced the correct outputs.
+
+\section*{Procedure}
+
+A Keil MDK-ARM project was created. Provided libraries were added to Source
+Group 1 of the project. Subroutines including \texttt{GetStringSB},
+\texttt{PutStringSB}, and \texttt{PutNumHex} were included from previously
+written code. A subroutine \texttt{HexToBin} was adopted from the main loop
+of a previous exercise. A subroutine AddIntMultiU was implemented using the
+\texttt{ADCS} instruction. Multi-word numbers were stored in memory, with the
+least signifigant byte stored at the highest memory address. Upon loading the
+word into registers, the byte order of the registers were reversed, such that
+the low end of the register contained the least signifigant byte. Two numbers
+were loaded from memory and summed, one word at a time. The least signifigant
+word was loaded first. After computing the sum of each word, the resultant word
+was stored to an offset from a storage address.
+
+A subroutine \texttt{GetHexIntMulti} was written to get numbers of N word
+length from a user. It moved the stack pointer and established a buffer in
+stack space. Text was read from a user, converted to binary, and then stored to
+memory (not the stack buffer). If the user entered an invalid hexadecimal
+string, the subroutine exited with the C flag set.
+
+A subroutine \texttt{PutHexIntMulti} was written to print a binary number of N
+word length to UART in ASCII-encoded hexadecimal. Each word of the number was
+individually loaded and sent to a previous exercise's \texttt{PutNumHex}
+subroutine to print the character.
+
+A main program was written to dislay a basic user interface. It requested two 4
+word (128 bit, 32 character) inputs from the user in hexadecimal, performed
+basic validation, and printed the some or displayed whether the sum overflowed.
+
+The program was translated and built. Target options were modified to allow the
+debugger to work with the flashed chip. The program was flashed to the KL05Z.
+The windows program PuTTY was configured to communicate with the chip. The
+program was tested with a variety of inputs, including partially empty prompts,
+prompts with extra characters, capital and lowercase characters, small numbers,
+big numbers, and overflowing numbers.
+
+\section*{Results}
+
+
+\begin{figure}[H]
+	The TUI was tested using a variety of inputs. The complete test is given by
+	Figure \ref{fig:test}. It demonstrates each command under a variety of
+	conditions.
+	\vspace{0.5cm}
+	\center
+	\includegraphics{tests}
+	\caption{Demonstration of TUI}
+	\label{fig:test}
+\end{figure}
+
+As seen in Figure \ref{fig:test}, various number inputs were tested. Carry
+is successfully propogated across multiple words to create the correct output.
+Large and small numbers are properly handled. The text \texttt{OVERFLOW} is
+displayed when overflow occurs. Invalid hexadecimal inputs are rejected.
+
+A useful way by which to analyze a given assembly (or other) program is by
+examining its memory map. The memory map for the implemented program is
+presented in Table \ref{tab:mem}.
+
+\begin{table}[H]
+	\center
+	\caption{Memory Ranges}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Symbol Name    & Start Address & End Address \\
+		\hline
+		\hline
+		Reset\_Handler & 0x00000411    & 0x0000047a  \\
+		\hline
+		AddIntMultiU   & 0x0000050d    & 0x00000542  \\
+		\hline
+		GetHexIntMulti & 0x00000573    & 0x000005d2  \\
+		\hline
+		PutHexIntMulti & 0x000005d3    & 0x000005e6  \\
+		\hline
+	\end{tabular}
+	\label{tab:mem}
+\end{table}
+
+It should be noted that code has been broken up into a number of subroutines,
+not all of which are displayed here. For example, \texttt{AddIntMultiU}
+additionally depends on a lengthy \texttt{ReverseRegister} subroutine not
+given here.
+
+\section*{Conclusion}
+
+The objective of this exercise was to design subroutines and algorithms capable
+of processing and performing arithmetic operations on number of arbitrary
+length. Subroutines iterated over the number in memory to operate on just parts
+of it at a time. The addition subroutine made use of the \texttt{ADCS}
+instruction to preserve carry from previous operations. Due to time
+constraints, poor subroutine design was used in the \texttt{GetHexIntMulti} and
+\texttt{ReverseRegister} operations. In a future revisit to this project, both
+subroutines could be altered to reduce size and improve execution speed; the
+latter subroutine may not be required at all. In the future, operating on
+arbitrary-length data will be necessary to create large, expandable projects.
+The skills gained in this exercise will be applicable outside of mere
+arithmetic.
+
+\includepdf[pages=-]{assets/prelab}
+
+\end{document}

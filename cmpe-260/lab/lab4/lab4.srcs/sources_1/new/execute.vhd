@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/18/2026 12:29:27 AM
--- Design Name:
+-- Design Name: Execute Wrapper
 -- Module Name: execute - struct
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: Execute Stage
+-- Target Devices: Basys3
+-- Tool Versions: VHDL 2008
+-- Description: Maps the execute stage
 --
--- Dependencies:
+-- Dependencies: std_logic_1164, execute
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -57,7 +57,7 @@ begin
     b_s <= reg_srcb when alu_src = '0' else
            sign_imm;
 
-    alu32_inst : entity work.alu32
+    alu32_inst : entity work.alu32(struct)
         port map (
             a  => reg_srca,
             b  => b_s,

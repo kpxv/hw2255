@@ -23,7 +23,7 @@
 \newcommand{\exerciseNumber}{4}
 \newcommand{\exerciseDescription}{Execute Stage}
 \newcommand{\dateDone}{2026-03-03}
-\newcommand{\dateSubmitted}{2026-03-20}
+\newcommand{\dateSubmitted}{2026-04-01}
 
 \begin{document}
 
@@ -32,21 +32,304 @@
 \section*{Abstract}
 \addcontentsline{toc}{section}{Abstract}
 
-The purpose of this exercise was to design, implement, and test an n-bit
-Arithmetic Logic Unit (ALU) to support multiplication, addition, loigcal left-
-and right-shifts, arithmetic right-shifts, logical AND, logical OR, and logical
-XOR; as well as to create and execute stage to map input flags and register and
-memory values to the ALU. The partial n-bit ALU from Laboratory Exercise One
-was expanded upon.
+The purpose of this exercise was to design and implement an n-bit multiplier
+in an ALU and the wrapper for the Execute Stage of a MIPS processor, as well as
+to test the entire Execute Stage and its components. Multiplier designs were
+considered, and the carry-save design was selected to be implemented for its
+speed. The multiplier functionality was added to a previously implemented n-bit
+ALU design. An Execute Stage wrapper was implemented to process input signals
+and determine the correct input for the ALU and the correct outputs for
+destination registers. The multiplier was tested against a testbench designed
+to ensure correctness when handling carries, large numbers, small numbers, the
+number 0, and the number 1. The entire Execute Stage was tested against a
+testbench that verified the functionality of signal resolution and of each
+basic ALU operation. All tests for both testbenches passed; the exercise was
+successful.
 
 \section*{Design Methodology}
 \addcontentsline{toc}{section}{Design Methodology}
 
+Two designs were considered for implementation of the multiplier: the ripple
+carry multiplier, and the carry-save multiplier. The latter was chosen for
+implementation due to lower propagation delay. The multiplier emitted an N-bit
+output and took in two half-N-bit inputs. The multiplier was broken into two
+parts: finding partial products and summing partial products. Each bit of the
+first input vector was multiplied by each bit of the second input vector to
+generate half-N vectors, each containing a partial product.
+
+Four designs were considered to add the partial products: tree-style or
+cascading addition, and bit-forwarding or backfilling with 0s. A tree-style
+bit-forwarding was chosen. Tree-style addition is faster than cascading
+addition because operations can be carried out in parallel. Bit-forwarding is
+more efficient than backfilling with 0s; it uses fewer transistors, and the
+carry signal does not need to ripple through as many adders. The adder took as
+input two vectors of generic length, as well as a generic to specify the size
+of the offset between the input vectors. It emitted an output vector whose
+width was calculated using the input widths and the offset size. Bits from 0 to
+the lower offset of the first input vector were forwarded to the output vector;
+bits from the lower offset to the upper offset were summed using full adders;
+and bits above the upper offset were processed with half adders to propagate
+the carry through the output vector.
+
+In order to perform tree-style sums, a recursive VHDL entity was defined. It
+took as input an array of generic size of the vectors to sum and a generic
+specifying the offset used to calculate the final addition in the tree. It
+emitted as output one vector representing the sum of the tree. If more than 2
+vectors were provided in the array, it called called itself twice and provided
+each instance with half the input array. Otherwise, it created an instance of
+the bit-forwarding adder to add the elements in the array. This entity only
+specified how to combine bit-forwarding adders and how to map the partial
+product vectors to them; it did not create any transistors or other logic.
+
+Due to time constraints and the complexities involved in created a generic
+tree-style bit-forwarding adder, this multiplier only supports N values that
+are powers of 2. Using either cascading-style, backfilling, or both would make
+it much more easily possilble to support any N value, but at the cost of slower
+or less efficient hardware.
+
+A complete MIPS Execute Stage was implemented. The input signals RegWrite,
+MemtoReg, and MemWrite were directly forwarded to the output. The RegSrcA
+signal was forwarded to the output as WriteData. The input RegDst was used to
+choose whether to map RtDest or RdDest to the WriteReg output. The signal
+ALUSrc was used to select between RegSrcB and SignImm. The selected signal was
+mapped as an input vector to an ALU. RegSrcA was used as the other input vector
+to the ALU. The ALUCtrl signal was passed as input to the ALU, and used to
+determine the ALU operation to be executed. The output of the ALU was mapped
+to the output signal ALUResult.
+
+The Execute Stage instantiated an ALU capable of 9 operations: logical OR,
+logical AND, logical XOR, logical shift left, logical shift right, arithmetic
+shift right, addition, subtraction, and multiplication. The first six
+operations were implemented in a previous exercise. The above multiplier was
+instantiated to handle multiplication. To handle addition and subtraction, a
+new VHDL entity was created.
+
+A simple, generic ripple-carry adder was designed. It took as inputs two N-bit
+vectors. To support subtraction, it also took in a one-bit operation toggle.
+The second input vector was XORed with the toggle, such that the vector was
+NOTed if the toggle was active. A chain of N full adders was created. The
+carry-in of the chain was assigned as the toggle. Thus, enabling the toggle
+found the two's complement of the second input vector. The adder gave as
+outputs a sum vector, calculated from the full adders; as well as a
+carry-out, taken from the last full adder in the chain.
+
 \section*{Results and Analysis}
 \addcontentsline{toc}{section}{Results and Analysis}
 
+% Multiplier Behavioral
+
+In order to verify the correctness of the multiplier design, a testbench was
+created containing 12 tests. Because the multiplier was of generic size, test
+cases either used small numbers or were also written generically. Tests were
+chosen to ensure multiplication by 0 and 1 worked and to ensure multiplications
+with several carries and partial products worked. Additional test cases were
+included to simulate normal usage. Any multiplier size N greater than or equal
+to 16 can be tested with the test bench. A behavioral simulation of the
+testbench was run with N = 32. The waveform is shown in Figure
+\ref{fig:mlt-behv}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-behv}
+    \caption{Waveform for Behavioral Testbench of Multiplier}
+    \label{fig:mlt-behv}
+\end{figure}
+
+The waveform shown in Figure \ref{fig:mlt-behv} shows that all tests passed and
+that the design was implemented correctly.
+
+For example, the ability to multiply by 0 was tested between 50 ns and 150 ns,
+as shown in Figure \ref{fig:mlt-behv-1}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-behv-1}
+    \caption{Waveform for Behavioral Multiply by 0 Test}
+    \label{fig:mlt-behv-1}
+\end{figure}
+
+The waveform given in Figure \ref{fig:mlt-behv-1} shows both of the input
+vectors, \texttt{a\_s} and \texttt{b\_s}, being assigned to \texttt{0x0000}.
+The output vector \texttt{p\_s} shows a results of \texttt{0x00000000}. This
+is the correct value for multiplication of 0 and 0. The signal \texttt{clk} is
+an artifact of the method by which the testbench iterated over test cases; it
+is not indicative of the state of the multiplier in any way. The test passed.
+
+An especially interesting test case is that of multiplying two input vectors
+with the maximum possible value. This was tested between 550 ns and 650 ns. The
+waveform for this test case is shown in Figure \ref{fig:mlt-behv-2}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-behv-2}
+    \caption{Waveform for Behavioral Multiply by Fs Test}
+    \label{fig:mlt-behv-2}
+\end{figure}
+
+The waveform given by Figure \ref{fig:mlt-behv-2} shows both input vectors as
+having value \texttt{0xFFFF} and the output vector as having the value
+\texttt{fffe0001}. Simple calculation shows that this is the correct result;
+the test passed. More importantly, this test requires every possible partial
+product to be calculated and every bit-forwarding adder to be utilized. As this
+test passed, every aspect of the multiplier is confirmed to work in some
+situations.
+
+% Multiplier Post-Implementation
+
+In order to ensure the multiplier would work correctly if implemented in
+hardware, and to determine the maximum delay from stimulus change after which
+outputs are stable and correct, the design was simulated using a
+post-implementation timing simulation. The waveform is shown in Figure
+\ref{fig:mlt-pimp}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-pimp}
+    \caption{Waveform for Post-Implementation Timing Testbench of Multiplier}
+    \label{fig:mlt-pimp}
+\end{figure}
+
+The waveform given by Figure \ref{fig:mlt-pimp} shows that the testbench still
+passes; the design would be correct if implemented in hardware. It can be
+examined to determine the maximum delay until outputs are in a steady state.
+The two longest delays are at 50 ns and at 550 ns. The tests at both times
+will be examined in detail.
+
+The test case from 50 ns to 150 ns, which has one of the highest steady state
+delays of the test cases, is shown in Figure \ref{fig:mlt-pimp-1}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-pimp-1}
+    \caption{Waveform for Post-Implementation Timing Multiply by 0 Test}
+    \label{fig:mlt-pimp-1}
+\end{figure}
+
+The waveform given by Figure \ref{fig:mlt-pimp-1} shows that the input signals
+change exactly once, at 50 ns. The output signal \texttt{p\_s} oscillates for
+approximately 14 ns, before resolving to a steady state signal of
+\texttt{0x00000000} at a time of 64 ns.
+
+The other test case with a high delay to steady state was tested between 550 ns
+and 650 ns. The test results are shown in Figure \ref{fig:mlt-pimp-2}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{mlt-pimp-2}
+    \caption{Waveform for Post-Implementation Timing Multiply by Fs Test}
+    \label{fig:mlt-pimp-2}
+\end{figure}
+
+The waveform given by Figure \ref{fig:mlt-pimp-2} shows that the input signals
+change exactly once, at 550 ns. The output signal \texttt{p\_s} oscillates for
+approximately 18 ns, before resolving to a steady state signal of
+\texttt{0xFFFE0001} at a time of 568 ns. Thus, overall delay to reach steady
+state of the multiplier is 18 ns; at least this much time must pass before
+attempting to read results.
+
+% Execute Behavioral
+
+In order to verify the correctness of the design of the Execute stage, a
+testbench was created containing 11 test cases: 1 for each basic ALU operation,
+and one each for Store Word and Load Word. Only basic test cases were chosen;
+the object of this testbench was to ensure that the Execute Stage mapped
+signals correctly, not to exhaustively ensure the correctness of the ALU. A
+behavioral simulation of the Execute Stage was run. The results of the
+behavioral simulation are given in Figure \ref{fig:exc-behv}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-behv}
+    \caption{Waveform for Behavioral Testbench of Execute Stage}
+    \label{fig:exc-behv}
+\end{figure}
+
+The waveform given by Figure \ref{fig:exc-behv} shows that all tests passed and
+that the design was implemented correctly.
+
+For example, an add instruction was tested bewtween 0 ns and 50 ns. The results
+of the test are shown in Figure \ref{fig:exc-behv-1}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-behv-1}
+    \caption{Waveform for Behavioral Add Test}
+    \label{fig:exc-behv-1}
+\end{figure}
+
+The waveform given by \ref{fig:exc-behv-1} may be used to determine the success
+of the test.
+The input signal RegWrite was enabled, because ALU addition should write to a
+register. The signals MemtoReg and MemWrite were disabled, because no
+interaction with memory was necessary. ALUSrc was disabled to indicate register
+addition, rather than register and immediate addition.
+The contents of the two registers to be added were RegSrcA and RegSrcB. RegDst
+was enabled so that the result was written to RdDest. ALUCtrl was set to the
+opcode corresponding to addition. Other inputs were not relevant for this test.
+Outputs were correctly forwarded. WriteReg was correctly
+selected. ALUResult displays the sum of the RegSrc inputs which is the correct
+behavior. The test passed.
+
+A multiply instruction was also tested. The test occured between 500 ns and 550
+ns. The results of the test are shown in Figure \ref{fig:exc-behv-2}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-behv-2}
+    \caption{Waveform for Behavioral Multiply Test}
+    \label{fig:exc-behv-2}
+\end{figure}
+
+The waveform given by Figure \ref{fig:exc-behv-2} show that input signals
+largely match those in Figure \ref{fig:exc-behv-1}. However a different ALUSrc
+is used to specify multiplication, and different RegSrcA and RegSrcB values
+are used to check a multiplication of different numbers. With basic
+calculation, it can be verified that this waveform shows the correct product of
+RegSrcA and RegSrcB. The test passed.
+
+% Execute Post-Implementation
+
+In order to ensure the Execute Stage would work correctly if implemented in
+hardware, and to determine the maximum delay from stimulus change after which
+outputs are stable and correct, the design was simulated using a
+post-implementation timing simulation. The waveform is shown in Figure
+\ref{fig:exc-pimp}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-pimp}
+    \caption{Waveform for Post-Implementation Timing Testbench of Execute Stage}
+    \label{fig:exc-pimp}
+\end{figure}
+
+The waveform given by Figure \ref{fig:exc-pimp} shows that the testbench still
+passes; the design would be correct if implemented in hardware. It can be
+examined to determine the maximum delay until outputs are in a steady state.
+The longest delay is at 0 ns. The test at that time will be examined in detail.
+
+The test case beginning at 0 ns ends at 50 ns. The results of that test case
+are given in Figure \ref{fig:exc-pimp-1}.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{exc-pimp-1}
+    \caption{Waveform for Post-Implementation Timing Add Test}
+    \label{fig:exc-pimp-1}
+\end{figure}
+
+The waveform given by Figure \ref{fig:exc-pimp-1} shows that the input signals
+get assigned at exactly 0 ns and do not change until the test case is concluded.
+The output signal \texttt{alu\_result\_s} oscillates for approximately 5 ns,
+before resolving to a steady state signal of \texttt{0x00000002} at a time of 5
+ns. Thus, overall delay to reach steady state of the Execute Stage is 5 ns; at
+least this much time must pass before attempting to read the results.
+
+It should be noted that summing 1 and 1 is close to the best case for ALU
+summation, and that multiplying 2 and 2 is similarly close to the best case for
+ALU multiplication. This test is not a suitable way to find the true steady
+state delay of the design, but it can calculate some \textit{minimum}
+steady-state delay.
+
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
+
+The object of this exercise was to create the Execute Stage of a MIPS processor
+and the multiplier functioinality in the ALU of the Execute Stage. The
+multiplier was implemented using bit-forwarding techniques and tree-style
+addition. The Execute Stage was just simple signal assignment. The knowledge
+gained of N-bir multipliers from this exercise may be useful in improving the
+design for this multiplier. In general, the skills gained from working so
+closely with complex generics witll certainly help in any generic-sized VHDL
+entity.
 
 \includepdf[pages=-]{assets/prelab}
 \end{document}

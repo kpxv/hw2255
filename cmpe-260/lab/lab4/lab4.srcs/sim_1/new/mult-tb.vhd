@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Company: Rochester Institute of Technology
+-- Engineer: Aden Perry
 --
 -- Create Date: 03/17/2026 10:37:46 PM
--- Design Name:
+-- Design Name: Multiplication Testbench
 -- Module Name: mult_tb - behv
--- Project Name:
--- Target Devices:
--- Tool Versions:
--- Description:
+-- Project Name: ALU Multiplication
+-- Target Devices: Testbench
+-- Tool Versions: VHDL 2008
+-- Description: Tests N-bit multiplier
 --
--- Dependencies:
+-- Dependencies: std_logic_1164, numeric_std, mult
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -27,10 +27,14 @@ end entity mult_tb;
 
 architecture behv of mult_tb is
 
+    constant n : integer := 32;
+    -- Find n ceiling divide 2. VHDL ints get truncated, so add 1 to get ceiling
+    constant halfn : integer := n / 2;
+
     type test_rec_t is record
-        a_r : std_logic_vector(15 downto 0);
-        b_r : std_logic_vector(15 downto 0);
-        p_r : std_logic_vector(31 downto 0);
+        a_r : std_logic_vector(halfn - 1 downto 0);
+        b_r : std_logic_vector(halfn - 1 downto 0);
+        p_r : std_logic_vector(n - 1 downto 0);
     end record test_rec_t;
 
     type test_arr_t is array (natural range <>) of test_rec_t;
@@ -38,70 +42,82 @@ architecture behv of mult_tb is
     constant test_rec_arr : test_arr_t :=
     (
         (
-            a_r => x"0000",
-            b_r => x"0000",
-            p_r => x"00000000"
+            -- 0 * 0 = 0
+            a_r => (others => '0'),
+            b_r => (others => '0'),
+            p_r => (others => '0')
         ),
         (
-            a_r => x"0001",
-            b_r => x"0000",
-            p_r => x"00000000"
+            -- 1 * 0 = 0
+            a_r => (0 => '1', others => '0'),
+            b_r => (others => '0'),
+            p_r => (others => '0')
         ),
         (
-            a_r => x"0001",
-            b_r => x"0001",
-            p_r => x"00000001"
+            -- 1 * 1 = 1
+            a_r => (0 => '1', others => '0'),
+            b_r => (0 => '1', others => '0'),
+            p_r => (0 => '1', others => '0')
         ),
         (
-            a_r => x"0002",
-            b_r => x"0002",
-            p_r => x"00000004"
+            -- 2 * 2 = 4
+            a_r => (1 => '1', others => '0'),
+            b_r => (1 => '1', others => '0'),
+            p_r => (2 => '1', others => '0')
         ),
         (
-            a_r => x"0003",
-            b_r => x"0008",
-            p_r => x"00000018"
+            -- 3 * 8 = 24
+            a_r => (1 downto 0 => '1', others => '0'),
+            b_r => (3 => '1', others => '0'),
+            p_r => (4 downto 3 => '1', others => '0')
         ),
         (
-            a_r => x"FFFF",
-            b_r => x"FFFF",
-            p_r => x"FFFE0001"
+            -- 0xFF..F * 0xFF..F = 0xFF..FE 00..01
+            a_r => (others => '1'),
+            b_r => (others => '1'),
+            p_r => (halfn downto 1 => '0', others => '1')
         ),
         (
-            a_r => x"FFFF",
-            b_r => x"FFFE",
-            p_r => x"FFFD0002"
+            -- 0xFF..F * 0xFF..FE = FF..FD 00.02
+            a_r => (others => '1'),
+            b_r => (0 => '0', others => '1'),
+            p_r => (halfn + 1 => '0', halfn - 1 downto 2 => '0', 0 => '0', others => '1')
         ),
         (
-            a_r => x"0008",
-            b_r => x"0002",
-            p_r => x"00000010"
+            -- 8 * 2 = 16
+            a_r => (3 => '1', others => '0'),
+            b_r => (1 => '1', others => '0'),
+            p_r => (4 => '1', others => '0')
         ),
         (
-            a_r => x"0008",
-            b_r => x"0008",
-            p_r => x"00000040"
+            -- 8 * 8 = 64
+            a_r => (3 => '1', others => '0'),
+            b_r => (3 => '1', others => '0'),
+            p_r => (6 => '1', others => '0')
         ),
         (
-            a_r => x"000A",
-            b_r => x"0001",
-            p_r => x"0000000A"
+            -- 10 * 1 = 10
+            a_r => (3 => '1', 1 => '1', others => '0'),
+            b_r => (0 => '1', others => '0'),
+            p_r => (3 => '1', 1 => '1', others => '0')
         ),
         (
-            a_r => x"0010",
-            b_r => x"0010",
-            p_r => x"00000100"
+            -- 16 * 16 = 256
+            a_r => (4 => '1', others => '0'),
+            b_r => (4 => '1', others => '0'),
+            p_r => (8 => '1', others => '0')
         ),
         (
-            a_r => x"0003",
-            b_r => x"0004",
-            p_r => x"0000000C"
+            -- 3 * 4 = 12
+            a_r => (1 downto 0 => '1', others => '0'),
+            b_r => (2 => '1', others => '0'),
+            p_r => (3 downto 2 => '1', others => '0')
         )
     );
 
-    signal a_s : std_logic_vector(15 downto 0);
-    signal b_s : std_logic_vector(15 downto 0);
-    signal p_s : std_logic_vector(31 downto 0);
+    signal a_s : std_logic_vector(halfn - 1 downto 0);
+    signal b_s : std_logic_vector(halfn - 1 downto 0);
+    signal p_s : std_logic_vector(n - 1 downto 0);
     signal clk : std_logic;
 
 begin
@@ -135,13 +151,17 @@ begin
             wait until clk = '0';
 
             assert test_rec_arr(i).p_r = p_s
-                report "Case failed on test #" & integer'image(i)
+                report "Case failed on test #" & integer'image(i) &
+                       ". Inputs: 0x" & to_hstring(a_s) & " and 0x" & to_hstring(b_s) &
+                       ". Expected: 0x" & to_hstring(test_rec_arr(i).p_r) &
+                       ". Got: 0x" & to_hstring(p_s) & "."
                 severity failure;
 
         end loop;
 
         wait until clk = '0';
         assert false
+            report "Testbench conluded."
             severity failure;
 
     end process stim_proc;

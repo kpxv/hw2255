@@ -47,7 +47,7 @@ architecture struct of alu32 is
 begin
 
     -- Establish operations
-    or_comp : entity work.orn
+    or_comp : entity work.orn(behv)
         generic map (
             n => N
         )
@@ -57,7 +57,7 @@ begin
             y => or_result
         );
 
-    and_comp : entity work.andn
+    and_comp : entity work.andn(behv)
         generic map (
             n => N
         )
@@ -67,7 +67,7 @@ begin
             y => and_result
         );
 
-    xor_comp : entity work.xorn
+    xor_comp : entity work.xorn(behv)
         generic map (
             n => N
         )
@@ -77,7 +77,7 @@ begin
             y => xor_result
         );
 
-    sll_comp : entity work.slln
+    sll_comp : entity work.slln(behv)
         generic map (
             n => N, m => M
         )
@@ -87,7 +87,7 @@ begin
             y         => sll_result
         );
 
-    srl_comp : entity work.srln
+    srl_comp : entity work.srln(behv)
         generic map (
             n => N, m => M
         )
@@ -97,7 +97,7 @@ begin
             y         => srl_result
         );
 
-    sra_comp : entity work.sran
+    sra_comp : entity work.sran(behv)
         generic map (
             n => N, m => M
         )
