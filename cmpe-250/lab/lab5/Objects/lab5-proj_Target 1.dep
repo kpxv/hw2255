@@ -1,0 +1,6 @@
+Dependencies for Project 'lab5-proj', Target 'Target 1': (DO NOT MODIFY !)
+F (.\ProgramTemplate_KL05.s)(0x6996D718)(--cpu Cortex-M0+ --pd "__EVAL SETA 1" -g --apcs=interwork -I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 524" --pd "MKL05Z32xxx4 SETA 1"--list .\listings\programtemplate_kl05.lst -o .\objects\programtemplate_kl05.o --depend .\objects\programtemplate_kl05.d)
+I (MKL05Z4.s)(0x6996B9F0)
+F (.\Exercise05_Lib\Exercise05_Lib.lib)(0x6996BA0F)()
+F (.\Start.s)(0x6996B9E2)(--cpu Cortex-M0+ --pd "__EVAL SETA 1" -g --apcs=interwork -I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 524" --pd "MKL05Z32xxx4 SETA 1"--list .\listings\start.lst -o .\objects\start.o --depend .\objects\start.d)
+I (MKL05Z4.s)(0x6996B9F0)
