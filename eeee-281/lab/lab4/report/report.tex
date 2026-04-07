@@ -1,0 +1,164 @@
+\documentclass[EEEE]{KGCOEReport}
+
+\usepackage[backend=biber]{biblatex}
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{csquotes}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{amsmath}
+\usepackage{circuitikz}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{pdfpages}
+\usepackage{pgfplots, pgfplotstable}
+
+\graphicspath{./assets/}
+\addbibresource{./assets/bib.bib}
+
+\newcommand{\classCode}{EEEE 281}
+\newcommand{\className}{Circuits 1}
+
+\newcommand{\name}{Aden Perry}
+% \newcommand{\partnerName}{PARTNER}
+
+\newcommand{\LabSectionNum}{L7}
+
+\newcommand{\TAs}{Sol Holston}
+\newcommand{\exerciseNumber}{4}
+\newcommand{\exerciseDescription}{Op-amps 1}
+
+\newcommand{\dateDone}{2026-03-07}
+\newcommand{\dateSubmitted}{2026-03-07}
+
+\pgfplotsset{compat=1.18}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+
+
+\section{Introduction and Theory}
+
+
+\subsection{Theory: Circuit Investigated}
+
+Calculation of $R_\text{F.INV}$:
+\begin{align*}
+	\frac{V_{in}}{R_1}             & = - \frac{V_{out}}{R_f} \\
+	-\frac{R_f}{R_1}               & = \frac{V_{out}}{V_in}  \\
+	-\frac{R_f}{\left(1000\right)} & = \left(-4.7\right)     \\
+	R_f                            & = 4700
+\end{align*}
+
+Calculation of $R_\text{F.NON\_INV}$:
+\begin{align*}
+	-\frac{V_{in}}{R_1}        & = \frac{V_{out} - V_{in}}{R_f} \\
+	\frac{V_{in}}{V_{out}} - 1 & = \frac{R_1}{R_f}              \\
+	\frac{V_{out}}{V_{in}}     & = \frac{R_f}{R_1} + 1          \\
+	3.2                        & = \frac{R_f}{1000} + 1         \\
+	R_f                        & = 2200
+\end{align*}
+
+\subsection{Theory: LTspice Simulation}
+
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=\textwidth]{./assets/c1.png}
+	\caption{Circuit 1 in LTspice}
+	\label{fig:lts-c1}
+\end{figure}
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=\textwidth]{./assets/c1-trace.png}
+	\caption{Circuit 1 Transient Simulation wtih Trace in LTspice}
+	\label{fig:lts-c1-trace}
+\end{figure}
+
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=\textwidth]{./assets/c2.png}
+	\caption{Circuit 2 in LTspice}
+	\label{fig:lts-c2}
+\end{figure}
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=\textwidth]{./assets/c2-trace.png}
+	\caption{Circuit 2 Transient Simulation wtih Trace in LTspice}
+	\label{fig:lts-c2-trace}
+\end{figure}
+
+
+\section{Hardware Experiment: Results and Discussion}
+
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.5\textwidth]{./assets/c1-hw.jpg}
+	\caption{Circuit 1 Hardware}
+    \label{fig:c1-hw}
+\end{figure}
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.5\textwidth]{./assets/c1-osc.jpg}
+	\caption{Circuit 1 Oscilliscope Capture}
+	\label{fig:c1-osc}
+\end{figure}
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.5\textwidth]{./assets/c2-hw.jpg}
+	\caption{Circuit 2 Hardware}
+	\label{fig:c2-hw}
+\end{figure}
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=0.5\textwidth]{./assets/c2-osc.jpg}
+	\caption{Circuit 2 Oscilliscope Capture}
+	\label{fig:c2-osc}
+\end{figure}
+
+\section{Conclusion}
+
+
+\begin{table}[H]
+	\center
+	\caption{Results}
+	\begin{tabular}{rcc}
+		Label                      & Value   & Unit   \\
+		\hline
+		\hline
+		$R_{\text{F.INV}}$         & 4700    & \Omega \\
+		$R_{\text{F.NON\_INV}}$    & 2200    & \Omega \\
+		LTspice Inverted Gain      & -4.6998 &        \\
+		LTspice Non-inverted Gain  & 3.2000  &        \\
+		Hardware Inverted Gain     & -4.6780 &        \\
+		Hardware Non-inverted Gain & 3.1538  &        \\
+		\hline
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Acknowledgements}
+
+Methods described inthe the textbook \textit{Fundamentals of Electric Circuits,
+	7th Edition} \cite{fec} were considered to find Thevenin equivalents.
+
+The template for this Technical Memo was modified from a \LaTeX \ class created
+by Joshua Milas and Seth Gower, using the provided Tech Memo Template and
+example Tech Memo from the Advanced Course as inspiration.
+
+The Teaching Assistant, Sol Holston, verified that calculated, simulated, and
+measured values were correct.
+
+\printbibliography
+
+\end{document}
