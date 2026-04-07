@@ -18,7 +18,16 @@
 // Class:  CMPE 250
 // Section:  All sections
 // ****************************************************************
-// .set ,ates
+// Assembler Directives
+.title "KL05 Bare Metal Assembly Startup"
+.syntax unified
+.thumb
+// ****************************************************************
+// Include files
+//   MKL05Z4.s
+.include "mkl05z4.s"
+// ****************************************************************
+// EQUates
 // ---------------------------------------------------------------
 // Clock source values
 // External crystal frequency (Hz)
@@ -85,7 +94,7 @@
 //  0-->  0:COPW=COP windowed mode (x)
 .set SIM_COPC_COP_DISABLED  ,  0
 // ****************************************************************
-.section .start, "ax"
+.section start, "ax"
 .global Startup
 // ---------------------------------------------------------------
 Startup:     
@@ -292,13 +301,13 @@ HardFault_Handler:
             B       .
                 // Dummy_Handler
 // ---------------------------------------------------------------
-.align
+.balign 8
 // ****************************************************************
-.section .hex_c0, "d"
+.section prog_once
 // Program once field:  0xC0-0xFF
 .skip 0x40
 // ****************************************************************
-.section .hex_400, "x"
+.section keys, "x"
 .byte     FCF_BACKDOOR_KEY0,FCF_BACKDOOR_KEY1
 .byte     FCF_BACKDOOR_KEY2,FCF_BACKDOOR_KEY3
 .byte     FCF_BACKDOOR_KEY4,FCF_BACKDOOR_KEY5
@@ -306,12 +315,13 @@ HardFault_Handler:
 .byte     FCF_FPROT0,FCF_FPROT1,FCF_FPROT2,FCF_FPROT3
 .byte     FCF_FSEC,FCF_FOPT,0xFF,0xFF
 // ****************************************************************
-.section .hex_1ffffc00, "d"
+.section stack, "w"
 .align 3
-.global __initial_sp
 // Allocate system stack beginning at lowest address of RAM
 .set SSTACK_SIZE ,     0x00000100
 Stack_Mem:
 .skip SSTACK_SIZE
+.global __initial_sp
 __initial_sp:
 // ****************************************************************
+.end
