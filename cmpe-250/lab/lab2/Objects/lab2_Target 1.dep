@@ -1,0 +1,2 @@
+Dependencies for Project 'lab2', Target 'Target 1': (DO NOT MODIFY !)
+F (.\work\lab2.s)(0x697283B3)(--cpu Cortex-M0+ --pd "__EVAL SETA 1" -g --apcs=interwork -I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 524" --pd "MKL03Z32xxx4 SETA 1"--list .\listings\lab2.lst --xref -o .\objects\lab2.o --depend .\objects\lab2.d)

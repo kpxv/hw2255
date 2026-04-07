@@ -1,0 +1,91 @@
+
+There are no discarded input sections
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+reset           0x00000000       0xc0
+ *(RESET)
+ RESET          0x00000000       0xc0 build/lab9.o
+
+prog_once       0x000000c0       0x40
+ *(prog_once)
+ prog_once      0x000000c0       0x40 build/start.o
+
+start           0x00000100       0xc4
+ *(start)
+ start          0x00000100       0xc4 build/start.o
+                0x00000100                Startup
+                0x000001a4                HardFault_Handler
+                0x000001a4                Dummy_Handler
+
+const           0x000001c4        0x4
+ *(const)
+ const          0x000001c4        0x4 build/lab9.o
+
+keys            0x00000400       0x10
+ *(keys)
+ keys           0x00000400       0x10 build/start.o
+
+.glue_7         0x00000410        0x0
+ .glue_7        0x00000410        0x0 linker stubs
+
+.glue_7t        0x00000410        0x0
+ .glue_7t       0x00000410        0x0 linker stubs
+
+.vfp11_veneer   0x00000410        0x0
+ .vfp11_veneer  0x00000410        0x0 linker stubs
+
+.v4_bx          0x00000410        0x0
+ .v4_bx         0x00000410        0x0 linker stubs
+
+.text           0x00000410        0x0
+ .text          0x00000410        0x0 build/start.o
+ .text          0x00000410        0x0 build/lab9.o
+
+.iplt           0x00000410        0x0
+ .iplt          0x00000410        0x0 build/lab9.o
+
+.data           0x00000410        0x0
+ .data          0x00000410        0x0 build/start.o
+ .data          0x00000410        0x0 build/lab9.o
+
+.igot.plt       0x00000410        0x0
+ .igot.plt      0x00000410        0x0 build/lab9.o
+
+code            0x00000410        0x8
+ *(main)
+ code           0x00000410        0x8 build/lab9.o
+                0x00000410                Reset_Handler
+
+.rel.dyn        0x00000418        0x0
+ .rel.iplt      0x00000418        0x0 build/lab9.o
+
+stack           0x1ffffc00      0x100
+ *(stack)
+ stack          0x1ffffc00      0x100 build/start.o
+                0x1ffffd00                __initial_sp
+
+.bss            0x1ffffd00        0x0
+ .bss           0x1ffffd00        0x0 build/start.o
+ .bss           0x1ffffd00        0x0 build/lab9.o
+
+data            0x1ffffd00        0x8
+ *(var)
+ data           0x1ffffd00        0x8 build/lab9.o
+LOAD build/start.o
+LOAD build/lab9.o
+OUTPUT(build/out.elf elf32-littlearm)
+LOAD linker stubs
+
+.ARM.attributes
+                0x00000000       0x16
+ .ARM.attributes
+                0x00000000       0x14 build/start.o
+ .ARM.attributes
+                0x00000014       0x12 build/lab9.o

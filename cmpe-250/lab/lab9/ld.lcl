@@ -1,33 +1,33 @@
 SECTIONS {
-    RESET 0x0 :
+    reset 0x0 :
     {
-        *(reset)
+        *(RESET)
     }
     prog_once 0xc0 :
     {
-        *(hex_c0)
+        *(prog_once)
     }
-    start :
+    start (ADDR(prog_once) + SIZEOF(prog_once)) :
     {
         *(start)
     }
-    const :
+    const (ADDR(start) + SIZEOF(start)) :
     {
         *(const)
     }
     keys 0x400 :
     {
-        *(hex_400)
+        *(keys)
     }
-    code :
+    code (ADDR(keys) + SIZEOF(keys)) :
     {
         *(main)
     }
     stack 0x1ffffc00 :
     {
-        *(hex_1ffffc00)
+        *(stack)
     }
-    data :
+    data (ADDR(stack) + SIZEOF(stack)) :
     {
         *(var)
     }

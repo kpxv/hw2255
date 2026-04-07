@@ -25,7 +25,9 @@
 // ****************************************************************
 // Include files
 //   MKL05Z4.s
+.nolist
 .include "mkl05z4.s"
+.list
 // ****************************************************************
 // EQUates
 // ---------------------------------------------------------------
@@ -307,7 +309,7 @@ HardFault_Handler:
 // Program once field:  0xC0-0xFF
 .skip 0x40
 // ****************************************************************
-.section keys, "x"
+.section keys, "ax"
 .byte     FCF_BACKDOOR_KEY0,FCF_BACKDOOR_KEY1
 .byte     FCF_BACKDOOR_KEY2,FCF_BACKDOOR_KEY3
 .byte     FCF_BACKDOOR_KEY4,FCF_BACKDOOR_KEY5
@@ -315,7 +317,7 @@ HardFault_Handler:
 .byte     FCF_FPROT0,FCF_FPROT1,FCF_FPROT2,FCF_FPROT3
 .byte     FCF_FSEC,FCF_FOPT,0xFF,0xFF
 // ****************************************************************
-.section stack, "w"
+.section stack, "aw", %nobits
 .align 3
 // Allocate system stack beginning at lowest address of RAM
 .set SSTACK_SIZE ,     0x00000100

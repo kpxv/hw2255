@@ -1,0 +1,117 @@
+
+build/out.elf:     file format elf32-littlearm
+
+
+Disassembly of section start:
+
+00000100 <Startup>:
+ 100:	b500      	push	{lr}
+ 102:	f000 f804 	bl	10e <SystemInit>
+ 106:	b672      	cpsid	i
+ 108:	f000 f820 	bl	14c <SetClock48MHz>
+ 10c:	bd00      	pop	{pc}
+
+0000010e <SystemInit>:
+ 10e:	b672      	cpsid	i
+ 110:	4825      	ldr	r0, [pc, #148]	@ (1a8 <Dummy_Handler+0x4>)
+ 112:	2100      	movs	r1, #0
+ 114:	6001      	str	r1, [r0, #0]
+ 116:	b500      	push	{lr}
+ 118:	f04f 3111 	mov.w	r1, #286331153	@ 0x11111111
+ 11c:	184a      	adds	r2, r1, r1
+ 11e:	1853      	adds	r3, r2, r1
+ 120:	185c      	adds	r4, r3, r1
+ 122:	1865      	adds	r5, r4, r1
+ 124:	186e      	adds	r6, r5, r1
+ 126:	1877      	adds	r7, r6, r1
+ 128:	4688      	mov	r8, r1
+ 12a:	44b8      	add	r8, r7
+ 12c:	4689      	mov	r9, r1
+ 12e:	44c1      	add	r9, r8
+ 130:	468a      	mov	sl, r1
+ 132:	44ca      	add	sl, r9
+ 134:	468b      	mov	fp, r1
+ 136:	44d3      	add	fp, sl
+ 138:	468c      	mov	ip, r1
+ 13a:	44dc      	add	ip, fp
+ 13c:	4696      	mov	lr, r2
+ 13e:	44e6      	add	lr, ip
+ 140:	4608      	mov	r0, r1
+ 142:	4470      	add	r0, lr
+ 144:	f380 8800 	msr	CPSR_f, r0
+ 148:	4818      	ldr	r0, [pc, #96]	@ (1ac <Dummy_Handler+0x8>)
+ 14a:	bd00      	pop	{pc}
+
+0000014c <SetClock48MHz>:
+ 14c:	b40f      	push	{r0, r1, r2, r3}
+ 14e:	4818      	ldr	r0, [pc, #96]	@ (1b0 <Dummy_Handler+0xc>)
+ 150:	f44f 7100 	mov.w	r1, #512	@ 0x200
+ 154:	6802      	ldr	r2, [r0, #0]
+ 156:	430a      	orrs	r2, r1
+ 158:	6002      	str	r2, [r0, #0]
+ 15a:	4816      	ldr	r0, [pc, #88]	@ (1b4 <Dummy_Handler+0x10>)
+ 15c:	f04f 7180 	mov.w	r1, #16777216	@ 0x1000000
+ 160:	60c1      	str	r1, [r0, #12]
+ 162:	6101      	str	r1, [r0, #16]
+ 164:	4814      	ldr	r0, [pc, #80]	@ (1b8 <Dummy_Handler+0x14>)
+ 166:	f44f 3180 	mov.w	r1, #65536	@ 0x10000
+ 16a:	6001      	str	r1, [r0, #0]
+ 16c:	4813      	ldr	r0, [pc, #76]	@ (1bc <Dummy_Handler+0x18>)
+ 16e:	2104      	movs	r1, #4
+ 170:	7041      	strb	r1, [r0, #1]
+ 172:	4a13      	ldr	r2, [pc, #76]	@ (1c0 <Dummy_Handler+0x1c>)
+ 174:	2180      	movs	r1, #128	@ 0x80
+ 176:	7011      	strb	r1, [r2, #0]
+ 178:	2102      	movs	r1, #2
+ 17a:	7001      	strb	r1, [r0, #0]
+ 17c:	2102      	movs	r1, #2
+
+0000017e <SetClock48MHz_Wait_MCG_S_OSCINIT0>:
+ 17e:	7982      	ldrb	r2, [r0, #6]
+ 180:	4211      	tst	r1, r2
+ 182:	d0fc      	beq.n	17e <SetClock48MHz_Wait_MCG_S_OSCINIT0>
+ 184:	2110      	movs	r1, #16
+
+00000186 <SetClock48MHz_Wait_MCG_S_IREFST_Clear>:
+ 186:	7982      	ldrb	r2, [r0, #6]
+ 188:	4211      	tst	r1, r2
+ 18a:	d1fc      	bne.n	186 <SetClock48MHz_Wait_MCG_S_IREFST_Clear>
+ 18c:	78c2      	ldrb	r2, [r0, #3]
+ 18e:	2160      	movs	r1, #96	@ 0x60
+ 190:	23a0      	movs	r3, #160	@ 0xa0
+ 192:	438a      	bics	r2, r1
+ 194:	431a      	orrs	r2, r3
+ 196:	70c2      	strb	r2, [r0, #3]
+ 198:	210c      	movs	r1, #12
+
+0000019a <SetClock48MHz_Wait_MCG_FLL_Selected>:
+ 19a:	7982      	ldrb	r2, [r0, #6]
+ 19c:	4211      	tst	r1, r2
+ 19e:	d1fc      	bne.n	19a <SetClock48MHz_Wait_MCG_FLL_Selected>
+ 1a0:	bc0f      	pop	{r0, r1, r2, r3}
+ 1a2:	4770      	bx	lr
+
+000001a4 <Dummy_Handler>:
+ 1a4:	e7fe      	b.n	1a4 <Dummy_Handler>
+ 1a6:	46c0      	nop			@ (mov r8, r8)
+ 1a8:	40048100 	.word	0x40048100
+ 1ac:	05250113 	.word	0x05250113
+ 1b0:	40048038 	.word	0x40048038
+ 1b4:	40049000 	.word	0x40049000
+ 1b8:	40048044 	.word	0x40048044
+ 1bc:	40064000 	.word	0x40064000
+ 1c0:	40065000 	.word	0x40065000
+
+Disassembly of section keys:
+
+00000400 <keys>:
+ 400:	ffffffff 	.word	0xffffffff
+ 404:	ffffffff 	.word	0xffffffff
+ 408:	ffffffff 	.word	0xffffffff
+ 40c:	ffffff7e 	.word	0xffffff7e
+
+Disassembly of section code:
+
+00000410 <Reset_Handler>:
+ 410:	ebffff3a 	bl	100 <Startup>
+ 414:	eafffffe 	b	414 <Reset_Handler+0x4>
