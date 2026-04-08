@@ -45,26 +45,30 @@ keys            0x00000400       0x10
  .v4_bx         0x00000410        0x0 linker stubs
 
 .text           0x00000410        0x0
- .text          0x00000410        0x0 build/start.o
+ .text          0x00000410        0x0 build/Exercise09_EQU.o
  .text          0x00000410        0x0 build/lab9.o
+ .text          0x00000410        0x0 build/mkl05z4.o
+ .text          0x00000410        0x0 build/start.o
 
 .iplt           0x00000410        0x0
  .iplt          0x00000410        0x0 build/lab9.o
 
 .data           0x00000410        0x0
- .data          0x00000410        0x0 build/start.o
+ .data          0x00000410        0x0 build/Exercise09_EQU.o
  .data          0x00000410        0x0 build/lab9.o
+ .data          0x00000410        0x0 build/mkl05z4.o
+ .data          0x00000410        0x0 build/start.o
 
 .igot.plt       0x00000410        0x0
  .igot.plt      0x00000410        0x0 build/lab9.o
 
-code            0x00000410        0x8
+code            0x00000410       0xa0
  *(main)
- code           0x00000410        0x8 build/lab9.o
+ code           0x00000410       0xa0 build/lab9.o
                 0x00000410                Reset_Handler
 
-.rel.dyn        0x00000418        0x0
- .rel.iplt      0x00000418        0x0 build/lab9.o
+.rel.dyn        0x000004b0        0x0
+ .rel.iplt      0x000004b0        0x0 build/lab9.o
 
 stack           0x1ffffc00      0x100
  *(stack)
@@ -72,20 +76,28 @@ stack           0x1ffffc00      0x100
                 0x1ffffd00                __initial_sp
 
 .bss            0x1ffffd00        0x0
- .bss           0x1ffffd00        0x0 build/start.o
+ .bss           0x1ffffd00        0x0 build/Exercise09_EQU.o
  .bss           0x1ffffd00        0x0 build/lab9.o
+ .bss           0x1ffffd00        0x0 build/mkl05z4.o
+ .bss           0x1ffffd00        0x0 build/start.o
 
 data            0x1ffffd00        0x8
  *(var)
  data           0x1ffffd00        0x8 build/lab9.o
-LOAD build/start.o
+LOAD build/Exercise09_EQU.o
 LOAD build/lab9.o
+LOAD build/mkl05z4.o
+LOAD build/start.o
 OUTPUT(build/out.elf elf32-littlearm)
 LOAD linker stubs
 
 .ARM.attributes
                 0x00000000       0x16
  .ARM.attributes
-                0x00000000       0x14 build/start.o
+                0x00000000       0x14 build/Exercise09_EQU.o
  .ARM.attributes
-                0x00000014       0x12 build/lab9.o
+                0x00000014       0x14 build/lab9.o
+ .ARM.attributes
+                0x00000028       0x14 build/mkl05z4.o
+ .ARM.attributes
+                0x0000003c       0x14 build/start.o

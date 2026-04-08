@@ -1,86 +1,173 @@
    3              	.list
-   4              	.section code, "ax"
-   5              	.global Reset_Handler
-   6              	Reset_Handler:
-   7 0000 FEFFFFEB 	    bl Startup
-   8 0004 FEFFFFEA 	    b .
-   9              	
-  10              	// ****************************************************************
-  11              	// Vector Table Mapped to Address 0 at Reset
-  12              	// Linker requires __Vectors to be exported
-  13              	.section RESET, "a"
-  14              	            //  EXPORT  __Vectors
-  15              	            //  EXPORT  __Vectors_End
-  16              	            //  EXPORT  __Vectors_Size
-  17              	            //  IMPORT  __initial_sp
-  18              	            //  IMPORT  Dummy_Handler
-  19              	            //  IMPORT  HardFault_Handler
-  20              	__Vectors:
-  21              	                                      // ARM core vectors
-  22 0000 00000000 	            .word    __initial_sp       // 00:end of stack
-  23 0004 00000000 	            .word    Reset_Handler      // 01:reset vector
-  24 0008 00000000 	            .word    Dummy_Handler      // 02:NMI
-  25 000c 00000000 	            .word    HardFault_Handler  // 03:hard fault
-  26 0010 00000000 	            .word    Dummy_Handler      // 04:(reserved)
-  27 0014 00000000 	            .word    Dummy_Handler      // 05:(reserved)
-  28 0018 00000000 	            .word    Dummy_Handler      // 06:(reserved)
-  29 001c 00000000 	            .word    Dummy_Handler      // 07:(reserved)
-  30 0020 00000000 	            .word    Dummy_Handler      // 08:(reserved)
-  31 0024 00000000 	            .word    Dummy_Handler      // 09:(reserved)
-  32 0028 00000000 	            .word    Dummy_Handler      // 10:(reserved)
-  33 002c 00000000 	            .word    Dummy_Handler      // 11:SVCall (supervisor call)
-  34 0030 00000000 	            .word    Dummy_Handler      // 12:(reserved)
-  35 0034 00000000 	            .word    Dummy_Handler      // 13:(reserved)
-  36 0038 00000000 	            .word    Dummy_Handler      // 14:PendSV (PendableSrvReq)
-  37              	                                      //    pendable request 
-  38              	                                      //    for system service)
-  39 003c 00000000 	            .word    Dummy_Handler      // 15:SysTick (system tick timer)
-  40 0040 00000000 	            .word    Dummy_Handler      // 16:DMA channel 0 transfer 
-  41              	                                      //    complete/error
-  42 0044 00000000 	            .word    Dummy_Handler      // 17:DMA channel 1 transfer
-  43              	                                      //    complete/error
-  44 0048 00000000 	            .word    Dummy_Handler      // 18:DMA channel 2 transfer
-  45              	                                      //    complete/error
-  46 004c 00000000 	            .word    Dummy_Handler      // 19:DMA channel 3 transfer
-  47              	                                      //    complete/error
-  48 0050 00000000 	            .word    Dummy_Handler      // 20:(reserved)
-  49 0054 00000000 	            .word    Dummy_Handler      // 21:FTFA command complete/
-  50              	                                      //    read collision
-  51 0058 00000000 	            .word    Dummy_Handler      // 22:low-voltage detect;
-  52              	                                      //    low-voltage warning
-  53 005c 00000000 	            .word    Dummy_Handler      // 23:low leakage wakeup
-  54 0060 00000000 	            .word    Dummy_Handler      // 24:I2C0
-  55 0064 00000000 	            .word    Dummy_Handler      // 25:(reserved)
-  56 0068 00000000 	            .word    Dummy_Handler      // 26:SPI0
-  57 006c 00000000 	            .word    Dummy_Handler      // 27:(reserved)
-  58 0070 00000000 	            .word    Dummy_Handler      // 28:UART0 (status; error)
-  59 0074 00000000 	            .word    Dummy_Handler      // 29:(reserved)
-  60 0078 00000000 	            .word    Dummy_Handler      // 30:(reserved)
-  61 007c 00000000 	            .word    Dummy_Handler      // 31:ADC0
-  62 0080 00000000 	            .word    Dummy_Handler      // 32:CMP0
-  63 0084 00000000 	            .word    Dummy_Handler      // 33:TPM0
-  64 0088 00000000 	            .word    Dummy_Handler      // 34:TPM1
-  65 008c 00000000 	            .word    Dummy_Handler      // 35:(reserved)
-  66 0090 00000000 	            .word    Dummy_Handler      // 36:RTC (alarm)
-  67 0094 00000000 	            .word    Dummy_Handler      // 37:RTC (seconds)
-  68 0098 00000000 	            .word    Dummy_Handler      // 38:PIT
-  69 009c 00000000 	            .word    Dummy_Handler      // 39:(reserved)
-  70 00a0 00000000 	            .word    Dummy_Handler      // 40:(reserved)
-  71 00a4 00000000 	            .word    Dummy_Handler      // 41:DAC0
-  72 00a8 00000000 	            .word    Dummy_Handler      // 42:TSI0
-  73 00ac 00000000 	            .word    Dummy_Handler      // 43:MCG
-  74 00b0 00000000 	            .word    Dummy_Handler      // 44:LPTMR0
-  75 00b4 00000000 	            .word    Dummy_Handler      // 45:(reserved)
-  76 00b8 00000000 	            .word    Dummy_Handler      // 46:PORTA
-  77 00bc 00000000 	            .word    Dummy_Handler      // 47:PORTB
-  78              	__Vectors_End:
-  79              	.set __Vectors_Size, __Vectors_End - __Vectors
-  80              	.balign 4
-  81              	// ****************************************************************
-  82              	.section const, "a"
-  83              	test:
-  84 0000 67452301 	.word 0x01234567
-  85              	.section data, "aw", %nobits
-  86              	test1:
-  87 0000 00000000 	.skip 0x8
-  87      00000000 
+   4              	
+   5              	.syntax unified
+   6              	.thumb
+   7              	
+   8              	.set PORT_PCR_SET_PTB2_UART0_RX  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_2_MASK) 
+   9              	.set PORT_PCR_SET_PTB1_UART0_TX  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_2_MASK) 
+  10              	.set SIM_SOPT2_UART0SRC_MCGFLLCLK  ,  (1 << SIM_SOPT2_UART0SRC_SHIFT) 
+  11              	.set SIM_SOPT5_UART0_EXTERN_MASK_CLEAR  , (SIM_SOPT5_UART0ODE_MASK | SIM_SOPT5_UART0RXSRC_MASK | SI
+  12              	.set UART0_BDH_9600  ,  0x01 
+  13              	.set UART0_BDL_9600  ,  0x38 
+  14              	.set UART0_C1_8N1  ,  0x00 
+  15              	.set UART0_C2_T_R  ,  (UART0_C2_TE_MASK | UART0_C2_RE_MASK) 
+  16              	.set UART0_C3_NO_TXINV  ,  0x00
+  17              	.set UART0_C4_OSR_16           ,  0x0F 
+  18              	.set UART0_C4_NO_MATCH_OSR_16  ,  UART0_C4_OSR_16 
+  19              	.set UART0_C5_NO_DMA_SSR_SYNC  ,  0x00 
+  20              	.set UART0_S1_CLEAR_FLAGS  ,  (UART0_S1_IDLE_MASK | UART0_S1_OR_MASK |    UART0_S1_NF_MASK |  UART0
+  21              	.set UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  ,  (UART0_S2_LBKDIF_MASK | UART0_S2_RXEDGIF_
+  22              	
+  23              	.section code, "ax"
+  24              	.global Reset_Handler
+  25              	Reset_Handler:
+  26 0000 72B6     	    cpsid I
+  27 0002 FFF7FEFF 	    bl Startup
+  28 0006 FEE7     	    b .
+  29              	
+  30              	Init_UART0_Polling:
+  31              	            // Select MCGFLLCLK as UART0 clock source 
+  32 0008 07B4     	            PUSH {R0, R1, R2}
+  33              	            
+  34 000a 1C48     	            LDR   R0,=SIM_SOPT2 
+  35 000c 4FF04061 	            LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
+  36 0010 0268     	            LDR   R2,[R0,#0] 
+  37 0012 8A43     	            BICS  R2,R2,R1 
+  38 0014 4FF08061 	            LDR   R1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+  39 0018 0A43     	            ORRS  R2,R2,R1 
+  40 001a 0260     	            STR   R2,[R0,#0] 
+  41              	            // Set UART0 for external connection 
+  42 001c 1848     	            LDR   R0,=SIM_SOPT5 
+  43 001e 1949     	            LDR   R1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+  44 0020 0268     	            LDR   R2,[R0,#0] 
+  45 0022 8A43     	            BICS  R2,R2,R1 
+  46 0024 0260     	            STR   R2,[R0,#0] 
+  47              	            // Enable UART0 module clock 
+  48 0026 1848     	            LDR   R0,=SIM_SCGC4 
+  49 0028 4FF48061 	            LDR   R1,=SIM_SCGC4_UART0_MASK 
+  50 002c 0268     	            LDR   R2,[R0,#0] 
+  51 002e 0A43     	            ORRS  R2,R2,R1 
+  52 0030 0260     	            STR   R2,[R0,#0] 
+  53              	            // Enable PORT B module clock 
+  54 0032 1648     	            LDR   R0,=SIM_SCGC5 
+  55 0034 4FF48061 	            LDR   R1,=SIM_SCGC5_PORTB_MASK 
+  56 0038 0268     	            LDR   R2,[R0,#0] 
+  57 003a 0A43     	            ORRS  R2,R2,R1 
+  58 003c 0260     	            STR   R2,[R0,#0] 
+  59              	            // Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
+  60 003e 1448     	            LDR     R0,=PORTB_PCR2 
+  61 0040 1449     	            LDR     R1,=PORT_PCR_SET_PTB2_UART0_RX 
+  62 0042 0160     	            STR     R1,[R0,#0] 
+  63              	            //  Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
+  64 0044 1448     	            LDR     R0,=PORTB_PCR1 
+  65 0046 1349     	            LDR     R1,=PORT_PCR_SET_PTB1_UART0_TX 
+  66 0048 0160     	            STR     R1,[R0,#0] 
+  67              	            // Disable UART0 receiver and transmitter 
+  68 004a 1448     	            LDR   R0,=UART0_BASE 
+  69 004c 0C21     	            MOVS  R1,#UART0_C2_T_R 
+  70 004e C278     	            LDRB  R2,[R0,#UART0_C2_OFFSET] 
+  71 0050 8A43     	            BICS  R2,R2,R1 
+  72 0052 C270     	            STRB  R2,[R0,#UART0_C2_OFFSET] 
+  73              	            // Set UART0 for 9600 baud, 8N1 protocol 
+  74 0054 0121     	            MOVS  R1,#UART0_BDH_9600 
+  75 0056 0170     	            STRB  R1,[R0,#UART0_BDH_OFFSET] 
+  76 0058 3821     	            MOVS  R1,#UART0_BDL_9600 
+  77 005a 4170     	            STRB  R1,[R0,#UART0_BDL_OFFSET] 
+  78 005c 0021     	            MOVS  R1,#UART0_C1_8N1 
+  79 005e 8170     	            STRB  R1,[R0,#UART0_C1_OFFSET] 
+  80 0060 0021     	            MOVS  R1,#UART0_C3_NO_TXINV 
+  81 0062 8171     	            STRB  R1,[R0,#UART0_C3_OFFSET] 
+  82 0064 0F21     	            MOVS  R1,#UART0_C4_NO_MATCH_OSR_16 
+  83 0066 8172     	            STRB  R1,[R0,#UART0_C4_OFFSET] 
+  84 0068 0021     	            MOVS  R1,#UART0_C5_NO_DMA_SSR_SYNC 
+  85 006a C172     	            STRB  R1,[R0,#UART0_C5_OFFSET] 
+  86 006c 1F21     	            MOVS  R1,#UART0_S1_CLEAR_FLAGS 
+  87 006e 0171     	            STRB  R1,[R0,#UART0_S1_OFFSET] 
+  88 0070 C021     	            MOVS  R1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
+  89 0072 4171     	            STRB  R1,[R0,#UART0_S2_OFFSET] 
+  90              	            // Enable UART0 receiver and transmitter 
+  91 0074 0C21     	            MOVS  R1,#UART0_C2_T_R 
+  92 0076 C170     	            STRB  R1,[R0,#UART0_C2_OFFSET] 
+  93              	
+  94 0078 07BC     	            POP {R0, R1, R2}
+  95 007a 7047     	            BX LR
+  96              	
+  97              	// ****************************************************************
+  98              	// Vector Table Mapped to Address 0 at Reset
+  99              	// Linker requires __Vectors to be exported
+ 100              	.section RESET, "a"
+ 101              	            //  EXPORT  __Vectors
+ 102              	            //  EXPORT  __Vectors_End
+ 103              	            //  EXPORT  __Vectors_Size
+ 104              	            //  IMPORT  __initial_sp
+ 105              	            //  IMPORT  Dummy_Handler
+ 106              	            //  IMPORT  HardFault_Handler
+ 107              	__Vectors:
+ 108              	                                      // ARM core vectors
+ 109 0000 00000000 	            .word    __initial_sp       // 00:end of stack
+ 110 0004 00000000 	            .word    Reset_Handler      // 01:reset vector
+ 111 0008 00000000 	            .word    Dummy_Handler      // 02:NMI
+ 112 000c 00000000 	            .word    HardFault_Handler  // 03:hard fault
+ 113 0010 00000000 	            .word    Dummy_Handler      // 04:(reserved)
+ 114 0014 00000000 	            .word    Dummy_Handler      // 05:(reserved)
+ 115 0018 00000000 	            .word    Dummy_Handler      // 06:(reserved)
+ 116 001c 00000000 	            .word    Dummy_Handler      // 07:(reserved)
+ 117 0020 00000000 	            .word    Dummy_Handler      // 08:(reserved)
+ 118 0024 00000000 	            .word    Dummy_Handler      // 09:(reserved)
+ 119 0028 00000000 	            .word    Dummy_Handler      // 10:(reserved)
+ 120 002c 00000000 	            .word    Dummy_Handler      // 11:SVCall (supervisor call)
+ 121 0030 00000000 	            .word    Dummy_Handler      // 12:(reserved)
+ 122 0034 00000000 	            .word    Dummy_Handler      // 13:(reserved)
+ 123 0038 00000000 	            .word    Dummy_Handler      // 14:PendSV (PendableSrvReq)
+ 124              	                                      //    pendable request 
+ 125              	                                      //    for system service)
+ 126 003c 00000000 	            .word    Dummy_Handler      // 15:SysTick (system tick timer)
+ 127 0040 00000000 	            .word    Dummy_Handler      // 16:DMA channel 0 transfer 
+ 128              	                                      //    complete/error
+ 129 0044 00000000 	            .word    Dummy_Handler      // 17:DMA channel 1 transfer
+ 130              	                                      //    complete/error
+ 131 0048 00000000 	            .word    Dummy_Handler      // 18:DMA channel 2 transfer
+ 132              	                                      //    complete/error
+ 133 004c 00000000 	            .word    Dummy_Handler      // 19:DMA channel 3 transfer
+ 134              	                                      //    complete/error
+ 135 0050 00000000 	            .word    Dummy_Handler      // 20:(reserved)
+ 136 0054 00000000 	            .word    Dummy_Handler      // 21:FTFA command complete/
+ 137              	                                      //    read collision
+ 138 0058 00000000 	            .word    Dummy_Handler      // 22:low-voltage detect;
+ 139              	                                      //    low-voltage warning
+ 140 005c 00000000 	            .word    Dummy_Handler      // 23:low leakage wakeup
+ 141 0060 00000000 	            .word    Dummy_Handler      // 24:I2C0
+ 142 0064 00000000 	            .word    Dummy_Handler      // 25:(reserved)
+ 143 0068 00000000 	            .word    Dummy_Handler      // 26:SPI0
+ 144 006c 00000000 	            .word    Dummy_Handler      // 27:(reserved)
+ 145 0070 00000000 	            .word    Dummy_Handler      // 28:UART0 (status; error)
+ 146 0074 00000000 	            .word    Dummy_Handler      // 29:(reserved)
+ 147 0078 00000000 	            .word    Dummy_Handler      // 30:(reserved)
+ 148 007c 00000000 	            .word    Dummy_Handler      // 31:ADC0
+ 149 0080 00000000 	            .word    Dummy_Handler      // 32:CMP0
+ 150 0084 00000000 	            .word    Dummy_Handler      // 33:TPM0
+ 151 0088 00000000 	            .word    Dummy_Handler      // 34:TPM1
+ 152 008c 00000000 	            .word    Dummy_Handler      // 35:(reserved)
+ 153 0090 00000000 	            .word    Dummy_Handler      // 36:RTC (alarm)
+ 154 0094 00000000 	            .word    Dummy_Handler      // 37:RTC (seconds)
+ 155 0098 00000000 	            .word    Dummy_Handler      // 38:PIT
+ 156 009c 00000000 	            .word    Dummy_Handler      // 39:(reserved)
+ 157 00a0 00000000 	            .word    Dummy_Handler      // 40:(reserved)
+ 158 00a4 00000000 	            .word    Dummy_Handler      // 41:DAC0
+ 159 00a8 00000000 	            .word    Dummy_Handler      // 42:TSI0
+ 160 00ac 00000000 	            .word    Dummy_Handler      // 43:MCG
+ 161 00b0 00000000 	            .word    Dummy_Handler      // 44:LPTMR0
+ 162 00b4 00000000 	            .word    Dummy_Handler      // 45:(reserved)
+ 163 00b8 00000000 	            .word    Dummy_Handler      // 46:PORTA
+ 164 00bc 00000000 	            .word    Dummy_Handler      // 47:PORTB
+ 165              	__Vectors_End:
+ 166              	.set __Vectors_Size, __Vectors_End - __Vectors
+ 167              	.balign 4
+ 168              	// ****************************************************************
+ 169              	.section const, "a"
+ 170              	test:
+ 171 0000 67452301 	.word 0x01234567
+ 172              	.section data, "aw", %nobits
+ 173              	test1:
+ 174 0000 00000000 	.skip 0x8
+ 174      00000000 

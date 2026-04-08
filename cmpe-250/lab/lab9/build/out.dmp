@@ -113,5 +113,71 @@ Disassembly of section keys:
 Disassembly of section code:
 
 00000410 <Reset_Handler>:
- 410:	ebffff3a 	bl	100 <Startup>
- 414:	eafffffe 	b	414 <Reset_Handler+0x4>
+ 410:	b672      	cpsid	i
+ 412:	f7ff fe75 	bl	100 <Startup>
+ 416:	e7fe      	b.n	416 <Reset_Handler+0x6>
+
+00000418 <Init_UART0_Polling>:
+ 418:	b407      	push	{r0, r1, r2}
+ 41a:	481c      	ldr	r0, [pc, #112]	@ (48c <Init_UART0_Polling+0x74>)
+ 41c:	f04f 6140 	mov.w	r1, #201326592	@ 0xc000000
+ 420:	6802      	ldr	r2, [r0, #0]
+ 422:	438a      	bics	r2, r1
+ 424:	f04f 6180 	mov.w	r1, #67108864	@ 0x4000000
+ 428:	430a      	orrs	r2, r1
+ 42a:	6002      	str	r2, [r0, #0]
+ 42c:	4818      	ldr	r0, [pc, #96]	@ (490 <Init_UART0_Polling+0x78>)
+ 42e:	4919      	ldr	r1, [pc, #100]	@ (494 <Init_UART0_Polling+0x7c>)
+ 430:	6802      	ldr	r2, [r0, #0]
+ 432:	438a      	bics	r2, r1
+ 434:	6002      	str	r2, [r0, #0]
+ 436:	4818      	ldr	r0, [pc, #96]	@ (498 <Init_UART0_Polling+0x80>)
+ 438:	f44f 6180 	mov.w	r1, #1024	@ 0x400
+ 43c:	6802      	ldr	r2, [r0, #0]
+ 43e:	430a      	orrs	r2, r1
+ 440:	6002      	str	r2, [r0, #0]
+ 442:	4816      	ldr	r0, [pc, #88]	@ (49c <Init_UART0_Polling+0x84>)
+ 444:	f44f 6180 	mov.w	r1, #1024	@ 0x400
+ 448:	6802      	ldr	r2, [r0, #0]
+ 44a:	430a      	orrs	r2, r1
+ 44c:	6002      	str	r2, [r0, #0]
+ 44e:	4814      	ldr	r0, [pc, #80]	@ (4a0 <Init_UART0_Polling+0x88>)
+ 450:	4914      	ldr	r1, [pc, #80]	@ (4a4 <Init_UART0_Polling+0x8c>)
+ 452:	6001      	str	r1, [r0, #0]
+ 454:	4814      	ldr	r0, [pc, #80]	@ (4a8 <Init_UART0_Polling+0x90>)
+ 456:	4913      	ldr	r1, [pc, #76]	@ (4a4 <Init_UART0_Polling+0x8c>)
+ 458:	6001      	str	r1, [r0, #0]
+ 45a:	4814      	ldr	r0, [pc, #80]	@ (4ac <Init_UART0_Polling+0x94>)
+ 45c:	210c      	movs	r1, #12
+ 45e:	78c2      	ldrb	r2, [r0, #3]
+ 460:	438a      	bics	r2, r1
+ 462:	70c2      	strb	r2, [r0, #3]
+ 464:	2101      	movs	r1, #1
+ 466:	7001      	strb	r1, [r0, #0]
+ 468:	2138      	movs	r1, #56	@ 0x38
+ 46a:	7041      	strb	r1, [r0, #1]
+ 46c:	2100      	movs	r1, #0
+ 46e:	7081      	strb	r1, [r0, #2]
+ 470:	2100      	movs	r1, #0
+ 472:	7181      	strb	r1, [r0, #6]
+ 474:	210f      	movs	r1, #15
+ 476:	7281      	strb	r1, [r0, #10]
+ 478:	2100      	movs	r1, #0
+ 47a:	72c1      	strb	r1, [r0, #11]
+ 47c:	211f      	movs	r1, #31
+ 47e:	7101      	strb	r1, [r0, #4]
+ 480:	21c0      	movs	r1, #192	@ 0xc0
+ 482:	7141      	strb	r1, [r0, #5]
+ 484:	210c      	movs	r1, #12
+ 486:	70c1      	strb	r1, [r0, #3]
+ 488:	bc07      	pop	{r0, r1, r2}
+ 48a:	4770      	bx	lr
+ 48c:	40048004 	.word	0x40048004
+ 490:	40048010 	.word	0x40048010
+ 494:	00010005 	.word	0x00010005
+ 498:	40048034 	.word	0x40048034
+ 49c:	40048038 	.word	0x40048038
+ 4a0:	4004a008 	.word	0x4004a008
+ 4a4:	01000200 	.word	0x01000200
+ 4a8:	4004a004 	.word	0x4004a004
+ 4ac:	4006a000 	.word	0x4006a000

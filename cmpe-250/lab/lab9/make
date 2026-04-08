@@ -1,0 +1,10 @@
+#! /bin/sh
+
+for i in *.s; do
+    echo "Assembling $i ..."
+    arm-none-eabi-as -ahndl -o "build/${i%.s}.o" "$i" > "build/${i%.s}.lst"
+done
+
+arm-none-eabi-ld -o "build/out.elf" -T linker.ld build/*.o -Map "build/out.map"
+arm-none-eabi-objdump -S "build/out.elf" > "build/out.dmp"
+arm-none-eabi-objcopy -O binary "build/out.elf" "build/out.bin"
