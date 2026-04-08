@@ -1,6 +1,8 @@
 #! /bin/sh
 
-for i in *.s; do
+INCLUDE="lab9.s start.s ex9_equ.s mkl05z4.s"
+
+for i in $INCLUDE; do
     echo "Assembling $i ..."
     arm-none-eabi-as -ahndl -o "build/${i%.s}.o" "$i" > "build/${i%.s}.lst"
 done
