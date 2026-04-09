@@ -427,10 +427,10 @@ Init_UART0_Polling PROC {}
             ldr r0, =rx_buffer
             ldr r1, =rx_record
             movs r2, #rx_qbuf_sz
-            bl init_queue
+            bl INIT_QUEUE
             ldr r0, =tx_buffer
             ldr r1, =tx_record
-            bl init_queue
+            bl INIT_QUEUE
             
             LDR   R0,=SIM_SOPT2 
             LDR   R1,=SIM_SOPT2_UART0SRC_MASK 
