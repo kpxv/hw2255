@@ -64,13 +64,13 @@ keys            0x00000400       0x10
 .igot.plt       0x00000410        0x0
  .igot.plt      0x00000410        0x0 build/lab9.o
 
-code            0x00000410      0x3d4
+code            0x00000410      0x3d8
  *(main)
- code           0x00000410      0x3d4 build/lab9.o
+ code           0x00000410      0x3d8 build/lab9.o
                 0x00000410                Reset_Handler
 
-.rel.dyn        0x000007e4        0x0
- .rel.iplt      0x000007e4        0x0 build/lab9.o
+.rel.dyn        0x000007e8        0x0
+ .rel.iplt      0x000007e8        0x0 build/lab9.o
 
 stack           0x1ffffc00      0x100
  *(stack)
@@ -104,9 +104,9 @@ LOAD linker stubs
  .ARM.attributes
                 0x0000003c       0x14 build/start.o
 
-.debug_line     0x00000000      0x29e
- .debug_line    0x00000000      0x201 build/lab9.o
- .debug_line    0x00000201       0x9d build/start.o
+.debug_line     0x00000000      0x2a1
+ .debug_line    0x00000000      0x204 build/lab9.o
+ .debug_line    0x00000204       0x9d build/start.o
 
 .debug_info     0x00000000       0x4c
  .debug_info    0x00000000       0x26 build/lab9.o

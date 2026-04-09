@@ -52,17 +52,17 @@
   54              	Reset_Handler:
   55 0000 72B6     	            cpsid I
   56 0002 FFF7FEFF 	            bl Startup
-  57 0006 00F0BEF8 	            bl Init_UART0_IRQ
+  57 0006 00F0C1F8 	            bl Init_UART0_IRQ
   58 000a 62B6     	            cpsie I
   59              	
   60              	Main_loop:
   61              	            // Print command string
-  62 000c D548     	            ldr r0, =cmd_s
+  62 000c D648     	            ldr r0, =cmd_s
   63 000e 8021     	            movs r1, #max_string
-  64 0010 00F017F9 	            bl PutStringSB 
+  64 0010 00F01AF9 	            bl PutStringSB 
   65              	
   66              	Poll_loop:
-  67 0014 00F007F9 	            bl GetChar          // Poll for character
+  67 0014 00F00AF9 	            bl GetChar          // Poll for character
   68 0018 0400     	            movs r4, r0         // Allow logic with toUpper, but save polled character for printing
   69 001a 612C     	            cmp r4, #'a'      // Check whether the polled character is less then 'a'
   70 001c 00DB     	            blt Check           // If so, skip toUpper conversion
@@ -101,19 +101,19 @@
  103              	            // Print input char and newline
  104 003a 00F07BF8 	            bl echo_cmd
  105              	            // Attempt dequeue
- 106 003e CA49     	            ldr r1, =qrecord
- 107 0040 00F06CF9 	            bl Dequeue
+ 106 003e CB49     	            ldr r1, =qrecord
+ 107 0040 00F06FF9 	            bl Dequeue
  108 0044 8021     	            movs r1, #max_string
  109 0046 03D3     	            bcc D_instr_pass
  110              	            // If unsuccessful, print fail string
- 111 0048 C848     	            ldr r0, =fail_s
- 112 004a 00F0FAF8 	            bl PutStringSB
+ 111 0048 C948     	            ldr r0, =fail_s
+ 112 004a 00F0FDF8 	            bl PutStringSB
  113 004e 04E0     	            b D_instr_cont
  114              	D_instr_pass:
  115              	            // Else, print the dequeued character
- 116 0050 00F0EEF8 	            bl PutChar
- 117 0054 C648     	            ldr r0, =char_s
- 118 0056 00F0F4F8 	            bl PutStringSB
+ 116 0050 00F0F1F8 	            bl PutChar
+ 117 0054 C748     	            ldr r0, =char_s
+ 118 0056 00F0F7F8 	            bl PutStringSB
  119              	D_instr_cont:
  120              	            // Print status of the record
  121 005a 00F04DF8 	            bl Status
@@ -137,24 +137,24 @@
  139              	            // Print input char and newline
  140 0064 00F066F8 	            bl echo_cmd
  141              	            // Get character to enqueue
- 142 0068 C248     	            ldr r0, =enqu_s
+ 142 0068 C348     	            ldr r0, =enqu_s
  143 006a 8021     	            movs r1, #max_string
- 144 006c 00F0E9F8 	            bl PutStringSB
- 145 0070 00F0D9F8 	            bl GetChar
+ 144 006c 00F0ECF8 	            bl PutStringSB
+ 145 0070 00F0DCF8 	            bl GetChar
  146              	            // Print the character selected and newline
  147 0074 00F05EF8 				bl echo_cmd
  148              	            // Attempt enqueue
- 149 0078 BB49     	            ldr r1, =qrecord
- 150 007a 00F061F9 	            bl Enqueue
+ 149 0078 BC49     	            ldr r1, =qrecord
+ 150 007a 00F064F9 	            bl Enqueue
  151 007e 03D3     	            bcc E_instr_pass
  152              	            // If unsuccessful, print fail string
- 153 0080 BA48     	            ldr r0, =fail_s
- 154 0082 00F0DEF8 	            bl PutStringSB
+ 153 0080 BB48     	            ldr r0, =fail_s
+ 154 0082 00F0E1F8 	            bl PutStringSB
  155 0086 02E0     	            b E_instr_cont
  156              	E_instr_pass:
  157              	            // Else, print success string
- 158 0088 BB48     	            ldr r0, =succ_s
- 159 008a 00F0DAF8 	            bl PutStringSB
+ 158 0088 BC48     	            ldr r0, =succ_s
+ 159 008a 00F0DDF8 	            bl PutStringSB
  160              	E_instr_cont:
  161              	            // Print status of the record
  162 008e 00F033F8 	            bl Status
@@ -178,9 +178,9 @@
  180              	            // Print input char and newline
  181 0098 00F04CF8 	            bl echo_cmd
  182              	            // Print help string
- 183 009c B748     	            ldr r0, =help_s
+ 183 009c B848     	            ldr r0, =help_s
  184 009e 8021     	            movs r1, #max_string
- 185 00a0 00F0CFF8 	            bl PutStringSB
+ 185 00a0 00F0D2F8 	            bl PutStringSB
  186              	            // Return
  187 00a4 03BC     	            pop {r0-r1}
  188 00a6 B1E7     	            b Main_loop
@@ -203,9 +203,9 @@
  205 00aa 00F043F8 	            bl echo_cmd
  206              	            // Print left delimiter
  207 00ae 3E20     	            movs r0, #'>'
- 208 00b0 00F0BEF8 	            bl PutChar
+ 208 00b0 00F0C1F8 	            bl PutChar
  209              	            // Exit if the queue is empty
- 210 00b4 AC49     	            ldr r1, =qrecord
+ 210 00b4 AD49     	            ldr r1, =qrecord
  211 00b6 4B7C     	            ldrb r3, [r1, #num_enqd]
  212 00b8 002B     	            cmp r3, #0
  213 00ba 09D0     	            beq P_instr_exit
@@ -216,19 +216,19 @@
  218              	P_instr_loop:
  219              	            // Print the value at the pointer in r2
  220 00c2 1078     	            ldrb r0, [r2]
- 221 00c4 00F0B4F8 	            bl PutChar
+ 221 00c4 00F0B7F8 	            bl PutChar
  222              	            // Increment the r2 pointer
- 223 00c8 00F01DF9 	            bl Pointer_inc
+ 223 00c8 00F020F9 	            bl Pointer_inc
  224              	            // Exit when r2 pointer is the same as the in pointer
  225 00cc 9A42     	            cmp r2, r3
  226 00ce F8D1     	            bne P_instr_loop
  227              	P_instr_exit:
  228              	            // Print right delimiter and newline
  229 00d0 3C20     	            movs r0, #'<'
- 230 00d2 00F0ADF8 	            bl PutChar
- 231 00d6 AA48     	            ldr r0, =crlf_s
+ 230 00d2 00F0B0F8 	            bl PutChar
+ 231 00d6 AB48     	            ldr r0, =crlf_s
  232 00d8 8021     	            movs r1, #max_string
- 233 00da 00F0B2F8 				bl PutStringSB
+ 233 00da 00F0B5F8 				bl PutStringSB
  234              	            // Return
  235 00de 0FBC     	            pop {r0-r3}
  236 00e0 94E7     	            b Main_loop
@@ -249,9 +249,9 @@
  251 00e2 03B4     	            push {r0-r1}
  252              	            // Print the input char and newline
  253 00e4 00F026F8 	            bl echo_cmd
- 254 00e8 A648     	            ldr r0, =stat_s
+ 254 00e8 A748     	            ldr r0, =stat_s
  255 00ea 8021     	            movs r1, #max_string
- 256 00ec 00F0A9F8 	            bl PutStringSB
+ 256 00ec 00F0ACF8 	            bl PutStringSB
  257              	            // Print the record status
  258 00f0 00F002F8 				bl Status
  259              	            // Return
@@ -274,32 +274,32 @@
  276 00f8 03B5     	            push {r0-r1, lr}
  277              	            // Print the in pointer string
  278 00fa 8021     	            movs r1, #max_string
- 279 00fc A248     	            ldr r0, =stat_in_s
- 280 00fe 00F0A0F8 	            bl PutStringSB
+ 279 00fc A348     	            ldr r0, =stat_in_s
+ 280 00fe 00F0A3F8 	            bl PutStringSB
  281              	            // Print the in pointer
- 282 0102 9949     	            ldr r1, =qrecord
+ 282 0102 9A49     	            ldr r1, =qrecord
  283 0104 0868     	            ldr r0, [r1, #in_ptr]
- 284 0106 00F0AFF8 	            bl PutNumHex
+ 284 0106 00F0B2F8 	            bl PutNumHex
  285              	            // Print the out pointer string
  286 010a 8021     	            movs r1, #max_string
- 287 010c 9F48     	            ldr r0, =stat_out_s
- 288 010e 00F098F8 	            bl PutStringSB
+ 287 010c A048     	            ldr r0, =stat_out_s
+ 288 010e 00F09BF8 	            bl PutStringSB
  289              	            // Print the out pointer
- 290 0112 9549     	            ldr r1, =qrecord
+ 290 0112 9649     	            ldr r1, =qrecord
  291 0114 4868     	            ldr r0, [r1, #out_ptr]
- 292 0116 00F0A7F8 	            bl PutNumHex
+ 292 0116 00F0AAF8 	            bl PutNumHex
  293              	            // Print the number enqueued string
  294 011a 8021     	            movs r1, #max_string
- 295 011c 9C48     	            ldr r0, =stat_num_s
- 296 011e 00F090F8 	            bl PutStringSB
+ 295 011c 9D48     	            ldr r0, =stat_num_s
+ 296 011e 00F093F8 	            bl PutStringSB
  297              	            // Print the number enqueued
- 298 0122 9149     	            ldr r1, =qrecord
+ 298 0122 9249     	            ldr r1, =qrecord
  299 0124 487C     	            ldrb r0, [r1, #num_enqd]
- 300 0126 00F099F8 	            bl PutNumUB
+ 300 0126 00F09CF8 	            bl PutNumUB
  301              	            // Print newline
  302 012a 8021     	            movs r1, #max_string
- 303 012c 9448     	            ldr r0, =crlf_s
- 304 012e 00F088F8 	            bl PutStringSB
+ 303 012c 9548     	            ldr r0, =crlf_s
+ 304 012e 00F08BF8 	            bl PutStringSB
  305              	            // Return
  306 0132 03BD     	            pop  {r0-r1, pc}
  307              	
@@ -316,11 +316,11 @@
  318              	echo_cmd:
  319 0134 03B5     	            push {r0, r1, lr}
  320              	            // Print char
- 321 0136 00F07BF8 	            bl PutChar
+ 321 0136 00F07EF8 	            bl PutChar
  322              	            // Print newline
- 323 013a 9148     	            ldr r0, =crlf_s
+ 323 013a 9248     	            ldr r0, =crlf_s
  324 013c 0521     				movs r1, #5
- 325 013e 00F080F8 	            bl PutStringSB
+ 325 013e 00F083F8 	            bl PutStringSB
  326 0142 03BD     	            pop {r0, r1, pc}
  327              	
  328              	
@@ -338,695 +338,698 @@
  340              	UART0_ISR:
  341 0144 72B6     	            cpsid I
  342 0146 00B5     	            push {lr}
- 343 0148 924A     	            ldr r2, =UART0_BASE
+ 343 0148 934A     	            ldr r2, =UART0_BASE
  344 014a D178     	            ldrb r1, [r2, #UART0_C2_OFFSET]
- 345 014c 11F08001 	            ands r1, #UART0_C2_TIE_MASK
- 346              	            // Check tx interrupt enabled
- 347 0150 0029     	            cmp r1, #0
- 348              	            // If disabled, jump to rx interrupt check
- 349 0152 0DD0     	            beq UART0_ISR_rxint
- 350              	            // Else, check tx interrupt
- 351 0154 1179     	            ldrb r1, [r2, #UART0_S1_OFFSET]
- 352 0156 11F08001 	            ands r1, #UART0_S1_TDRE_MASK
- 353 015a 0029     	            cmp r1, #0
- 354              	            // If disabled, jump to rx interrupt check
- 355 015c 08D0     	            beq UART0_ISR_rxint
- 356              	            // Else, dequeue
- 357 015e 8E49     	            ldr r1, =tx_record
- 358 0160 00F0DCF8 	            bl Dequeue
- 359 0164 01D2     	            bcs UART0_ISR_disable_tx
- 360              	            // If successful, store
- 361 0166 D071     	            strb r0, [r2, #UART0_D_OFFSET]
- 362 0168 02E0     	            b UART0_ISR_rxint
- 363              	            // Else, disable tx
- 364              	UART0_ISR_disable_tx:
- 365 016a 4FF02C01 	            ldr r1, =UART0_C2_T_RI
- 366 016e D170     	            strb r1, [r2, #UART0_C2_OFFSET]
- 367              	            // Check rx interrupt
- 368              	UART0_ISR_rxint:
- 369 0170 1179     	            ldrb r1, [r2, #UART0_S1_OFFSET]
- 370 0172 11F02001 	            ands r1, #UART0_S1_RDRF_MASK
- 371 0176 0029     	            cmp r1, #0
- 372              	            // Exit if rx interrupt not set
- 373 0178 03D0     	            beq UART0_ISR_exit
- 374              	            // Otherwise, enqueue
- 375 017a D079     	            ldrb r0, [r2, #UART0_D_OFFSET]
- 376 017c 8749     	            ldr r1, =rx_record
- 377 017e 00F0DFF8 	            bl Enqueue
- 378              	UART0_ISR_exit:
- 379 0182 62B6     	            cpsie I
- 380 0184 00BD     	            pop {pc}
- 381              	
- 382              	
- 383              	
- 384              	/**
- 385              	  * Initialize UART for interrupt control at 9600 baud 8N1
- 386              	  *
- 387              	  * Inputs:
- 388              	  *     none
- 389              	  * Outputs:
- 390              	  *     none
- 391              	  * Modifies:
- 392              	  *     psr
- 393              	  */
- 394              	Init_UART0_IRQ:
- 395 0186 07B5     	            push {r0, r1, r2, lr}
- 396              	            // Initialize queues
- 397 0188 8548     	            ldr r0, =rx_buffer
- 398 018a 8449     	            ldr r1, =rx_record
- 399 018c 5022     	            movs r2, #rx_qbuf_sz
- 400 018e 00F0AEF8 	            bl init_queue
- 401 0192 8448     	            ldr r0, =tx_buffer
- 402 0194 8049     	            ldr r1, =tx_record
- 403 0196 00F0AAF8 	            bl init_queue
- 404              	            // Select MCGFLLCLK as UART0 clock source 
- 405 019a 8348     	            ldr   r0,=SIM_SOPT2 
- 406 019c 4FF04061 	            ldr   r1,=SIM_SOPT2_UART0SRC_MASK 
- 407 01a0 0268     	            ldr   r2,[r0,#0] 
- 408 01a2 8A43     	            bics  r2,r2,r1 
- 409 01a4 4FF08061 	            ldr   r1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
- 410 01a8 0A43     	            orrs  r2,r2,r1 
- 411 01aa 0260     	            str   r2,[r0,#0] 
- 412              	            // Set UART0 for external connection 
- 413 01ac 7F48     	            ldr   r0,=SIM_SOPT5 
- 414 01ae 8049     	            ldr   r1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
- 415 01b0 0268     	            ldr   r2,[r0,#0] 
- 416 01b2 8A43     	            bics  r2,r2,r1 
- 417 01b4 0260     	            str   r2,[r0,#0] 
- 418              	            // Enable UART0 module clock 
- 419 01b6 7F48     	            ldr   r0,=SIM_SCGC4 
- 420 01b8 4FF48061 	            ldr   r1,=SIM_SCGC4_UART0_MASK 
- 421 01bc 0268     	            ldr   r2,[r0,#0] 
- 422 01be 0A43     	            orrs  r2,r2,r1 
- 423 01c0 0260     	            str   r2,[r0,#0] 
- 424              	            // Enable PORT B module clock 
- 425 01c2 7D48     	            ldr   r0,=SIM_SCGC5 
- 426 01c4 4FF48061 	            ldr   r1,=SIM_SCGC5_PORTB_MASK 
- 427 01c8 0268     	            ldr   r2,[r0,#0] 
- 428 01ca 0A43     	            orrs  r2,r2,r1 
- 429 01cc 0260     	            str   r2,[r0,#0] 
- 430              	            // Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
- 431 01ce 7B48     	            ldr     r0,=PORTB_PCR2 
- 432 01d0 7B49     	            ldr     r1,=PORT_PCR_SET_PTB2_UART0_RX 
- 433 01d2 0160     	            str     r1,[r0,#0] 
- 434              	            //  Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
- 435 01d4 7B48     	            ldr     r0,=PORTB_PCR1 
- 436 01d6 7A49     	            ldr     r1,=PORT_PCR_SET_PTB1_UART0_TX 
- 437 01d8 0160     	            str     r1,[r0,#0] 
- 438              	            // Disable UART0 receiver and transmitter 
- 439 01da 6E48     	            ldr   r0,=UART0_BASE 
- 440 01dc 0C21     	            movs  r1,#UART0_C2_T_R 
- 441 01de C278     	            ldrb  r2,[r0,#UART0_C2_OFFSET] 
- 442 01e0 8A43     	            bics  r2,r2,r1 
- 443 01e2 C270     	            strb  r2,[r0,#UART0_C2_OFFSET] 
- 444              	            // Init NVIC
- 445              	            // Set UART0 IRQ priority
- 446 01e4 7848     	            ldr r0, =UART0_IPR
- 447 01e6 4FF0C002 	            ldr r2, =NVIC_IPR_UART0_PRI_3
- 448 01ea 0368     	            ldr r3, [r0]
- 449 01ec 1343     	            orrs r3, r2
- 450 01ee 0360     	            str r3, [r0]
- 451              	            // Clear pending interrupts
- 452 01f0 7648     	            ldr r0, =NVIC_ICPR
- 453 01f2 4FF0C001 	            ldr r1, =NVIC_IPR_UART0_MASK
- 454 01f6 0160     	            str r1, [r0]
- 455              	            // Unmask interrupts
- 456 01f8 7548     	            ldr r0, =NVIC_ISER
- 457 01fa 4FF48051 	            ldr r1, =NVIC_ISER_UART0_MASK
- 458 01fe 0160     	            str r1, [r0]
- 459              	            // Set UART0 for 9600 baud, 8N1 protocol 
- 460 0200 0121     	            movs  r1,#UART0_BDH_9600 
- 461 0202 0170     	            strb  r1,[r0,#UART0_BDH_OFFSET] 
- 462 0204 3821     	            movs  r1,#UART0_BDL_9600 
- 463 0206 4170     	            strb  r1,[r0,#UART0_BDL_OFFSET] 
- 464 0208 0021     	            movs  r1,#UART0_C1_8N1 
- 465 020a 8170     	            strb  r1,[r0,#UART0_C1_OFFSET] 
- 466 020c 0021     	            movs  r1,#UART0_C3_NO_TXINV 
- 467 020e 8171     	            strb  r1,[r0,#UART0_C3_OFFSET] 
- 468 0210 0F21     	            movs  r1,#UART0_C4_NO_MATCH_OSR_16 
- 469 0212 8172     	            strb  r1,[r0,#UART0_C4_OFFSET] 
- 470 0214 0021     	            movs  r1,#UART0_C5_NO_DMA_SSR_SYNC 
- 471 0216 C172     	            strb  r1,[r0,#UART0_C5_OFFSET] 
- 472 0218 1F21     	            movs  r1,#UART0_S1_CLEAR_FLAGS 
- 473 021a 0171     	            strb  r1,[r0,#UART0_S1_OFFSET] 
- 474 021c C021     	            movs  r1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
- 475 021e 4171     	            strb  r1,[r0,#UART0_S2_OFFSET] 
- 476              	            // Enable UART0 receiver and transmitter 
- 477 0220 2C21     	            movs  r1,#UART0_C2_T_RI
- 478 0222 C170     	            strb  r1,[r0,#UART0_C2_OFFSET] 
- 479              	
- 480 0224 07BD     	            pop {r0, r1, r2, pc}
- 481              	
+ 345 014c 4FF08003 	            ldr r3, =UART0_C2_TIE_MASK
+ 346 0150 1940     	            ands r1, r3
+ 347              	            // Check tx interrupt enabled
+ 348 0152 0029     	            cmp r1, #0
+ 349              	            // If disabled, jump to rx interrupt check
+ 350 0154 0ED0     	            beq UART0_ISR_rxint
+ 351              	            // Else, check tx interrupt
+ 352 0156 1179     	            ldrb r1, [r2, #UART0_S1_OFFSET]
+ 353 0158 4FF08003 	            ldr r3, =UART0_S1_TDRE_MASK
+ 354 015c 1940     	            ands r1, r3
+ 355 015e 0029     	            cmp r1, #0
+ 356              	            // If disabled, jump to rx interrupt check
+ 357 0160 08D0     	            beq UART0_ISR_rxint
+ 358              	            // Else, dequeue
+ 359 0162 8E49     	            ldr r1, =tx_record
+ 360 0164 00F0DDF8 	            bl Dequeue
+ 361 0168 01D2     	            bcs UART0_ISR_disable_tx
+ 362              	            // If successful, store
+ 363 016a D071     	            strb r0, [r2, #UART0_D_OFFSET]
+ 364 016c 02E0     	            b UART0_ISR_rxint
+ 365              	            // Else, disable tx
+ 366              	UART0_ISR_disable_tx:
+ 367 016e 4FF02C01 	            ldr r1, =UART0_C2_T_RI
+ 368 0172 D170     	            strb r1, [r2, #UART0_C2_OFFSET]
+ 369              	            // Check rx interrupt
+ 370              	UART0_ISR_rxint:
+ 371 0174 1179     	            ldrb r1, [r2, #UART0_S1_OFFSET]
+ 372 0176 4FF02003 	            ldr r3, =UART0_S1_RDRF_MASK
+ 373 017a 1940     	            ands r1, r3
+ 374 017c 0029     	            cmp r1, #0
+ 375              	            // Exit if rx interrupt not set
+ 376 017e 03D0     	            beq UART0_ISR_exit
+ 377              	            // Otherwise, enqueue
+ 378 0180 D079     	            ldrb r0, [r2, #UART0_D_OFFSET]
+ 379 0182 8749     	            ldr r1, =rx_record
+ 380 0184 00F0DFF8 	            bl Enqueue
+ 381              	UART0_ISR_exit:
+ 382 0188 62B6     	            cpsie I
+ 383 018a 00BD     	            pop {pc}
+ 384              	
+ 385              	
+ 386              	
+ 387              	/**
+ 388              	  * Initialize UART for interrupt control at 9600 baud 8N1
+ 389              	  *
+ 390              	  * Inputs:
+ 391              	  *     none
+ 392              	  * Outputs:
+ 393              	  *     none
+ 394              	  * Modifies:
+ 395              	  *     psr
+ 396              	  */
+ 397              	Init_UART0_IRQ:
+ 398 018c 07B5     	            push {r0, r1, r2, lr}
+ 399              	            // Initialize queues
+ 400 018e 8548     	            ldr r0, =rx_buffer
+ 401 0190 8349     	            ldr r1, =rx_record
+ 402 0192 5022     	            movs r2, #rx_qbuf_sz
+ 403 0194 00F0AEF8 	            bl init_queue
+ 404 0198 8348     	            ldr r0, =tx_buffer
+ 405 019a 8049     	            ldr r1, =tx_record
+ 406 019c 00F0AAF8 	            bl init_queue
+ 407              	            // Select MCGFLLCLK as UART0 clock source 
+ 408 01a0 8248     	            ldr   r0,=SIM_SOPT2 
+ 409 01a2 4FF04061 	            ldr   r1,=SIM_SOPT2_UART0SRC_MASK 
+ 410 01a6 0268     	            ldr   r2,[r0,#0] 
+ 411 01a8 8A43     	            bics  r2,r2,r1 
+ 412 01aa 4FF08061 	            ldr   r1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+ 413 01ae 0A43     	            orrs  r2,r2,r1 
+ 414 01b0 0260     	            str   r2,[r0,#0] 
+ 415              	            // Set UART0 for external connection 
+ 416 01b2 7F48     	            ldr   r0,=SIM_SOPT5 
+ 417 01b4 7F49     	            ldr   r1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+ 418 01b6 0268     	            ldr   r2,[r0,#0] 
+ 419 01b8 8A43     	            bics  r2,r2,r1 
+ 420 01ba 0260     	            str   r2,[r0,#0] 
+ 421              	            // Enable UART0 module clock 
+ 422 01bc 7E48     	            ldr   r0,=SIM_SCGC4 
+ 423 01be 4FF48061 	            ldr   r1,=SIM_SCGC4_UART0_MASK 
+ 424 01c2 0268     	            ldr   r2,[r0,#0] 
+ 425 01c4 0A43     	            orrs  r2,r2,r1 
+ 426 01c6 0260     	            str   r2,[r0,#0] 
+ 427              	            // Enable PORT B module clock 
+ 428 01c8 7C48     	            ldr   r0,=SIM_SCGC5 
+ 429 01ca 4FF48061 	            ldr   r1,=SIM_SCGC5_PORTB_MASK 
+ 430 01ce 0268     	            ldr   r2,[r0,#0] 
+ 431 01d0 0A43     	            orrs  r2,r2,r1 
+ 432 01d2 0260     	            str   r2,[r0,#0] 
+ 433              	            // Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
+ 434 01d4 7A48     	            ldr     r0,=PORTB_PCR2 
+ 435 01d6 7B49     	            ldr     r1,=PORT_PCR_SET_PTB2_UART0_RX 
+ 436 01d8 0160     	            str     r1,[r0,#0] 
+ 437              	            //  Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
+ 438 01da 7B48     	            ldr     r0,=PORTB_PCR1 
+ 439 01dc 7949     	            ldr     r1,=PORT_PCR_SET_PTB1_UART0_TX 
+ 440 01de 0160     	            str     r1,[r0,#0] 
+ 441              	            // Disable UART0 receiver and transmitter 
+ 442 01e0 6D48     	            ldr   r0,=UART0_BASE 
+ 443 01e2 0C21     	            movs  r1,#UART0_C2_T_R 
+ 444 01e4 C278     	            ldrb  r2,[r0,#UART0_C2_OFFSET] 
+ 445 01e6 8A43     	            bics  r2,r2,r1 
+ 446 01e8 C270     	            strb  r2,[r0,#UART0_C2_OFFSET] 
+ 447              	            // Init NVIC
+ 448              	            // Set UART0 IRQ priority
+ 449 01ea 7848     	            ldr r0, =UART0_IPR
+ 450 01ec 4FF0C002 	            ldr r2, =NVIC_IPR_UART0_PRI_3
+ 451 01f0 0368     	            ldr r3, [r0]
+ 452 01f2 1343     	            orrs r3, r2
+ 453 01f4 0360     	            str r3, [r0]
+ 454              	            // Clear pending interrupts
+ 455 01f6 7648     	            ldr r0, =NVIC_ICPR
+ 456 01f8 4FF0C001 	            ldr r1, =NVIC_IPR_UART0_MASK
+ 457 01fc 0160     	            str r1, [r0]
+ 458              	            // Unmask interrupts
+ 459 01fe 7548     	            ldr r0, =NVIC_ISER
+ 460 0200 4FF48051 	            ldr r1, =NVIC_ISER_UART0_MASK
+ 461 0204 0160     	            str r1, [r0]
+ 462              	            // Set UART0 for 9600 baud, 8N1 protocol 
+ 463 0206 0121     	            movs  r1,#UART0_BDH_9600 
+ 464 0208 0170     	            strb  r1,[r0,#UART0_BDH_OFFSET] 
+ 465 020a 3821     	            movs  r1,#UART0_BDL_9600 
+ 466 020c 4170     	            strb  r1,[r0,#UART0_BDL_OFFSET] 
+ 467 020e 0021     	            movs  r1,#UART0_C1_8N1 
+ 468 0210 8170     	            strb  r1,[r0,#UART0_C1_OFFSET] 
+ 469 0212 0021     	            movs  r1,#UART0_C3_NO_TXINV 
+ 470 0214 8171     	            strb  r1,[r0,#UART0_C3_OFFSET] 
+ 471 0216 0F21     	            movs  r1,#UART0_C4_NO_MATCH_OSR_16 
+ 472 0218 8172     	            strb  r1,[r0,#UART0_C4_OFFSET] 
+ 473 021a 0021     	            movs  r1,#UART0_C5_NO_DMA_SSR_SYNC 
+ 474 021c C172     	            strb  r1,[r0,#UART0_C5_OFFSET] 
+ 475 021e 1F21     	            movs  r1,#UART0_S1_CLEAR_FLAGS 
+ 476 0220 0171     	            strb  r1,[r0,#UART0_S1_OFFSET] 
+ 477 0222 C021     	            movs  r1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
+ 478 0224 4171     	            strb  r1,[r0,#UART0_S2_OFFSET] 
+ 479              	            // Enable UART0 receiver and transmitter 
+ 480 0226 2C21     	            movs  r1,#UART0_C2_T_RI
+ 481 0228 C170     	            strb  r1,[r0,#UART0_C2_OFFSET] 
  482              	
- 483              	
- 484              	/**
- 485              	  * Get a byte from UART0
- 486              	  *
- 487              	  * Inputs:
- 488              	  *     none, but requires rx_record to be defined
- 489              	  * Outputs:
- 490              	  *     r0 : returned byte
- 491              	  * Modifies:
- 492              	  *     r0
- 493              	  *     psr
- 494              	  */
- 495              	GetChar:
- 496 0226 02B5     	            push {r1, lr}
- 497 0228 5C49     	            ldr r1, =rx_record
- 498 022a 00F077F8 	            bl Dequeue
- 499 022e 02BD     	            pop {r1, pc}
- 500              	
- 501              	
- 502              	
- 503              	/**
- 504              	  * Send a byte over UART0
- 505              	  *
- 506              	  * Inputs:
- 507              	  *     r0 : byte to send
- 508              	  *     requires tx_record to be defined
- 509              	  * Outputs:
- 510              	  *     none
- 511              	  * Modifies:
- 512              	  *     psr
- 513              	  */
- 514              	PutChar:
- 515 0230 06B5     	            push {r1, r2, lr}
- 516              	            // Enable transmit interrupt
- 517 0232 5849     	            ldr r1, =UART0_BASE
- 518 0234 4FF0AC02 	            ldr r2, =UART0_C2_TI_RI
- 519 0238 CA70     	            strb r2, [r1, #UART0_C2_OFFSET]
- 520              	            // Put char
- 521 023a 5749     	            ldr r1, =tx_record
- 522 023c 00F080F8 	            bl Enqueue
- 523 0240 06BD     	            pop {r1, r2, pc}
- 524              	
- 525              	
- 526              	
- 527              	/**
- 528              	  * Prints a string
- 529              	  * Inputs:
- 530              	  *     R0 : Memory addr of the string to print
- 531              	  *     R1 : Capacity of the string
- 532              	  * Outputs:
- 533              	  *     None
- 534              	  * Modifies:
- 535              	  *     LR, PSR
- 536              	  */
- 537              	PutStringSB:
- 538 0242 0FB5     	            push {r0-r3, lr}
- 539 0244 0200     	            movs r2, r0
- 540 0246 0023     	            movs r3, #0
- 541              	PutStringSBLoop:
- 542 0248 8B42     	            cmp r3, r1
- 543 024a 06D0     	            beq PutStringSBTerminate    // Exit if buffer size exceeded
- 544 024c D05C     	            ldrb r0, [r2, r3]
- 545 024e 0028     	            cmp r0, #0
- 546 0250 03D0     	            beq PutStringSBTerminate    // Exit if NUL
- 547              	            
- 548 0252 FFF7EDFF 	            bl PutChar                  // Print
- 549 0256 0133     	            adds r3, r3, #1             // Increment string pointer
- 550 0258 F6E7     	            b PutStringSBLoop
- 551              	PutStringSBTerminate:
- 552 025a 0FBD     	            pop {r0-r3, pc}
- 553              	
- 554              	
- 555              	
- 556              	/**
- 557              	  * Put byte as decimal to terminal
- 558              	  *
- 559              	  * Inputs:
- 560              	  *     r1 : byte to send
- 561              	  * Outputs:
- 562              	  *     none
- 563              	  * Modifies:
- 564              	  *     psr
- 565              	  */
- 566              	PutNumUB:
- 567 025c 03B5     	            push {r0-r1, lr}
- 568 025e FF21     	            movs r1, #0xff
- 569 0260 0840     	            ands r0, r0, r1
- 570 0262 00F01AF8 	            bl PutNumU
- 571 0266 03BD     	            pop {r0-r1, pc}
- 572              	
- 573              	
- 574              	
- 575              	/**
- 576              	  * Send register contents as ASCII over UART
- 577              	  *
- 578              	  * Inputs:
- 579              	  *     r0 : the register to send
- 580              	  * Outputs:
- 581              	  *     none
- 582              	  * Modifies:
- 583              	  *     none
- 584              	  */
- 585              	PutNumHex:
- 586 0268 1EB5     	            push {r1-r4, lr}
- 587              	            // Find mask
- 588 026a 4FF07041 	            ldr r1, =0xf0000000
- 589 026e 0823     	            movs r3, #8
- 590              	PutNumHexLoop:
- 591              	            // Exit after all bytes have been converted
- 592 0270 002B     	            cmp r3, #0
- 593 0272 11D0     	            beq PutNumHexLoopExit
- 594              	            // Isolate the byte
- 595 0274 0A00     	            movs r2, r1
- 596 0276 0240     	            ands r2, r2, r0
- 597              	            // Bring the active byte to the front
- 598 0278 1C00     				movs r4, r3
- 599 027a 013C     				subs r4, #1
- 600 027c A400     				lsls r4, #2
- 601 027e E240     	            lsrs r2, r2, r4
- 602              	            // If the byte is a-f
- 603 0280 0A2A     	            cmp r2, #10
- 604 0282 00DB     	            blt PutNumHexLow
- 605              	            // Add 7 (offset from 9 to a)
- 606 0284 0832     	            adds r2, #('A' - '9')
- 607              	PutNumHexLow:
- 608              	            // For all bytes, add the 0x00 to ASCII 0 offset
- 609 0286 3032     	            adds r2, #'0'
- 610              	            // Print the char
- 611 0288 0400     	            movs r4, r0
- 612 028a 1000     	            movs r0, r2
- 613 028c FFF7D0FF 	            bl PutChar
- 614 0290 2000     	            movs r0, r4
- 615              	            // Shift the mask
- 616 0292 0909     	            lsrs r1, #4
- 617 0294 013B     	            subs r3, r3, #1
- 618 0296 EBE7     	            b PutNumHexLoop
- 619              	PutNumHexLoopExit:
- 620 0298 1EBD     	            pop {r1-r4, pc}
- 621              	
- 622              	
- 623              	
- 624              	/**
- 625              	  * Send ASCII-encoded decimal of a byte
- 626              	  *
- 627              	  * Inputs:
- 628              	  *     r0 : the byte to print
- 629              	  * Outputs:
- 630              	  *     none
- 631              	  * Modifies:
- 632              	  *     psr
- 633              	  */
- 634              	PutNumU:
- 635 029a 17B5     	            push {r0-r2, r4, lr}
- 636 029c 0028     	            cmp r0, #0
- 637 029e 13D0     	            beq PutNumUPrintZero        // Handle 0
- 638 02a0 0200     	            movs r2, r0
- 639 02a2 0024     	            movs r4, #0
- 640 02a4 0100     				movs r1, r0
- 641              	PutNumULoop:
- 642 02a6 0A20     	            movs r0, #10
- 643 02a8 00F013F8 	            bl Divu                     // Divide by 10
- 644 02ac 02B4     	            push {r1}                   // Push remainder
- 645 02ae 0134     	            adds r4, r4, #1             // Increment digit counter
- 646 02b0 0028     	            cmp r0, #0
- 647 02b2 01D0     	            beq PutNumUPop              // If quotient is 0, exit
- 648 02b4 0100     				movs r1, r0
- 649 02b6 F6E7     	            b PutNumULoop               // Divide quotient by 10
- 650              	PutNumUPop:
- 651 02b8 002C     	            cmp r4, #0
- 652 02ba 09D0     	            beq PutNumUTerminate        // If 0 left to print, exit
- 653 02bc 01BC     	            pop {r0}
- 654 02be 3030     				adds r0, r0, #'0'           // Convert from uint to char
- 655 02c0 FFF7B6FF 	            bl PutChar
- 656 02c4 013C     	            subs r4, r4, #1             // Decrement digit counter
- 657 02c6 F7E7     	            b PutNumUPop
- 658              	PutNumUPrintZero:
- 659 02c8 3020     	            movs r0, #0x30
- 660 02ca FFF7B1FF 	            bl PutChar                  // Print ascii 0
- 661 02ce FFE7     	            b PutNumUTerminate          // Leave
- 662              	PutNumUTerminate:
- 663 02d0 17BD     	            pop {r0-r2, r4, pc}
- 664              	
- 665              	
- 666              	
- 667              	/**
- 668              	  * Get a quotient and a remainder
- 669              	  *
- 670              	  * Inputs:
- 671              	  *     R0 : The divisor
- 672              	  *     R1 : The dividend
- 673              	  * Outputs:
- 674              	  *     R0 : The quotient
- 675              	  *     R1 : The remainder
- 676              	  * Modifies:
- 677              	  *     LR, PSR
- 678              	  */
- 679              	Divu:
- 680 02d2 0028     	            cmp r0, #0      // sets carry flag if equal
- 681 02d4 0AD0     	            beq Divu_end
- 682 02d6 04B4     	            push {r2}
- 683 02d8 0022     	            movs r2, #0
- 684              	Divu_loop:
- 685 02da 8142     	            cmp r1, r0
- 686 02dc 02D3     	            blo Divu_cleanup
- 687 02de 091A     	            subs r1, r1, r0
- 688 02e0 0132     	            adds r2, r2, #1
- 689 02e2 FAE7     	            b Divu_loop
- 690              	Divu_cleanup:
- 691 02e4 1000     	            movs r0, r2
- 692              	            // Clear apsr flags
- 693 02e6 0122     	            movs r2, #1
- 694 02e8 0132     	            adds r2, #1
- 695 02ea 04BC     	            pop {r2}
- 696              	Divu_end:
- 697 02ec 7047     	            bx lr
- 698              	
- 699              	
- 700              	
- 701              	/** Initialize queue record
- 702              	  *
- 703              	  * Inputs:
- 704              	  *     R0 : buffer address
- 705              	  *     R1 : record address
- 706              	  *     R2 : buffer capacity
- 707              	  * Outputs:
- 708              	  *     None
- 709              	  * Modifies:
- 710              	  *     psr
- 711              	  */
- 712              	init_queue:
- 713 02ee 08B4     	            push {r3}
- 714              	            // In pointer
- 715 02f0 0860     	            str r0, [r1, #in_ptr]
- 716              	            // Out pointer
- 717 02f2 4860     	            str r0, [r1, #out_ptr]
- 718              	            // Buffer start
- 719 02f4 8860     	            str r0, [r1, #buf_start]
- 720              	            // Buffer end
- 721 02f6 8318     	            adds r3, r0, r2
- 722 02f8 013B     	            subs r3, #1
- 723 02fa CB60     	            str r3, [r1, #buf_past]
- 724              	            // Buffer size
- 725 02fc 0A74     	            strb r2, [r1, #buf_size]
- 726              	            // Number enqueued
- 727 02fe 0023     	            movs r3, #0
- 728 0300 4B74     	            strb r3, [r1, #num_enqd]
- 729 0302 08BC     	            pop {r3}
- 730 0304 7047     	            bx lr
- 731              	
- 732              	
- 733              	
- 734              	/**
- 735              	  * Increment queue pointer
- 736              	  *
- 737              	  * Inputs:
- 738              	  *     R1 : record address
- 739              	  *     R2 : pointer
- 740              	  * Outputs:
- 741              	  *     R2 : incremented pointer
- 742              	  * Modifies:
- 743              	  *     R2
- 744              	  *     psr
- 745              	  */
- 746              	Pointer_inc:
- 747 0306 09B4     	            push {r0, r3}
- 748              	            // Load end of buffer
- 749 0308 1000     	            movs r0, r2
- 750 030a CB68     	            ldr r3, [r1, #buf_past]
- 751              	            // If pointer is at the end of the buffer
- 752 030c 9842     	            cmp r0, r3
- 753              	            // Wrap
- 754 030e 01D0     	            beq Pointer_inc_wrap
- 755              	            // Else increment
- 756 0310 0130     	            adds r0, r0, #1
- 757 0312 00E0     	            b Pointer_inc_exit
- 758              	Pointer_inc_wrap:
- 759              	            // Wrap by setting pointer to start of buffer
- 760 0314 8868     	            ldr r0, [r1, #buf_start]
- 761              	Pointer_inc_exit:
- 762              	            // Return
- 763 0316 0200     	            movs r2, r0
- 764 0318 09BC     	            pop {r0, r3}
- 765 031a 7047     	            bx lr
- 766              	
- 767              	
- 768              	
- 769              	/**
- 770              	  * Attempt to get char from queue
- 771              	  *
- 772              	  * Inputs:
- 773              	  *     R1 : record address
- 774              	  * Outputs:
- 775              	  *     R0 : dequeued character
- 776              	  *     psr : clear c iff successful
- 777              	  * Modifies:
- 778              	  *     R0, iff DEQUEUE successful
- 779              	  *     psr
- 780              	  */
- 781              	Dequeue:
- 782 031c 04B5     	            push {r2, lr}
- 783              	            // Check if empty
- 784 031e 4A7C     	            ldrb r2, [r1, #num_enqd]
- 785 0320 002A     	            cmp r2, #0
- 786 0322 09D0     	            BEQ Dequeue_empty
- 787              	            // Get from queue
- 788 0324 4A68     	            ldr r2, [r1, #out_ptr]
- 789 0326 1078     	            ldrb r0, [r2]
- 790              	            // Increment pointer
- 791 0328 FFF7EDFF 	            bl Pointer_inc
- 792 032c 4A60     	            str r2, [r1, #out_ptr]
- 793              	            // Decrement num enqueued
- 794 032e 4A7C     	            ldrb r2, [r1, #num_enqd]
- 795 0330 013A     	            subs r2, r2, #1
- 796 0332 4A74     	            strb r2, [r1, #num_enqd]
- 797              	            // Clear C flag
- 798 0334 0032     	            adds r2, #0
- 799 0336 02E0     	            B Dequeue_exit
- 800              	Dequeue_empty:
- 801              	            // Set C flag
- 802 0338 0022     	            MOVS R2, #0
- 803 033a D243     	            MVNS R2, R2
- 804 033c 0132     	            ADDS R2, R2, #1
- 805              	Dequeue_exit:
- 806 033e 04BD     	            POP {R2, PC}
- 807              	
- 808              	
- 809              	
- 810              	/**
- 811              	  * Attempt to put char in queue
- 812              	  *
- 813              	  * Inputs:
- 814              	  *     R0 : ENQUEUE char
- 815              	  *     R1 : record address
- 816              	  * Outputs:
- 817              	  *     psr: clear c iff ENQUEUE successful
- 818              	  * Modifies:
- 819              	  *     psr
- 820              	  */
- 821              	Enqueue:
- 822 0340 0CB5     	            push {r2-r3, lr}
- 823              	            // Check if full
- 824 0342 0A7C     	            ldrb r2, [r1, #buf_size]
- 825 0344 4B7C     	            ldrb r3, [r1, #num_enqd]
- 826 0346 9A42     	            cmp r2, r3
- 827 0348 08D0     	            beq Enqueue_full
- 828              	            // Store to queue
- 829 034a 0A68     	            ldr r2, [r1, #in_ptr]
- 830 034c 1070     	            strb r0, [r2]
- 831              	            // Increment in pointer
- 832 034e FFF7DAFF 	            bl Pointer_inc
- 833 0352 0A60     	            str r2, [r1, #in_ptr]
- 834              	            // Increment num enqueued
- 835 0354 0133     	            adds r3, r3, #1
- 836 0356 4B74     	            strb r3, [r1, #num_enqd]
- 837              	            // Clear C flag
- 838 0358 0032     	            adds r2, #0
- 839 035a 01E0     	            b Enqueue_exit
- 840              	Enqueue_full:
- 841              	            // Set C flag
- 842 035c 0022     	            movs r2, #0
- 843 035e D243     	            mvns r2, r2
- 844              	Enqueue_exit:
- 845 0360 0CBD     	            pop {r2-r3, pc}
- 846              	
- 847              	
- 848              	
- 849              	// ****************************************************************
- 850              	// Vector Table Mapped to Address 0 at Reset
- 851              	// Linker requires __Vectors to be exported
- 852 0362 0000     	.section RESET, "a"
- 853              	            //  EXPORT  __Vectors
- 854              	            //  EXPORT  __Vectors_End
- 855              	            //  EXPORT  __Vectors_Size
- 856              	            //  IMPORT  __initial_sp
- 857              	            //  IMPORT  Dummy_Handler
- 858              	            //  IMPORT  HardFault_Handler
- 859              	.global __Vectors
- 860              	.global __Vectors_End
- 861              	.global __Vectors_Size
- 862              	__Vectors:
- 863              	                                        // ARM core vectors
- 864 0000 00000000 	            .word    __initial_sp       // 00:end of stack
- 865 0004 00000000 	            .word    Reset_Handler      // 01:reset vector
- 866 0008 00000000 	            .word    Dummy_Handler      // 02:NMI
- 867 000c 00000000 	            .word    HardFault_Handler  // 03:hard fault
- 868 0010 00000000 	            .word    Dummy_Handler      // 04:(reserved)
- 869 0014 00000000 	            .word    Dummy_Handler      // 05:(reserved)
- 870 0018 00000000 	            .word    Dummy_Handler      // 06:(reserved)
- 871 001c 00000000 	            .word    Dummy_Handler      // 07:(reserved)
- 872 0020 00000000 	            .word    Dummy_Handler      // 08:(reserved)
- 873 0024 00000000 	            .word    Dummy_Handler      // 09:(reserved)
- 874 0028 00000000 	            .word    Dummy_Handler      // 10:(reserved)
- 875 002c 00000000 	            .word    Dummy_Handler      // 11:SVCall (supervisor call)
- 876 0030 00000000 	            .word    Dummy_Handler      // 12:(reserved)
- 877 0034 00000000 	            .word    Dummy_Handler      // 13:(reserved)
- 878 0038 00000000 	            .word    Dummy_Handler      // 14:PendSV (PendableSrvReq)
- 879              	                                        //    pendable request 
- 880              	                                        //    for system service)
- 881 003c 00000000 	            .word    Dummy_Handler      // 15:SysTick (system tick timer)
- 882 0040 00000000 	            .word    Dummy_Handler      // 16:DMA channel 0 transfer 
- 883              	                                        //    complete/error
- 884 0044 00000000 	            .word    Dummy_Handler      // 17:DMA channel 1 transfer
- 885              	                                        //    complete/error
- 886 0048 00000000 	            .word    Dummy_Handler      // 18:DMA channel 2 transfer
- 887              	                                        //    complete/error
- 888 004c 00000000 	            .word    Dummy_Handler      // 19:DMA channel 3 transfer
- 889              	                                        //    complete/error
- 890 0050 00000000 	            .word    Dummy_Handler      // 20:(reserved)
- 891 0054 00000000 	            .word    Dummy_Handler      // 21:FTFA command complete/
- 892              	                                        //    read collision
- 893 0058 00000000 	            .word    Dummy_Handler      // 22:low-voltage detect;
- 894              	                                        //    low-voltage warning
- 895 005c 00000000 	            .word    Dummy_Handler      // 23:low leakage wakeup
- 896 0060 00000000 	            .word    Dummy_Handler      // 24:I2C0
- 897 0064 00000000 	            .word    Dummy_Handler      // 25:(reserved)
- 898 0068 00000000 	            .word    Dummy_Handler      // 26:SPI0
- 899 006c 00000000 	            .word    Dummy_Handler      // 27:(reserved)
- 900 0070 44010000 	            .word    UART0_ISR          // 28:UART0 (status; error)
- 901 0074 00000000 	            .word    Dummy_Handler      // 29:(reserved)
- 902 0078 00000000 	            .word    Dummy_Handler      // 30:(reserved)
- 903 007c 00000000 	            .word    Dummy_Handler      // 31:ADC0
- 904 0080 00000000 	            .word    Dummy_Handler      // 32:CMP0
- 905 0084 00000000 	            .word    Dummy_Handler      // 33:TPM0
- 906 0088 00000000 	            .word    Dummy_Handler      // 34:TPM1
- 907 008c 00000000 	            .word    Dummy_Handler      // 35:(reserved)
- 908 0090 00000000 	            .word    Dummy_Handler      // 36:RTC (alarm)
- 909 0094 00000000 	            .word    Dummy_Handler      // 37:RTC (seconds)
- 910 0098 00000000 	            .word    Dummy_Handler      // 38:PIT
- 911 009c 00000000 	            .word    Dummy_Handler      // 39:(reserved)
- 912 00a0 00000000 	            .word    Dummy_Handler      // 40:(reserved)
- 913 00a4 00000000 	            .word    Dummy_Handler      // 41:DAC0
- 914 00a8 00000000 	            .word    Dummy_Handler      // 42:TSI0
- 915 00ac 00000000 	            .word    Dummy_Handler      // 43:MCG
- 916 00b0 00000000 	            .word    Dummy_Handler      // 44:LPTMR0
- 917 00b4 00000000 	            .word    Dummy_Handler      // 45:(reserved)
- 918 00b8 00000000 	            .word    Dummy_Handler      // 46:PORTA
- 919 00bc 00000000 	            .word    Dummy_Handler      // 47:PORTB
- 920              	__Vectors_End:
- 921              	.set __Vectors_Size, __Vectors_End - __Vectors
- 922              	.balign 4
- 923              	
- 924              	
- 925              	
- 926              	.section const, "a"
- 927              	cmd_s:       
- 928 0000 54797065 	.asciz      "Type a queue command (D,E,H,P,S):"
- 928      20612071 
- 928      75657565 
- 928      20636F6D 
- 928      6D616E64 
- 929              	crlf_s:      
- 930 0022 0D0A00   	.byte       0x0D, 0x0A, 0x00
- 931              	fail_s:      
- 932 0025 4661696C 	.asciz      "Failure:        "
- 932      7572653A 
- 932      20202020 
- 932      20202020 
- 932      00
- 933              	char_s:      
- 934 0036 3A202020 	.asciz      ":              "
- 934      20202020 
- 934      20202020 
- 934      20202000 
- 935              	stat_s:      
- 936 0046 20537461 	.asciz      " Status:        "
- 936      7475733A 
- 936      20202020 
- 936      20202020 
- 936      00
- 937              	succ_s:      
- 938 0057 53756363 	.asciz      "Success:        "
- 938      6573733A 
- 938      20202020 
- 938      20202020 
- 938      00
- 939              	enqu_s:      
- 940 0068 43686172 	.asciz      "Char to enqueue:"
- 940      20746F20 
- 940      656E7175 
- 940      6575653A 
- 940      00
- 941              	help_s:      
- 942 0079 44202864 	.asciz      "D (dequeue), E (enqueue), H (help), P (print), S (status)"
- 942      65717565 
- 942      7565292C 
- 942      20452028 
- 942      656E7175 
- 943 00b3 0D0A00   	.byte       0x0D, 0x0A, 0x00
- 944              	stat_in_s:   
- 945 00b6 20202020 	.asciz      "    In=0x"
- 945      496E3D30 
- 945      7800
- 946              	stat_out_s:  
- 947 00c0 20202020 	.asciz      "    Out=0x"
- 947      4F75743D 
- 947      307800
- 948              	stat_num_s:  
- 949 00cb 20202020 	.asciz      "    Num=0"
- 949      4E756D3D 
- 949      3000
- 950              	
- 951 00d5 000000   	.balign 4
- 952              	
+ 483 022a 07BD     	            pop {r0, r1, r2, pc}
+ 484              	
+ 485              	
+ 486              	
+ 487              	/**
+ 488              	  * Get a byte from UART0
+ 489              	  *
+ 490              	  * Inputs:
+ 491              	  *     none, but requires rx_record to be defined
+ 492              	  * Outputs:
+ 493              	  *     r0 : returned byte
+ 494              	  * Modifies:
+ 495              	  *     r0
+ 496              	  *     psr
+ 497              	  */
+ 498              	GetChar:
+ 499 022c 02B5     	            push {r1, lr}
+ 500 022e 5C49     	            ldr r1, =rx_record
+ 501 0230 00F077F8 	            bl Dequeue
+ 502 0234 02BD     	            pop {r1, pc}
+ 503              	
+ 504              	
+ 505              	
+ 506              	/**
+ 507              	  * Send a byte over UART0
+ 508              	  *
+ 509              	  * Inputs:
+ 510              	  *     r0 : byte to send
+ 511              	  *     requires tx_record to be defined
+ 512              	  * Outputs:
+ 513              	  *     none
+ 514              	  * Modifies:
+ 515              	  *     psr
+ 516              	  */
+ 517              	PutChar:
+ 518 0236 06B5     	            push {r1, r2, lr}
+ 519              	            // Enable transmit interrupt
+ 520 0238 5749     	            ldr r1, =UART0_BASE
+ 521 023a 4FF0AC02 	            ldr r2, =UART0_C2_TI_RI
+ 522 023e CA70     	            strb r2, [r1, #UART0_C2_OFFSET]
+ 523              	            // Put char
+ 524 0240 5649     	            ldr r1, =tx_record
+ 525 0242 00F080F8 	            bl Enqueue
+ 526 0246 06BD     	            pop {r1, r2, pc}
+ 527              	
+ 528              	
+ 529              	
+ 530              	/**
+ 531              	  * Prints a string
+ 532              	  * Inputs:
+ 533              	  *     R0 : Memory addr of the string to print
+ 534              	  *     R1 : Capacity of the string
+ 535              	  * Outputs:
+ 536              	  *     None
+ 537              	  * Modifies:
+ 538              	  *     LR, PSR
+ 539              	  */
+ 540              	PutStringSB:
+ 541 0248 0FB5     	            push {r0-r3, lr}
+ 542 024a 0200     	            movs r2, r0
+ 543 024c 0023     	            movs r3, #0
+ 544              	PutStringSBLoop:
+ 545 024e 8B42     	            cmp r3, r1
+ 546 0250 06D0     	            beq PutStringSBTerminate    // Exit if buffer size exceeded
+ 547 0252 D05C     	            ldrb r0, [r2, r3]
+ 548 0254 0028     	            cmp r0, #0
+ 549 0256 03D0     	            beq PutStringSBTerminate    // Exit if NUL
+ 550              	            
+ 551 0258 FFF7EDFF 	            bl PutChar                  // Print
+ 552 025c 0133     	            adds r3, r3, #1             // Increment string pointer
+ 553 025e F6E7     	            b PutStringSBLoop
+ 554              	PutStringSBTerminate:
+ 555 0260 0FBD     	            pop {r0-r3, pc}
+ 556              	
+ 557              	
+ 558              	
+ 559              	/**
+ 560              	  * Put byte as decimal to terminal
+ 561              	  *
+ 562              	  * Inputs:
+ 563              	  *     r1 : byte to send
+ 564              	  * Outputs:
+ 565              	  *     none
+ 566              	  * Modifies:
+ 567              	  *     psr
+ 568              	  */
+ 569              	PutNumUB:
+ 570 0262 03B5     	            push {r0-r1, lr}
+ 571 0264 FF21     	            movs r1, #0xff
+ 572 0266 0840     	            ands r0, r0, r1
+ 573 0268 00F01AF8 	            bl PutNumU
+ 574 026c 03BD     	            pop {r0-r1, pc}
+ 575              	
+ 576              	
+ 577              	
+ 578              	/**
+ 579              	  * Send register contents as ASCII over UART
+ 580              	  *
+ 581              	  * Inputs:
+ 582              	  *     r0 : the register to send
+ 583              	  * Outputs:
+ 584              	  *     none
+ 585              	  * Modifies:
+ 586              	  *     none
+ 587              	  */
+ 588              	PutNumHex:
+ 589 026e 1EB5     	            push {r1-r4, lr}
+ 590              	            // Find mask
+ 591 0270 4FF07041 	            ldr r1, =0xf0000000
+ 592 0274 0823     	            movs r3, #8
+ 593              	PutNumHexLoop:
+ 594              	            // Exit after all bytes have been converted
+ 595 0276 002B     	            cmp r3, #0
+ 596 0278 11D0     	            beq PutNumHexLoopExit
+ 597              	            // Isolate the byte
+ 598 027a 0A00     	            movs r2, r1
+ 599 027c 0240     	            ands r2, r2, r0
+ 600              	            // Bring the active byte to the front
+ 601 027e 1C00     				movs r4, r3
+ 602 0280 013C     				subs r4, #1
+ 603 0282 A400     				lsls r4, #2
+ 604 0284 E240     	            lsrs r2, r2, r4
+ 605              	            // If the byte is a-f
+ 606 0286 0A2A     	            cmp r2, #10
+ 607 0288 00DB     	            blt PutNumHexLow
+ 608              	            // Add 7 (offset from 9 to a)
+ 609 028a 0832     	            adds r2, #('A' - '9')
+ 610              	PutNumHexLow:
+ 611              	            // For all bytes, add the 0x00 to ASCII 0 offset
+ 612 028c 3032     	            adds r2, #'0'
+ 613              	            // Print the char
+ 614 028e 0400     	            movs r4, r0
+ 615 0290 1000     	            movs r0, r2
+ 616 0292 FFF7D0FF 	            bl PutChar
+ 617 0296 2000     	            movs r0, r4
+ 618              	            // Shift the mask
+ 619 0298 0909     	            lsrs r1, #4
+ 620 029a 013B     	            subs r3, r3, #1
+ 621 029c EBE7     	            b PutNumHexLoop
+ 622              	PutNumHexLoopExit:
+ 623 029e 1EBD     	            pop {r1-r4, pc}
+ 624              	
+ 625              	
+ 626              	
+ 627              	/**
+ 628              	  * Send ASCII-encoded decimal of a byte
+ 629              	  *
+ 630              	  * Inputs:
+ 631              	  *     r0 : the byte to print
+ 632              	  * Outputs:
+ 633              	  *     none
+ 634              	  * Modifies:
+ 635              	  *     psr
+ 636              	  */
+ 637              	PutNumU:
+ 638 02a0 17B5     	            push {r0-r2, r4, lr}
+ 639 02a2 0028     	            cmp r0, #0
+ 640 02a4 13D0     	            beq PutNumUPrintZero        // Handle 0
+ 641 02a6 0200     	            movs r2, r0
+ 642 02a8 0024     	            movs r4, #0
+ 643 02aa 0100     				movs r1, r0
+ 644              	PutNumULoop:
+ 645 02ac 0A20     	            movs r0, #10
+ 646 02ae 00F013F8 	            bl Divu                     // Divide by 10
+ 647 02b2 02B4     	            push {r1}                   // Push remainder
+ 648 02b4 0134     	            adds r4, r4, #1             // Increment digit counter
+ 649 02b6 0028     	            cmp r0, #0
+ 650 02b8 01D0     	            beq PutNumUPop              // If quotient is 0, exit
+ 651 02ba 0100     				movs r1, r0
+ 652 02bc F6E7     	            b PutNumULoop               // Divide quotient by 10
+ 653              	PutNumUPop:
+ 654 02be 002C     	            cmp r4, #0
+ 655 02c0 09D0     	            beq PutNumUTerminate        // If 0 left to print, exit
+ 656 02c2 01BC     	            pop {r0}
+ 657 02c4 3030     				adds r0, r0, #'0'           // Convert from uint to char
+ 658 02c6 FFF7B6FF 	            bl PutChar
+ 659 02ca 013C     	            subs r4, r4, #1             // Decrement digit counter
+ 660 02cc F7E7     	            b PutNumUPop
+ 661              	PutNumUPrintZero:
+ 662 02ce 3020     	            movs r0, #0x30
+ 663 02d0 FFF7B1FF 	            bl PutChar                  // Print ascii 0
+ 664 02d4 FFE7     	            b PutNumUTerminate          // Leave
+ 665              	PutNumUTerminate:
+ 666 02d6 17BD     	            pop {r0-r2, r4, pc}
+ 667              	
+ 668              	
+ 669              	
+ 670              	/**
+ 671              	  * Get a quotient and a remainder
+ 672              	  *
+ 673              	  * Inputs:
+ 674              	  *     R0 : The divisor
+ 675              	  *     R1 : The dividend
+ 676              	  * Outputs:
+ 677              	  *     R0 : The quotient
+ 678              	  *     R1 : The remainder
+ 679              	  * Modifies:
+ 680              	  *     LR, PSR
+ 681              	  */
+ 682              	Divu:
+ 683 02d8 0028     	            cmp r0, #0      // sets carry flag if equal
+ 684 02da 0AD0     	            beq Divu_end
+ 685 02dc 04B4     	            push {r2}
+ 686 02de 0022     	            movs r2, #0
+ 687              	Divu_loop:
+ 688 02e0 8142     	            cmp r1, r0
+ 689 02e2 02D3     	            blo Divu_cleanup
+ 690 02e4 091A     	            subs r1, r1, r0
+ 691 02e6 0132     	            adds r2, r2, #1
+ 692 02e8 FAE7     	            b Divu_loop
+ 693              	Divu_cleanup:
+ 694 02ea 1000     	            movs r0, r2
+ 695              	            // Clear apsr flags
+ 696 02ec 0122     	            movs r2, #1
+ 697 02ee 0132     	            adds r2, #1
+ 698 02f0 04BC     	            pop {r2}
+ 699              	Divu_end:
+ 700 02f2 7047     	            bx lr
+ 701              	
+ 702              	
+ 703              	
+ 704              	/** Initialize queue record
+ 705              	  *
+ 706              	  * Inputs:
+ 707              	  *     R0 : buffer address
+ 708              	  *     R1 : record address
+ 709              	  *     R2 : buffer capacity
+ 710              	  * Outputs:
+ 711              	  *     None
+ 712              	  * Modifies:
+ 713              	  *     psr
+ 714              	  */
+ 715              	init_queue:
+ 716 02f4 08B4     	            push {r3}
+ 717              	            // In pointer
+ 718 02f6 0860     	            str r0, [r1, #in_ptr]
+ 719              	            // Out pointer
+ 720 02f8 4860     	            str r0, [r1, #out_ptr]
+ 721              	            // Buffer start
+ 722 02fa 8860     	            str r0, [r1, #buf_start]
+ 723              	            // Buffer end
+ 724 02fc 8318     	            adds r3, r0, r2
+ 725 02fe 013B     	            subs r3, #1
+ 726 0300 CB60     	            str r3, [r1, #buf_past]
+ 727              	            // Buffer size
+ 728 0302 0A74     	            strb r2, [r1, #buf_size]
+ 729              	            // Number enqueued
+ 730 0304 0023     	            movs r3, #0
+ 731 0306 4B74     	            strb r3, [r1, #num_enqd]
+ 732 0308 08BC     	            pop {r3}
+ 733 030a 7047     	            bx lr
+ 734              	
+ 735              	
+ 736              	
+ 737              	/**
+ 738              	  * Increment queue pointer
+ 739              	  *
+ 740              	  * Inputs:
+ 741              	  *     R1 : record address
+ 742              	  *     R2 : pointer
+ 743              	  * Outputs:
+ 744              	  *     R2 : incremented pointer
+ 745              	  * Modifies:
+ 746              	  *     R2
+ 747              	  *     psr
+ 748              	  */
+ 749              	Pointer_inc:
+ 750 030c 09B4     	            push {r0, r3}
+ 751              	            // Load end of buffer
+ 752 030e 1000     	            movs r0, r2
+ 753 0310 CB68     	            ldr r3, [r1, #buf_past]
+ 754              	            // If pointer is at the end of the buffer
+ 755 0312 9842     	            cmp r0, r3
+ 756              	            // Wrap
+ 757 0314 01D0     	            beq Pointer_inc_wrap
+ 758              	            // Else increment
+ 759 0316 0130     	            adds r0, r0, #1
+ 760 0318 00E0     	            b Pointer_inc_exit
+ 761              	Pointer_inc_wrap:
+ 762              	            // Wrap by setting pointer to start of buffer
+ 763 031a 8868     	            ldr r0, [r1, #buf_start]
+ 764              	Pointer_inc_exit:
+ 765              	            // Return
+ 766 031c 0200     	            movs r2, r0
+ 767 031e 09BC     	            pop {r0, r3}
+ 768 0320 7047     	            bx lr
+ 769              	
+ 770              	
+ 771              	
+ 772              	/**
+ 773              	  * Attempt to get char from queue
+ 774              	  *
+ 775              	  * Inputs:
+ 776              	  *     R1 : record address
+ 777              	  * Outputs:
+ 778              	  *     R0 : dequeued character
+ 779              	  *     psr : clear c iff successful
+ 780              	  * Modifies:
+ 781              	  *     R0, iff DEQUEUE successful
+ 782              	  *     psr
+ 783              	  */
+ 784              	Dequeue:
+ 785 0322 04B5     	            push {r2, lr}
+ 786              	            // Check if empty
+ 787 0324 4A7C     	            ldrb r2, [r1, #num_enqd]
+ 788 0326 002A     	            cmp r2, #0
+ 789 0328 09D0     	            BEQ Dequeue_empty
+ 790              	            // Get from queue
+ 791 032a 4A68     	            ldr r2, [r1, #out_ptr]
+ 792 032c 1078     	            ldrb r0, [r2]
+ 793              	            // Increment pointer
+ 794 032e FFF7EDFF 	            bl Pointer_inc
+ 795 0332 4A60     	            str r2, [r1, #out_ptr]
+ 796              	            // Decrement num enqueued
+ 797 0334 4A7C     	            ldrb r2, [r1, #num_enqd]
+ 798 0336 013A     	            subs r2, r2, #1
+ 799 0338 4A74     	            strb r2, [r1, #num_enqd]
+ 800              	            // Clear C flag
+ 801 033a 0032     	            adds r2, #0
+ 802 033c 02E0     	            B Dequeue_exit
+ 803              	Dequeue_empty:
+ 804              	            // Set C flag
+ 805 033e 0022     	            MOVS R2, #0
+ 806 0340 D243     	            MVNS R2, R2
+ 807 0342 0132     	            ADDS R2, R2, #1
+ 808              	Dequeue_exit:
+ 809 0344 04BD     	            POP {R2, PC}
+ 810              	
+ 811              	
+ 812              	
+ 813              	/**
+ 814              	  * Attempt to put char in queue
+ 815              	  *
+ 816              	  * Inputs:
+ 817              	  *     R0 : ENQUEUE char
+ 818              	  *     R1 : record address
+ 819              	  * Outputs:
+ 820              	  *     psr: clear c iff ENQUEUE successful
+ 821              	  * Modifies:
+ 822              	  *     psr
+ 823              	  */
+ 824              	Enqueue:
+ 825 0346 0CB5     	            push {r2-r3, lr}
+ 826              	            // Check if full
+ 827 0348 0A7C     	            ldrb r2, [r1, #buf_size]
+ 828 034a 4B7C     	            ldrb r3, [r1, #num_enqd]
+ 829 034c 9A42     	            cmp r2, r3
+ 830 034e 08D0     	            beq Enqueue_full
+ 831              	            // Store to queue
+ 832 0350 0A68     	            ldr r2, [r1, #in_ptr]
+ 833 0352 1070     	            strb r0, [r2]
+ 834              	            // Increment in pointer
+ 835 0354 FFF7DAFF 	            bl Pointer_inc
+ 836 0358 0A60     	            str r2, [r1, #in_ptr]
+ 837              	            // Increment num enqueued
+ 838 035a 0133     	            adds r3, r3, #1
+ 839 035c 4B74     	            strb r3, [r1, #num_enqd]
+ 840              	            // Clear C flag
+ 841 035e 0032     	            adds r2, #0
+ 842 0360 01E0     	            b Enqueue_exit
+ 843              	Enqueue_full:
+ 844              	            // Set C flag
+ 845 0362 0022     	            movs r2, #0
+ 846 0364 D243     	            mvns r2, r2
+ 847              	Enqueue_exit:
+ 848 0366 0CBD     	            pop {r2-r3, pc}
+ 849              	
+ 850              	
+ 851              	
+ 852              	// ****************************************************************
+ 853              	// Vector Table Mapped to Address 0 at Reset
+ 854              	// Linker requires __Vectors to be exported
+ 855              	.section RESET, "a"
+ 856              	            //  EXPORT  __Vectors
+ 857              	            //  EXPORT  __Vectors_End
+ 858              	            //  EXPORT  __Vectors_Size
+ 859              	            //  IMPORT  __initial_sp
+ 860              	            //  IMPORT  Dummy_Handler
+ 861              	            //  IMPORT  HardFault_Handler
+ 862              	.global __Vectors
+ 863              	.global __Vectors_End
+ 864              	.global __Vectors_Size
+ 865              	__Vectors:
+ 866              	                                        // ARM core vectors
+ 867 0000 00000000 	            .word    __initial_sp       // 00:end of stack
+ 868 0004 00000000 	            .word    Reset_Handler      // 01:reset vector
+ 869 0008 00000000 	            .word    Dummy_Handler      // 02:NMI
+ 870 000c 00000000 	            .word    HardFault_Handler  // 03:hard fault
+ 871 0010 00000000 	            .word    Dummy_Handler      // 04:(reserved)
+ 872 0014 00000000 	            .word    Dummy_Handler      // 05:(reserved)
+ 873 0018 00000000 	            .word    Dummy_Handler      // 06:(reserved)
+ 874 001c 00000000 	            .word    Dummy_Handler      // 07:(reserved)
+ 875 0020 00000000 	            .word    Dummy_Handler      // 08:(reserved)
+ 876 0024 00000000 	            .word    Dummy_Handler      // 09:(reserved)
+ 877 0028 00000000 	            .word    Dummy_Handler      // 10:(reserved)
+ 878 002c 00000000 	            .word    Dummy_Handler      // 11:SVCall (supervisor call)
+ 879 0030 00000000 	            .word    Dummy_Handler      // 12:(reserved)
+ 880 0034 00000000 	            .word    Dummy_Handler      // 13:(reserved)
+ 881 0038 00000000 	            .word    Dummy_Handler      // 14:PendSV (PendableSrvReq)
+ 882              	                                        //    pendable request 
+ 883              	                                        //    for system service)
+ 884 003c 00000000 	            .word    Dummy_Handler      // 15:SysTick (system tick timer)
+ 885 0040 00000000 	            .word    Dummy_Handler      // 16:DMA channel 0 transfer 
+ 886              	                                        //    complete/error
+ 887 0044 00000000 	            .word    Dummy_Handler      // 17:DMA channel 1 transfer
+ 888              	                                        //    complete/error
+ 889 0048 00000000 	            .word    Dummy_Handler      // 18:DMA channel 2 transfer
+ 890              	                                        //    complete/error
+ 891 004c 00000000 	            .word    Dummy_Handler      // 19:DMA channel 3 transfer
+ 892              	                                        //    complete/error
+ 893 0050 00000000 	            .word    Dummy_Handler      // 20:(reserved)
+ 894 0054 00000000 	            .word    Dummy_Handler      // 21:FTFA command complete/
+ 895              	                                        //    read collision
+ 896 0058 00000000 	            .word    Dummy_Handler      // 22:low-voltage detect;
+ 897              	                                        //    low-voltage warning
+ 898 005c 00000000 	            .word    Dummy_Handler      // 23:low leakage wakeup
+ 899 0060 00000000 	            .word    Dummy_Handler      // 24:I2C0
+ 900 0064 00000000 	            .word    Dummy_Handler      // 25:(reserved)
+ 901 0068 00000000 	            .word    Dummy_Handler      // 26:SPI0
+ 902 006c 00000000 	            .word    Dummy_Handler      // 27:(reserved)
+ 903 0070 44010000 	            .word    UART0_ISR          // 28:UART0 (status; error)
+ 904 0074 00000000 	            .word    Dummy_Handler      // 29:(reserved)
+ 905 0078 00000000 	            .word    Dummy_Handler      // 30:(reserved)
+ 906 007c 00000000 	            .word    Dummy_Handler      // 31:ADC0
+ 907 0080 00000000 	            .word    Dummy_Handler      // 32:CMP0
+ 908 0084 00000000 	            .word    Dummy_Handler      // 33:TPM0
+ 909 0088 00000000 	            .word    Dummy_Handler      // 34:TPM1
+ 910 008c 00000000 	            .word    Dummy_Handler      // 35:(reserved)
+ 911 0090 00000000 	            .word    Dummy_Handler      // 36:RTC (alarm)
+ 912 0094 00000000 	            .word    Dummy_Handler      // 37:RTC (seconds)
+ 913 0098 00000000 	            .word    Dummy_Handler      // 38:PIT
+ 914 009c 00000000 	            .word    Dummy_Handler      // 39:(reserved)
+ 915 00a0 00000000 	            .word    Dummy_Handler      // 40:(reserved)
+ 916 00a4 00000000 	            .word    Dummy_Handler      // 41:DAC0
+ 917 00a8 00000000 	            .word    Dummy_Handler      // 42:TSI0
+ 918 00ac 00000000 	            .word    Dummy_Handler      // 43:MCG
+ 919 00b0 00000000 	            .word    Dummy_Handler      // 44:LPTMR0
+ 920 00b4 00000000 	            .word    Dummy_Handler      // 45:(reserved)
+ 921 00b8 00000000 	            .word    Dummy_Handler      // 46:PORTA
+ 922 00bc 00000000 	            .word    Dummy_Handler      // 47:PORTB
+ 923              	__Vectors_End:
+ 924              	.set __Vectors_Size, __Vectors_End - __Vectors
+ 925              	.balign 4
+ 926              	
+ 927              	
+ 928              	
+ 929              	.section const, "a"
+ 930              	cmd_s:       
+ 931 0000 54797065 	.asciz      "Type a queue command (D,E,H,P,S):"
+ 931      20612071 
+ 931      75657565 
+ 931      20636F6D 
+ 931      6D616E64 
+ 932              	crlf_s:      
+ 933 0022 0D0A00   	.byte       0x0D, 0x0A, 0x00
+ 934              	fail_s:      
+ 935 0025 4661696C 	.asciz      "Failure:        "
+ 935      7572653A 
+ 935      20202020 
+ 935      20202020 
+ 935      00
+ 936              	char_s:      
+ 937 0036 3A202020 	.asciz      ":              "
+ 937      20202020 
+ 937      20202020 
+ 937      20202000 
+ 938              	stat_s:      
+ 939 0046 20537461 	.asciz      " Status:        "
+ 939      7475733A 
+ 939      20202020 
+ 939      20202020 
+ 939      00
+ 940              	succ_s:      
+ 941 0057 53756363 	.asciz      "Success:        "
+ 941      6573733A 
+ 941      20202020 
+ 941      20202020 
+ 941      00
+ 942              	enqu_s:      
+ 943 0068 43686172 	.asciz      "Char to enqueue:"
+ 943      20746F20 
+ 943      656E7175 
+ 943      6575653A 
+ 943      00
+ 944              	help_s:      
+ 945 0079 44202864 	.asciz      "D (dequeue), E (enqueue), H (help), P (print), S (status)"
+ 945      65717565 
+ 945      7565292C 
+ 945      20452028 
+ 945      656E7175 
+ 946 00b3 0D0A00   	.byte       0x0D, 0x0A, 0x00
+ 947              	stat_in_s:   
+ 948 00b6 20202020 	.asciz      "    In=0x"
+ 948      496E3D30 
+ 948      7800
+ 949              	stat_out_s:  
+ 950 00c0 20202020 	.asciz      "    Out=0x"
+ 950      4F75743D 
+ 950      307800
+ 951              	stat_num_s:  
+ 952 00cb 20202020 	.asciz      "    Num=0"
+ 952      4E756D3D 
+ 952      3000
  953              	
- 954              	
- 955              	.section data, "aw", %nobits
- 956              	.balign 4
- 957              	rx_buffer:
- 958 0000 00000000 	.skip rx_qbuf_sz
- 958      00000000 
- 958      00000000 
- 958      00000000 
- 958      00000000 
+ 954 00d5 000000   	.balign 4
+ 955              	
+ 956              	
+ 957              	
+ 958              	.section data, "aw", %nobits
  959              	.balign 4
- 960              	rx_record:
- 961 0050 00000000 	.skip rx_qrec_sz
+ 960              	rx_buffer:
+ 961 0000 00000000 	.skip rx_qbuf_sz
  961      00000000 
  961      00000000 
  961      00000000 
- 961      0000
- 962              	
- 963 0062 0000     	.balign 4
- 964              	tx_buffer:
- 965 0064 00000000 	.skip tx_qbuf_sz
- 965      00000000 
- 965      00000000 
- 965      00000000 
- 965      00000000 
- 966              	.balign 4
- 967              	tx_record:
- 968 00b4 00000000 	.skip tx_qrec_sz
+ 961      00000000 
+ 962              	.balign 4
+ 963              	rx_record:
+ 964 0050 00000000 	.skip rx_qrec_sz
+ 964      00000000 
+ 964      00000000 
+ 964      00000000 
+ 964      0000
+ 965              	
+ 966 0062 0000     	.balign 4
+ 967              	tx_buffer:
+ 968 0064 00000000 	.skip tx_qbuf_sz
  968      00000000 
  968      00000000 
  968      00000000 
- 968      0000
- 969              	
- 970 00c6 0000     	.balign 4
- 971              	qbuffer:
- 972 00c8 00000000 	.skip qbuf_sz
- 972      00000000 
- 972      00000000 
- 972      00000000 
- 972      00000000 
- 973              	.balign 4
- 974              	qrecord:
- 975 0118 00000000 	.skip qrec_sz
+ 968      00000000 
+ 969              	.balign 4
+ 970              	tx_record:
+ 971 00b4 00000000 	.skip tx_qrec_sz
+ 971      00000000 
+ 971      00000000 
+ 971      00000000 
+ 971      0000
+ 972              	
+ 973 00c6 0000     	.balign 4
+ 974              	qbuffer:
+ 975 00c8 00000000 	.skip qbuf_sz
  975      00000000 
  975      00000000 
  975      00000000 
- 975      0000
- 976              	
- 977 012a 0000     	.balign 4
+ 975      00000000 
+ 976              	.balign 4
+ 977              	qrecord:
+ 978 0118 00000000 	.skip qrec_sz
+ 978      00000000 
+ 978      00000000 
+ 978      00000000 
+ 978      0000
+ 979              	
+ 980 012a 0000     	.balign 4

@@ -510,14 +510,16 @@ UART0_ISR   PROC {}
             push {lr}
             ldr r2, =UART0_BASE
             ldrb r1, [r2, #UART0_C2_OFFSET]
-            ands r1, #UART0_C2_TIE_MASK
+            ldr r3, =UART0_C2_TIE_MASK
+            ands r1, r3
             ; Check tx interrupt enabled
             cmp r1, #0
             ; If disabled, jump to rx interrupt check
             beq UART0_ISR_rxint
             ; Else, check tx interrupt
             ldrb r1, [r2, #UART0_S1_OFFSET]
-            ands r1, #UART0_S1_TDRE_MASK
+            ldr r3, =UART0_S1_TDRE_MASK
+            ands r1, r3
             cmp r1, #0
             ; If disabled, jump to rx interrupt check
             beq UART0_ISR_rxint
@@ -535,7 +537,8 @@ UART0_ISR_disable_tx
             ; Check rx interrupt
 UART0_ISR_rxint
             ldrb r1, [r2, #UART0_S1_OFFSET]
-            ands r1, #UART0_S1_RDRF_MASK
+            ldr r3, =UART0_S1_RDRF_MASK
+            ands r1, r3
             cmp r1, #0
             ; Exit if rx interrupt not set
             beq UART0_ISR_exit
@@ -827,7 +830,7 @@ PutChar PROC {}
             push {r1, r2, lr}
             ; Enable transmit interrupt
             ldr r1, =UART0_BASE
-            ldrb r2, =UART0_C2_TI_RI
+            ldr r2, =UART0_C2_TI_RI
             strb r2, [r1, #UART0_C2_OFFSET]
             ; Put char
             ldr r1, =tx_record
