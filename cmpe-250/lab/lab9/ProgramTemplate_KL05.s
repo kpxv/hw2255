@@ -1031,6 +1031,21 @@ STAT_NUM_S  DCB "    Num=0", 0x00
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
+
+rx_buffer
+            SPACE rx_qbuf_sz
+rx_record
+            SPACE rx_qrec_sz
+
+            ALIGN
+
+tx_buffer
+            SPACE tx_qbuf_sz
+tx_record
+            SPACE tx_qrec_sz
+
+            ALIGN
+
 QBUFFER
             SPACE Q_BUF_SZ
 QRECORD
