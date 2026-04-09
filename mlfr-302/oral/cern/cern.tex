@@ -1,0 +1,103 @@
+\documentclass[aspectratio=43]{beamer}
+
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{svg}
+\usepackage{fontspec}
+\usepackage{csquotes}
+\usepackage[main=french]{babel}
+\usepackage[backend=biber]{biblatex}
+\usepackage[french]{isodate}
+
+\addbibresource{./assets/bib.bib}
+
+\usetheme[
+    background=dark,
+    title page=gotham splitvert,
+    numbering=pagenumber,
+    sectiontocframe default=off,
+    % edging default=on,
+]{CambridgeUS}
+
+
+\title[CERN]{L'Organisation européenne pour la recherche nucléaire (CERN)}
+\author[Perry]{Aden Perry}
+\institute{Rochester Institute of Technology}
+\date{\today}
+
+\begin{document}
+
+% Discuss why I chose this
+%
+% Je suis très interessante en le physique, et especiallemen le physique
+% nucléaire. J'ai pensé qu'il serait amusant appendre plus de physique avec
+% recherche de CERN.
+\maketitle
+
+% Summary
+\begin{frame}{Aperçu}
+	\begin{itemize}
+		\item Quoi?
+		      % C'est un organisation qui a l'objet de financer et améliorer
+		      % l'infrastructure de physique particule de énergie haut.
+
+		\item Où? \footfullcite{britannica}
+		      % Il est situé en France et en Suisse. Le siège est près Geneva,
+		      % mais il est seulment 100 hectare en Suisse. Il est plus que 450
+		      % hectares en France.
+
+		\item Quand?
+		      % Il a été proposé en 1949 par Louis de Broglie à un conférence.
+		      % À cause de cette proposition un conseil a été créé en 1952. 2
+		      % ans plus tard, en 1954, le nom a changé à Organisation, et le
+		      % version moderne de CERN etait formé.
+
+		\item Pourquoi? \footfullcite{cern-org}
+		      % CERN a été créé pour améliorer l'état de science européenne.
+		      % Après le deuxième guerre mondiale, Europe n'avait pas les 
+		      % meilleurs scientistes. Beaucoup de scientistes a migré aux
+		      % États-Unis pendant la guerre.
+	\end{itemize}
+\end{frame}
+
+% What is CERN known for?
+\begin{frame}{Réussites}
+	\begin{multicols}{2}
+		\begin{itemize}
+            \item Antihydrogène
+            \item Boson de Higgs
+            \item Grand collisionneur de hadrons (LHC)
+            \item Internet \footfullcite{cern-ach}
+		\end{itemize}
+
+		\columnbreak
+
+		\center
+		\includesvg[width=\linewidth]{assets/lhc.svg}
+	\end{multicols}
+\end{frame}
+
+\begin{frame}{Current Member States}
+	% Include picture?
+	\begin{itemize}
+		\item 25 total member states.
+		\item France contributed 159 725 200 CHF for 2026, 12.96\% of CERN's 2026 revenue. Comfortably in third, beat out by UK and Germany. Next best is 7\%, by Spain. \footfullcite{cern-finance}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Overview of CERN}
+	\begin{itemize}
+		\item France has SPS, LEP, LHC tunnels
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Note}
+	Les manuels \textsc{Gotham} \footfullcite{gotham} et \texttt{biblatex}
+	\footfullcite{biblatex} étaient consulté pour créer cette présentation.
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Références}
+	\printbibliography[heading=none]
+\end{frame}
+
+\end{document}
