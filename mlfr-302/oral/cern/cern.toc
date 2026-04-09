@@ -1,2 +1,3 @@
 \babel@toc {french}{}\relax 
 \babel@toc {french}{}\relax 
+\beamer@sectionintoc {1}{Références}{7}{0}{1}
