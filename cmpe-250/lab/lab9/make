@@ -3,10 +3,15 @@
 INCLUDE="lab9.s start.s ex9_equ.s mkl05z4.s"
 
 for i in $INCLUDE; do
-    echo "Assembling $i ..."
-    arm-none-eabi-as -ahndl -o "build/${i%.s}.o" "$i" > "build/${i%.s}.lst"
+    echo "Assembling... $i"
+    arm-none-eabi-as -ahndl -g -o "build/${i%.s}.o" "$i" > "build/${i%.s}.lst"
 done
+
+echo "Linking..."
 
 arm-none-eabi-ld -o "build/out.elf" -T linker.ld build/*.o -Map "build/out.map"
 arm-none-eabi-objdump -S "build/out.elf" > "build/out.dmp"
+
+echo "Generating binary..."
+
 arm-none-eabi-objcopy -O binary "build/out.elf" "build/out.bin"

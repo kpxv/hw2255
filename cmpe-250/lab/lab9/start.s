@@ -19,7 +19,6 @@
 // Section:  All sections
 // ****************************************************************
 // Assembler Directives
-.title "KL05 Bare Metal Assembly Startup"
 .syntax unified
 .thumb
 // ****************************************************************
@@ -296,6 +295,7 @@ SetClock48MHz_Wait_MCG_FLL_Selected:                      // do {
 .weak HardFault_Handler
 .global HardFault_Handler
 Dummy_Handler:  
+b .
 HardFault_Handler:
 // ****************************************************************
 // Dummy exception handler (infinite loop)
