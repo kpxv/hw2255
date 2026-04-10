@@ -201,7 +201,7 @@ Reset_Handler  PROC  {}
 main
 ;---------------------------------------------------------------
 ;Mask interrupts
-            CPSID   I
+			CPSID   I
 ;KL05 system startup with 48-MHz system clock
             BL      Startup
 ;---------------------------------------------------------------
@@ -212,6 +212,7 @@ main
             LDR R1, =QRECORD
             MOVS R2, #4
             BL INIT_QUEUE
+			CPSIE I
 
 MAIN_LOOP
             ; Print command string
@@ -470,8 +471,23 @@ Init_UART0_Polling PROC {}
             MOVS  R1,#UART0_C2_T_R 
             LDRB  R2,[R0,#UART0_C2_OFFSET] 
             BICS  R2,R2,R1 
-            STRB  R2,[R0,#UART0_C2_OFFSET] 
+            STRB  R2,[R0,#UART0_C2_OFFSET]
+			; Priority
+			LDR		R0, =UART0_IPR
+			LDR 	R2, =NVIC_IPR_UART0_MASK
+			LDR		R3, [R0]
+			ORRS	R3, R2
+			STR		R3, [R0]
+			; Clear pending
+			LDR		R0, =NVIC_ICPR
+			LDR		R1, =NVIC_ICPR_UART0_MASK
+			STR		R1, [R0]
+			; Unmask
+			LDR 	R0, =NVIC_ISER
+			LDR 	R1, =NVIC_ISER_UART0_MASK
+			STR		R1, [R0]
             ;Set UART0 for 9600 baud, 8N1 protocol 
+			LDR		R0, =UART0_BASE
             MOVS  R1,#UART0_BDH_9600 
             STRB  R1,[R0,#UART0_BDH_OFFSET] 
             MOVS  R1,#UART0_BDL_9600 
@@ -487,9 +503,9 @@ Init_UART0_Polling PROC {}
             MOVS  R1,#UART0_S1_CLEAR_FLAGS 
             STRB  R1,[R0,#UART0_S1_OFFSET] 
             MOVS  R1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
-            STRB  R1,[R0,#UART0_S2_OFFSET] 
-            ;Enable UART0 receiver and transmitter 
-            MOVS  R1,#UART0_C2_T_RI
+            STRB  R1,[R0,#UART0_S2_OFFSET]
+            ;Enable UART0 receiver and transmitter
+            LDR   R1, =UART0_C2_T_RI
             STRB  R1,[R0,#UART0_C2_OFFSET] 
 
             POP {R0, R1, R2, PC}
@@ -816,8 +832,12 @@ PutNumHexLoopExit
 ;*/
 GetChar PROC {}
             push {r1, lr}
+GetCharLoop
+			cpsid I
             ldr r1, =rx_record
             bl DEQUEUE
+			cpsie I
+			bcs GetCharLoop
             pop {r1, pc}
             ENDP
 
@@ -828,13 +848,17 @@ GetChar PROC {}
 ;*/
 PutChar PROC {}
             push {r1, r2, lr}
-            ; Enable transmit interrupt
+PutCharLoop
+            ; Put char
+			cpsid I
+            ldr r1, =tx_record
+            bl ENQUEUE
+			cpsie I
+			bcs PutCharLoop
+			; Enable transmit interrupt
             ldr r1, =UART0_BASE
             ldr r2, =UART0_C2_TI_RI
             strb r2, [r1, #UART0_C2_OFFSET]
-            ; Put char
-            ldr r1, =tx_record
-            bl ENQUEUE
             pop {r1, r2, pc}
             ENDP
 
