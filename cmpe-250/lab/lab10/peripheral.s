@@ -128,14 +128,6 @@ Init_PIT_IRQ:
             movs r2, #PIT_MCR_MF
             ands r1, r2
             str r1, [r0, #PIT_MCR_OFFSET]
-            // Enable timer and timer interrupt; disable chain mode
-            ldr r1, =PIT_TCTRL0_OFFSET
-            movs r2, #PIT_TCTRL_TIE_TEN_MASK
-            str r2, [r0, r1]
-            // Set PIT timer value
-            ldr r0, =PIT_CH0_BASE
-            ldr r1, =PIT_LDVAL_10ms
-            str r1, [r0, #PIT_LDVAL_OFFSET]
             // Allow PIT clock
             ldr r0, =SIM_BASE
             ldr r1, =SIM_SCGC6_OFFSET
@@ -144,13 +136,42 @@ Init_PIT_IRQ:
             lsls r3, #SIM_SCGC6_PIT_SHIFT
             ands r2, r3
             str r2, [r0, r1]
-
-            // Enable PIT after setup completion
+            // Disable timer and timer interrupt
+            ldr r1, =PIT_TCTRL0_OFFSET
+            movs r2, #0
+            str r2, [r0, r1]
+            // NVIC interrupts
+            // Does this order matter?
+            // Set PIT interrupt priority
+            ldr r0, =PIT_IPR
+            ldr r1, [r0]
+            ldr r2, =NVIC_IPR_PIT_PRI_0
+            orrs r1, r2
+            str r1, [r0]
+            // Clear pending PIT interrupts
+            ldr r0, =NVIC_ICPR
+            str r1, [r0]
+            // Enable PIT interrupts
+            ldr r0, =NVIC_ISER
+            ldr r1, =PIT_IRQ_MASK
+            str r1, [r0]
+            // Enable PIT module
+            // Why is this here? Shouldn't it be at the end?
             ldr r0, =PIT_BASE
             ldr r1, [r0, #PIT_MCR_OFFSET]
-            movs r2, #PIT_MCR_MDIS_SHIFT
+            movs r2, #PIT_MCR_MDIS_MASK
             bics r1, r2
             str r1, [r0, #PIT_MCR_OFFSET]
+            // Set PIT timer value
+            // Wtf? This seems like setup
+            ldr r0, =PIT_CH0_BASE
+            ldr r1, =PIT_LDVAL_10ms
+            str r1, [r0, #PIT_LDVAL_OFFSET]
+            // Enable timer and timer interrupt; disable chain mode
+            // Still seems like setup
+            ldr r1, =PIT_TCTRL0_OFFSET
+            movs r2, #PIT_TCTRL_TIE_TEN_MASK
+            str r2, [r0, r1]
             pop {r0-r3}
             bx lr
 
@@ -168,6 +189,20 @@ Init_PIT_IRQ:
   */
 .global PIT_ISR
 PIT_ISR:
+    // Increment only if run_stop_watch is set
+    ldr r0, =run_stop_watch
+    cmp r0, #0
+    beq PIT_ISR_exit
+    ldr r0, =pit_count
+    ldr r1, [r0]
+    adds r1, #1
+    str r1, [r0]
+PIT_ISR_exit:
+    // Clear interrupt
+    ldr r0, =PIT_CH0_BASE
+    ldr r1, =PIT_TFLG_TIF_MASK
+    str r1, [r0, #PIT_TFLG_OFFSET]
+    bx lr
 
 
 
@@ -437,16 +472,27 @@ Enqueue_exit:
 
 
 .section data, "aw", %nobits
-.balign 4
+// Receive queue variables
+.balign WORD_SIZE
 rx_buffer:
 .skip rx_qbuf_sz
-.balign 4
+.balign WORD_SIZE
 rx_record:
 .skip rx_qrec_sz
 
-.balign 4
+// Transmit queue variables
+.balign WORD_SIZE
 tx_buffer:
 .skip tx_qbuf_sz
-.balign 4
+.balign WORD_SIZE
 tx_record:
 .skip tx_qrec_sz
+
+// PIT counter variables
+.balign WORD_SIZE
+.global pit_count
+pit_count:
+.skip WORD_SIZE
+.global run_stop_watch
+run_stop_watch:
+.skip 1

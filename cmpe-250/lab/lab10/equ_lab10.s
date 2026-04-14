@@ -32,6 +32,10 @@
 .set PIT_LDVAL_10ms, 239861
 // Enable timer and timer interrupt
 .set PIT_TCTRL_TIE_TEN_MASK, (PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK)
+// NVIC PIT Priority
+.set PIT_IRQ_PRI, 0
+.set NVIC_IPR_PIT_MASK, (3 << PIT_PRI_POS)
+.set NVIC_IPR_PIT_PRI_0, (PIT_IRQ_PRI << PIT_PRI_POS)
 
 // Offsets from base record
 .set in_ptr, 0

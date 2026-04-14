@@ -1,6 +1,7 @@
 #! /bin/sh
 
-INCLUDE="lab10.s ir.s equ_lab10.s start.s mkl05z4.s"
+INCLUDE="lab10.s peripheral.s equ_lab10.s start.s mkl05z4.s"
+OUTFILE=""
 BUILDDIR="build"
 
 if [ ! -d "$BUILDDIR" ] ; then
@@ -13,12 +14,13 @@ for i in $INCLUDE; do
     echo -en "\033[33m"
     arm-none-eabi-as -ahndl -g -o "$BUILDDIR/${i%.s}.o" "$i" > "$BUILDDIR/${i%.s}.lst"
     echo -en "\033[0m"
+    OUTFILE="$OUTFILE $BUILDDIR/${i%.s}.o"
 done
 
 echo "Linking..."
 
 echo -en "\033[33m"
-arm-none-eabi-ld -o "$BUILDDIR/out.elf" -T linker.ld $BUILDDIR/*.o -Map "$BUILDDIR/out.map"
+arm-none-eabi-ld -o "$BUILDDIR/out.elf" -T linker.ld $OUTFILE -Map "$BUILDDIR/out.map"
 arm-none-eabi-objdump -S "$BUILDDIR/out.elf" > "$BUILDDIR/out.dmp"
 echo -en "\033[0m"
 

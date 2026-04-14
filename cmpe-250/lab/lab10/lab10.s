@@ -13,286 +13,96 @@ Reset_Handler:
             bl Startup
             bl Init_UART0_IRQ
             bl Init_PIT_IRQ
-            ldr r0, =qbuffer
-            ldr r1, =qrecord
             cpsie I
 Main_loop:
             // Print command string
-            ldr r0, =cmd_s
+            ldr r0, =prompt1_s
             movs r1, #max_string
             bl PutStringSB 
-Poll_loop:
-            bl GetChar          // Poll for character
-            movs r4, r0         // Allow logic with toUpper, but save polled character for printing
-            cmp r4, #'a'      // Check whether the polled character is less then 'a'
-            blt Check           // If so, skip toUpper conversion
-To_upper:
-            subs r4, r4, #offset_a_A    // Else, convert character to uppercase.
-Check:
-			cmp r4, #'D'      // Check whether character is D
-			beq D_instr
-			cmp r4, #'E'      // Check whether character is E
-			beq E_instr
-			cmp r4, #'H'      // Check whether character is H
-			beq H_instr
-			cmp r4, #'P'      // Check whether character is P
-			beq P_instr
-			cmp r4, #'S'      // Check whether character is S
-			beq S_instr
-			
-			b Poll_loop         // Loop
-            b .
-
-
-
-/**
-  * Runs the D isntruction
-  *
-  * Inputs:
-  *     R0 : the input character
-  * Outputs:
-  *     None
-  * Modifies:
-  *     psr
-  */
-D_instr:
-            push {r0-r1}
-            // Print input char and newline
-            bl echo_cmd
-            // Attempt dequeue
-            ldr r1, =qrecord
-            bl Dequeue
-            movs r1, #max_string
-            bcc D_instr_pass
-            // If unsuccessful, print fail string
-            ldr r0, =fail_s
-            bl PutStringSB
-            b D_instr_cont
-D_instr_pass:
-            // Else, print the dequeued character
-            bl PutChar
-            ldr r0, =char_s
-            bl PutStringSB
-D_instr_cont:
-            // Print status of the record
-            bl Status
-            pop {r0-r1}
-            b Main_loop
-
-
-
-/**
-  * Runs the E isntruction
-  *
-  * Inputs:
-  *     R0 : the input character
-  * Outputs:
-  *     None
-  * Modifies:
-  *     psr
-  */
-E_instr:
-            push {r0-r1}
-            // Print input char and newline
-            bl echo_cmd
-            // Get character to enqueue
-            ldr r0, =enqu_s
-            movs r1, #max_string
-            bl PutStringSB
-            bl GetChar
-            // Print the character selected and newline
-			bl echo_cmd
-            // Attempt enqueue
-            ldr r1, =qrecord
-            bl Enqueue
-            bcc E_instr_pass
-            // If unsuccessful, print fail string
-            ldr r0, =fail_s
-            bl PutStringSB
-            b E_instr_cont
-E_instr_pass:
-            // Else, print success string
-            ldr r0, =succ_s
-            bl PutStringSB
-E_instr_cont:
-            // Print status of the record
-            bl Status
-            pop {r0-r1}
-            b Main_loop
-
-
-
-/**
-  * Runs the H isntruction
-  *
-  * Inputs:
-  *     R0 : the input character
-  * Outputs:
-  *     None
-  * Modifies:
-  *     psr
-  */
-H_instr:
-            push {r0-r1}
-            // Print input char and newline
-            bl echo_cmd
-            // Print help string
-            ldr r0, =help_s
-            movs r1, #max_string
-            bl PutStringSB
-            // Return
-            pop {r0-r1}
-            b Main_loop
-
-
-
-/**
-  * Runs the P isntruction
-  *
-  * Inputs:
-  *     R0 : the input character
-  * Outputs:
-  *     None
-  * Modifies:
-  *     psr
-  */
-P_instr:
-            push {r0-r3}
-            // Print the input char and newline
-            bl echo_cmd
-            // Print left delimiter
-            movs r0, #'>'
-            bl PutChar
-            // Exit if the queue is empty
-            ldr r1, =qrecord
-            ldrb r3, [r1, #num_enqd]
-            cmp r3, #0
-            beq P_instr_exit
-            // Load in and out pointers
-            ldr r0, [r1, #out_ptr]
-            ldr r3, [r1, #in_ptr]
-            movs r2, r0
-P_instr_loop:
-            // Print the value at the pointer in r2
-            ldrb r0, [r2]
-            bl PutChar
-            // Increment the r2 pointer
-            bl Pointer_inc
-            // Exit when r2 pointer is the same as the in pointer
-            cmp r2, r3
-            bne P_instr_loop
-P_instr_exit:
-            // Print right delimiter and newline
+            ldr r0, =response
+            // Start timing the user
+            movs r3, #0
+            movs r4, #1
+            ldr r2, =pit_count
+            str r3, [r2]
+            ldrb r2, =run_stop_watch
+            strb r4, [r2]
+            // Get response and stop timer
+            bl GetStringSB
+            strb r3, [r2]
+            // Print time
             movs r0, #'<'
             bl PutChar
-            ldr r0, =crlf_s
+            ldr r1, =pit_count
+            ldrb r0, [r1]
+            bl PutNumU
             movs r1, #max_string
-			bl PutStringSB
-            // Return
-            pop {r0-r3}
-            b Main_loop
-
-
-
-/**
-  * Runs the S isntruction
-  *
-  * Inputs:
-  *     R0 : the input character
-  * Outputs:
-  *     None
-  * Modifies:
-  *     psr
-  */
-S_instr:
-            push {r0-r1}
-            // Print the input char and newline
-            bl echo_cmd
-            ldr r0, =stat_s
-            movs r1, #max_string
+            ldr r0, =time_factor_s
             bl PutStringSB
-            // Print the record status
-			bl Status
-            // Return
-            pop {r0-r1}
-            b Main_loop
 
-
-
-/**
-  * Print the status of the queue record
-  *
-  * Inputs:
-  *     None
-  * Outputs:
-  *     None
-  * Modifies:
-  *     psr
-  */
-Status:
-            push {r0-r1, lr}
-            // Print the in pointer string
-            movs r1, #max_string
-            ldr r0, =stat_in_s
-            bl PutStringSB
-            // Print the in pointer
-            ldr r1, =qrecord
-            ldr r0, [r1, #in_ptr]
-            bl PutNumHex
-            // Print the out pointer string
-            movs r1, #max_string
-            ldr r0, =stat_out_s
-            bl PutStringSB
-            // Print the out pointer
-            ldr r1, =qrecord
-            ldr r0, [r1, #out_ptr]
-            bl PutNumHex
-            // Print the number enqueued string
-            movs r1, #max_string
-            ldr r0, =stat_num_s
-            bl PutStringSB
-            // Print the number enqueued
-            ldr r1, =qrecord
-            ldrb r0, [r1, #num_enqd]
-            bl PutNumUB
-            // Print newline
-            movs r1, #max_string
-            ldr r0, =crlf_s
-            bl PutStringSB
-            // Return
-            pop  {r0-r1, pc}
-
-
-
-/** Print the char and newline
-  * Inputs:
-  *     r0 : The char to print
-  * Outputs:
-  *     none
-  * Modifies:
-  *     LR, PSR
-  */
-echo_cmd:
-            push {r0, r1, lr}
-            // Print char
+            // Print command string
+            ldr r0, =prompt2_s
+            bl PutStringSB 
+            ldr r0, =response
+            // Start timing the user
+            movs r3, #0
+            movs r4, #1
+            ldr r2, =pit_count
+            str r3, [r2]
+            ldrb r2, =run_stop_watch
+            strb r4, [r2]
+            // Get response and stop timer
+            bl GetStringSB
+            strb r3, [r2]
+            // Print time
+            movs r0, #'<'
             bl PutChar
-            // Print newline
-            ldr r0, =crlf_s
-			movs r1, #5
+            ldr r1, =pit_count
+            ldrb r0, [r1]
+            bl PutNumU
+            movs r1, #max_string
+            ldr r0, =time_factor_s
             bl PutStringSB
-            pop {r0, r1, pc}
+
+            // Print command string
+            ldr r0, =prompt3_s
+            bl PutStringSB 
+            ldr r0, =response
+            // Start timing the user
+            movs r3, #0
+            movs r4, #1
+            ldr r2, =pit_count
+            str r3, [r2]
+            ldrb r2, =run_stop_watch
+            strb r4, [r2]
+            // Get response and stop timer
+            bl GetStringSB
+            strb r3, [r2]
+            // Print time
+            movs r0, #'<'
+            bl PutChar
+            ldr r1, =pit_count
+            ldrb r0, [r1]
+            bl PutNumU
+            movs r1, #max_string
+            ldr r0, =time_factor_s
+            bl PutStringSB
+
+            ldr r0, =goodbye_s
+            bl PutStringSB
 
 
 
 /**
   * Prints a string
+  *
   * Inputs:
   *     R0 : Memory addr of the string to print
   *     R1 : Capacity of the string
   * Outputs:
   *     None
   * Modifies:
-  *     LR, PSR
+  *     lr, psr
   */
 PutStringSB:
             push {r0-r3, lr}
@@ -310,74 +120,61 @@ PutStringSBLoop:
             b PutStringSBLoop
 PutStringSBTerminate:
             pop {r0-r3, pc}
-
+            
 
 
 /**
-  * Put byte as decimal to terminal
+  * Gets a string from UART
   *
   * Inputs:
-  *     r1 : byte to send
+  *     r0 : address of stored string
+  *     r1 : buffer capacity
   * Outputs:
-  *     none
+  *     a string at the memory location contained in r0
   * Modifies:
   *     psr
   */
-PutNumUB:
-            push {r0-r1, lr}
-            movs r1, #0xff
-            ands r0, r0, r1
-            bl PutNumU
-            pop {r0-r1, pc}
-
-
-
-/**
-  * Send register contents as ASCII over UART
-  *
-  * Inputs:
-  *     r0 : the register to send
-  * Outputs:
-  *     none
-  * Modifies:
-  *     none
-  */
-PutNumHex:
-            push {r1-r4, lr}
-            // Find mask
-            ldr r1, =0xf0000000
-            movs r3, #8
-PutNumHexLoop:
-            // Exit after all bytes have been converted
-            cmp r3, #0
-            beq PutNumHexLoopExit
-            // Isolate the byte
-            movs r2, r1
-            ands r2, r2, r0
-            // Bring the active byte to the front
-			movs r4, r3
-			subs r4, #1
-			lsls r4, #2
-            lsrs r2, r2, r4
-            // If the byte is a-f
-            cmp r2, #10
-            blt PutNumHexLow
-            // Add 7 (offset from 9 to a)
-            adds r2, #('A' - '9')
-PutNumHexLow:
-            // For all bytes, add the 0x00 to ASCII 0 offset
-            adds r2, #'0'
-            // Print the char
-            movs r4, r0
-            movs r0, r2
+GetStringSB:
+            push {r0-r4, lr}
+            cmp r1, #0
+            beq GetStringSBTerminate   // String must have at least one character
+            subs r1, r1, #1
+            movs r2, r0
+            movs r3, #0
+GetStringSBLoop:
+            bl GetChar
+            cmp r0, #0x0D
+            beq GetStringSBCleanup      // End on return
+            cmp r0, #0x08
+            beq GetStringSBBackspace    // Allow backspace
+            cmp r0, #0x7F
+            beq GetStringSBLoop         // Get new character if control character
+            cmp r0, #0x1F
+            bls GetStringSBLoop
+            cmp r3, r1
+            bhs GetStringSBLoop         // If buffer size reached, wait for return or backspace
+            strb r0, [r2, r3]           // Store
+            adds r3, r3, #1             // Increment string pointer
             bl PutChar
-            movs r0, r4
-            // Shift the mask
-            lsrs r1, #4
-            subs r3, r3, #1
-            b PutNumHexLoop
-PutNumHexLoopExit:
-            pop {r1-r4, pc}
+            b GetStringSBLoop
+GetStringSBBackspace:
+            cmp r3, #0
+            beq GetStringSBLoop         // Only backspace if there are characters in the string
+            bl PutChar                  // Remove character from the screen
+            movs r0, #0x20
+            bl PutChar
+            movs r0, #0x08
+            bl PutChar
+            subs r3, r3, #1             // Decrement string poniter
+            b GetStringSBLoop
+GetStringSBCleanup:
+            movs r4, #0
+            strb r4, [r2, r3]           // Store NUL terminator
+			ldr r0, =crlf_s
+            movs r1, #max_string
+            bl PutStringSB              // Print newline
+GetStringSBTerminate:
+            pop {r0-r4, pc}
 
 
 
@@ -536,29 +333,26 @@ __Vectors_End:
 
 
 .section const, "a"
-cmd_s:       
-.asciz      "Type a queue command (D,E,H,P,S):"
-crlf_s:      
-.byte       0x0D, 0x0A, 0x00
-fail_s:      
-.asciz      "Failure:        "
-char_s:      
-.asciz      ":              "
-stat_s:      
-.asciz      " Status:        "
-succ_s:      
-.asciz      "Success:        "
-enqu_s:      
-.asciz      "Char to enqueue:"
-help_s:      
-.asciz      "D (dequeue), E (enqueue), H (help), P (print), S (status)"
-.byte       0x0D, 0x0A, 0x00
-stat_in_s:   
-.asciz      "    In=0x"
-stat_out_s:  
-.asciz      "    Out=0x"
-stat_num_s:  
-.asciz      "    Num=0"
+crlf_s:
+.byte 0x0a, 0x0d, 0x00
+prompt1_s:
+.ascii "Enter your name."
+.byte 0x0a, 0x0d
+.asciz "> "
+prompt2_s:
+.ascii "Enter the date."
+.byte 0x0a, 0x0d
+.asciz "> "
+prompt3_s:
+.ascii "Enter the last name of a 250 lab TA."
+.byte 0x0a, 0x0d
+.asciz "> "
+time_factor_s:
+.ascii " x 0.01 s"
+.byte 0x0a, 0x0d, 0x00
+goodbye_s:
+.ascii "Thank you.  Goodbye!"
+.byte 0x0a, 0x0d, 0x00
 
 .balign 4
 
@@ -566,10 +360,5 @@ stat_num_s:
 
 .section data, "aw", %nobits
 .balign 4
-qbuffer:
-.skip qbuf_sz
-.balign 4
-qrecord:
-.skip qrec_sz
-
-.balign 4
+response:
+.skip max_string
