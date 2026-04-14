@@ -1,0 +1,53 @@
+.nolist
+.include "mkl05z4.s"
+.list
+
+.set PORT_PCR_SET_PTB2_UART0_RX  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_2_MASK) 
+.set PORT_PCR_SET_PTB1_UART0_TX  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_2_MASK) 
+.set SIM_SOPT2_UART0SRC_MCGFLLCLK  ,  (1 << SIM_SOPT2_UART0SRC_SHIFT) 
+.set SIM_SOPT5_UART0_EXTERN_MASK_CLEAR  , (SIM_SOPT5_UART0ODE_MASK | SIM_SOPT5_UART0RXSRC_MASK | SIM_SOPT5_UART0TXSRC_MASK)
+.set UART0_BDH_9600  ,  0x01 
+.set UART0_BDL_9600  ,  0x38 
+.set UART0_C1_8N1  ,  0x00 
+.set UART0_C2_T_R  ,  (UART0_C2_TE_MASK | UART0_C2_RE_MASK) 
+.set UART0_C3_NO_TXINV  ,  0x00
+.set UART0_C4_OSR_16           ,  0x0F 
+.set UART0_C4_NO_MATCH_OSR_16  ,  UART0_C4_OSR_16 
+.set UART0_C5_NO_DMA_SSR_SYNC  ,  0x00 
+.set UART0_S1_CLEAR_FLAGS  ,  (UART0_S1_IDLE_MASK | UART0_S1_OR_MASK |    UART0_S1_NF_MASK |  UART0_S1_FE_MASK | UART0_S1_PF_MASK) 
+.set UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  ,  (UART0_S2_LBKDIF_MASK | UART0_S2_RXEDGIF_MASK) 
+
+.set NVIC_ICPR_UART0_MASK, UART0_IRQ_MASK
+.set UART0_IRQ_PRIORITY, 3
+.set NVIC_IPR_UART0_MASK, (3 << UART0_PRI_POS)
+.set NVIC_IPR_UART0_PRI_3, (UART0_IRQ_PRIORITY << UART0_PRI_POS)
+.set NVIC_ISER_UART0_MASK, UART0_IRQ_MASK
+
+.set UART0_C2_T_RI, (UART0_C2_RIE_MASK | UART0_C2_T_R)
+.set UART0_C2_TI_RI, (UART0_C2_TIE_MASK | UART0_C2_T_RI)
+
+// PIT MCR set MDIS and FRZ
+.set PIT_MCR_MF, (PIT_MCR_MDIS_MASK | PIT_MCR_FRZ_MASK)
+// PIT TSV for 10ms period
+.set PIT_LDVAL_10ms, 239861
+// Enable timer and timer interrupt
+.set PIT_TCTRL_TIE_TEN_MASK, (PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK)
+
+// Offsets from base record
+.set in_ptr, 0
+.set out_ptr, 4
+.set buf_start, 8
+.set buf_past, 12
+.set buf_size, 16
+.set num_enqd, 17
+
+// Sizes of buffers and records
+.set rx_qbuf_sz, 80
+.set rx_qrec_sz, 18
+.set tx_qbuf_sz, 80
+.set tx_qrec_sz, 18
+.set qbuf_sz,    80
+.set qrec_sz,    18
+
+.set offset_a_A, ('a' - 'A')
+.set max_string, 0x80
