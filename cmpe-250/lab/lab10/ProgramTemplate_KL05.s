@@ -985,25 +985,25 @@ __Vectors_Size  EQU     __Vectors_End - __Vectors
 
 ;>>>>> begin constants here <<<<<
 crlf_s
-DCB 0x0a, 0x0d, 0x00
+            DCB 0x0a, 0x0d, 0x00
 prompt1_s
-DCB "Enter your name."
-DCB 0x0a, 0x0d
-DCB "> ", 0x00
+            DCB "Enter your name."
+            DCB 0x0a, 0x0d
+            DCB "> ", 0x00
 prompt2_s
-DCB "Enter the date."
-DCB 0x0a, 0x0d
-DCB "> ", 0x00
+            DCB "Enter the date."
+            DCB 0x0a, 0x0d
+            DCB "> ", 0x00
 prompt3_s
-DCB "Enter the last name of a 250 lab TA."
-DCB 0x0a, 0x0d
-DCB "> ", 0x00
+            DCB "Enter the last name of a 250 lab TA."
+            DCB 0x0a, 0x0d
+            DCB "> ", 0x00
 time_factor_s
-DCB " x 0.01 s"
-DCB 0x0a, 0x0d, 0x00
+            DCB " x 0.01 s"
+            DCB 0x0a, 0x0d, 0x00
 goodbye_s
-DCB "Thank you.  Goodbye!"
-DCB 0x0a, 0x0d, 0x00
+            DCB "Thank you.  Goodbye!"
+            DCB 0x0a, 0x0d, 0x00
 ;>>>>>   end constants here <<<<<
             ALIGN
 ; ***************************************************************
