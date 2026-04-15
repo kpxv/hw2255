@@ -208,7 +208,7 @@ OFFSET_a_A EQU 0x20
             EXPORT  Reset_Handler
             IMPORT  Startup
 
-            Reset_Handler
+Reset_Handler
             cpsid I
             bl Startup
             bl Init_UART0_IRQ
