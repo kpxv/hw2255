@@ -158,18 +158,18 @@ NVIC_ISER_UART0_MASK EQU UART0_IRQ_MASK
 UART0_C2_T_RI EQU (UART0_C2_RIE_MASK :OR: UART0_C2_T_R)
 UART0_C2_TI_RI EQU (UART0_C2_TIE_MASK :OR: UART0_C2_T_RI)
 
-// PIT MCR set MDIS and FRZ
+; PIT MCR set MDIS and FRZ
 PIT_MCR_MF EQU (PIT_MCR_MDIS_MASK :OR: PIT_MCR_FRZ_MASK)
-// PIT TSV for 10ms period
+; PIT TSV for 10ms period
 PIT_LDVAL_10ms EQU 239861
-// Enable timer and timer interrupt
+; Enable timer and timer interrupt
 PIT_TCTRL_TIE_TEN_MASK EQU (PIT_TCTRL_TIE_MASK :OR: PIT_TCTRL_TEN_MASK)
-// NVIC PIT Priority
+; NVIC PIT Priority
 PIT_IRQ_PRI EQU 0
 NVIC_IPR_PIT_MASK EQU (3 << PIT_PRI_POS)
 NVIC_IPR_PIT_PRI_0 EQU (PIT_IRQ_PRI << PIT_PRI_POS)
 
-// Offsets from base record
+; Offsets from base record
 in_ptr EQU 0
 out_ptr EQU 4
 buf_start EQU 8
@@ -177,21 +177,13 @@ buf_past EQU 12
 buf_size EQU 16
 num_enqd EQU 17
 
-// Sizes of buffers and records
+; Sizes of buffers and records
 rx_qbuf_sz EQU 80
 rx_qrec_sz EQU 18
 tx_qbuf_sz EQU 80
 tx_qrec_sz EQU 18
 qbuf_sz EQU    80
 qrec_sz EQU    18
-
-
-; Sizes of buffers and records
-rx_qbuf_sz EQU 80
-rx_qrec_sz EQU 18
-tx_qbuf_sz EQU 80
-tx_qrec_sz EQU 18
-
 
 
 
@@ -1037,7 +1029,7 @@ goodbye_s
 ;Variables
             AREA    MyData,DATA,READWRITE
 ;>>>>> begin variables here <<<<<
-// PIT counter variables
+; PIT counter variables
 pit_count
             SPACE 4
 run_stop_watch
