@@ -186,14 +186,6 @@ qbuf_sz EQU    80
 qrec_sz EQU    18
 
 
-
-in_ptr EQU 0
-out_ptr EQU 4
-buf_start EQU 8
-buf_past EQU 12
-buf_size EQU 16
-num_enqd EQU 17
-
 q_buf_sz EQU 80
 q_rec_sz EQU 18
 
@@ -204,7 +196,7 @@ HEX_H EQU 'H'
 HEX_P EQU 'P'
 HEX_S EQU 'S'
 HEX_0 EQU '0'
-MAX_STRING EQU 0x80
+max_string EQU 0x80
 OFFSET_a_A EQU 0x20
 
 
