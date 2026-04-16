@@ -234,7 +234,7 @@ Main_loop
             movs r0, #'<'
             bl PutChar
             ldr r1, =pit_count
-            ldrb r0, [r1]
+            ldr r0, [r1]
             bl PutNumU
             movs r1, #max_string
             ldr r0, =time_factor_s
@@ -258,7 +258,7 @@ Main_loop
             movs r0, #'<'
             bl PutChar
             ldr r1, =pit_count
-            ldrb r0, [r1]
+            ldr r0, [r1]
             bl PutNumU
             movs r1, #max_string
             ldr r0, =time_factor_s
@@ -282,7 +282,7 @@ Main_loop
             movs r0, #'<'
             bl PutChar
             ldr r1, =pit_count
-            ldrb r0, [r1]
+            ldr r0, [r1]
             bl PutNumU
             movs r1, #max_string
             ldr r0, =time_factor_s
@@ -290,6 +290,7 @@ Main_loop
 
             ldr r0, =goodbye_s
             bl PutStringSB
+			b .
 
 
 
@@ -568,24 +569,20 @@ Init_UART0_IRQ
 
 Init_PIT_IRQ
             push {r0-r3}
-            ; Disable PIT for setup and disable timer in debug
-            ldr r0, =PIT_BASE
-            ldr r1, [r0, #PIT_MCR_OFFSET]
-            movs r2, #PIT_MCR_MF
-            ands r1, r2
-            str r1, [r0, #PIT_MCR_OFFSET]
+            
             ; Allow PIT clock
             ldr r0, =SIM_BASE
             ldr r1, =SIM_SCGC6_OFFSET
             ldr r2, [r0, r1]
             movs r3, #1
             lsls r3, #SIM_SCGC6_PIT_SHIFT
-            ands r2, r3
+            orrs r2, r3
             str r2, [r0, r1]
             ; Disable timer and timer interrupt
+			ldr r0, =PIT_BASE
             ldr r1, =PIT_TCTRL0_OFFSET
             movs r2, #0
-            str r2, [r0, r1]
+            strb r2, [r0, r1]
             ; NVIC interrupts
             ; Does this order matter?
             ; Set PIT interrupt priority
@@ -615,6 +612,7 @@ Init_PIT_IRQ
             str r1, [r0, #PIT_LDVAL_OFFSET]
             ; Enable timer and timer interrupt; disable chain mode
             ; Still seems like setup
+			ldr r0, =PIT_BASE
             ldr r1, =PIT_TCTRL0_OFFSET
             movs r2, #PIT_TCTRL_TIE_TEN_MASK
             str r2, [r0, r1]
@@ -637,6 +635,7 @@ Init_PIT_IRQ
 PIT_ISR
     ; Increment only if run_stop_watch is set
     ldr r0, =run_stop_watch
+	ldrb r0, [r0]
     cmp r0, #0
     beq PIT_ISR_exit
     ldr r0, =pit_count
