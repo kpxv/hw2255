@@ -1,0 +1,42 @@
+#!/bin/bash
+ghdl -a --std=08 "sources_1/global_pkg.vhd"
+anl () {
+    for i in $FILES; do
+        ghdl -a --std=08 "$DIR/$i"
+    done
+}
+
+# Compile Instruction Fetch
+DIR="sources_1/fetch"
+FILES="instr-mem.vhd instr-fetch.vhd"
+anl
+
+DIR="sources_1/decode"
+FILES="register.vhd control-unit.vhd instr-decode.vhd"
+anl
+
+DIR="sources_1/execute"
+FILES="sllN.vhd sraN.vhd srlN.vhd xorN.vhd andN.vhd orN.vhd
+mult-wrapper-pkg.vhd mult-adder-pkg.vhd f-adder.vhd rc-adder.vhd mult-adder.vhd
+mult-wrapper.vhd mult.vhd alu32.vhd execute.vhd"
+anl
+
+DIR="sources_1/mem"
+FILES="bcd_seven_seg_converter.vhd seven_seg_controller.vhd data-mem.vhd
+mem-stage.vhd"
+anl
+
+DIR="sources_1/writeback"
+FILES="writeback.vhd"
+anl
+
+DIR="sources_1/."
+FILES="proc.vhd"
+anl
+
+DIR="sim_1/new"
+FILES="proc-tb.vhd"
+anl
+
+ghdl -e --std=08 proc_tb
+ghdl -r --std=08  proc_tb --wave=wave.ghw
