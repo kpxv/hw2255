@@ -10,18 +10,29 @@ entity proc is
         addr_space : integer := 10
     );
     port (
-        clk      : in    std_logic;
+        clk_in   : in    std_logic;
         rst      : in    std_logic;
         switches : in    std_logic_vector(15 downto 0);
 
         seven_seg_digit : out   std_logic_vector(6 downto 0);
-        active_digit    : out   std_logic_vector(3 downto 0);
-        alu_out         : out   std_logic_vector(31 downto 0)
+        -- alu_out         : out   std_logic_vector(31 downto 0);
+        active_digit    : out   std_logic_vector(3 downto 0)
     );
 end entity proc;
 
 architecture struct of proc is
 
+    component clk_wiz_0 is
+        port (
+            -- Clock out ports
+            clk_out1 : out   std_logic;
+            -- Status and control signals
+            reset   : in    std_logic;
+            clk_in1 : in    std_logic
+        );
+    end component clk_wiz_0;
+
+    signal alu_out  : std_logic_vector(31 downto 0);
     signal instr0_s : std_logic_vector(31 downto 0);
     signal instr1_s : std_logic_vector(31 downto 0);
 
@@ -88,7 +99,20 @@ architecture struct of proc is
     signal write_reg4_s : std_logic_vector(4 downto 0);
     signal result0_s    : std_logic_vector(31 downto 0);
 
+    signal clk : std_logic;
+
 begin
+
+    -- your_instance_name : component clk_wiz_0
+    --     port map (
+    --         -- Clock out ports
+    --         clk_out1 => clk,
+    --         -- Status and control signals
+    --         reset => rst,
+    --         -- Clock in ports
+    --         clk_in1 => clk_in
+    --     );
+    clk <= clk_in;
 
     fetch_inst : entity work.instrfetch(struct)
         port map (
@@ -192,6 +216,9 @@ begin
     begin
 
         if rising_edge(clk) then
+            -- Input (switches)
+            switches_s <= switches;
+
             -- Fetch outputs
             instr1_s <= instr0_s;
 
