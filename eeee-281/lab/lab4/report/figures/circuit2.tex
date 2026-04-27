@@ -1,0 +1,28 @@
+\documentclass{standalone}
+
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usepackage{newtxtext, newtxmath}
+
+\begin{document}
+\begin{circuitikz}[american voltages]
+	\draw
+	(4,3) node[op amp] (op) {}
+
+	(0,0) to (0,0 |- op.-)
+	to [R, l={$R_1$}] (op.-)
+	to (op.- |- 0,5)
+	to [R, l={$R_f$}] (0,5 -| op.out)
+	to (op.out)
+	to (6,6 |- op.out) node[above] {$V_{out}$}
+
+	(0,0 -| op.+) to [sV, l={$V_{in}$}] (op.+)
+	(op.up) node[vcc] {5 V}
+	(op.down) node[vee] {-5 V}
+
+	;
+	\node [ground] at (0,0) {};
+	\node [ground] at (0,0 -| op.+) {};
+\end{circuitikz}
+\end{document}
+
