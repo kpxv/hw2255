@@ -1,0 +1,159 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+\usepackage{minted}
+
+\graphicspath{{./assets/}}
+
+\title{Homework Five}
+\author{Aden Perry}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+	\item The MDIS bit of the MCR register is set to safely (without faults)
+	      configure the PIT. The PTI bit of SIM\_SCGC6 register is set to allow
+	      the system clock to be used with the PIT module. The TIE bit of the
+	      TCTRL register is cleared to allow configuration of interrupts. IRQ
+	      22 of NVIC IPR 5 is set with the desired priority, 0--3. NVIC\_IPCR
+	      is cleared to clear pending interrupts. The PIT bits of the
+	      NVIC\_ISER are set to enable the PIT interrupt. MDIS is re-enabled to
+	      enable module; configuration of load time is done; finally, the
+	      transmit interrupt is enabled (TIE bit).
+
+	\item The processor pushes R0-R3 and R12-15 to the stack. A vector fetch is
+	      performed to determine the address to run the exception at.
+	      Simultanously, an EXC\_RETURN value is written to LR. Control is
+	      returned to the program when one of \texttt{0xFFFFFFF9} or
+	      \texttt{0xFFFFFFFD} (\texttt{0xFFFFF1} returns to the previous
+	      interrupt, not the program).
+
+	\item They are values between 0 and 3 assigned to each interrupt and are
+	      used in the event that two interrupts (or exceptions) occur
+	      simultanously; the higher priority interrupt is dealt with first,
+	      forcing late-arrival if necessary, and then tail-chains into the
+	      lower priority interrupt.
+
+	\item \inputminted{asm}{q4.s}
+
+	\item The TPM0 bit of the SIM\_SCGC6 register is set to allow the system
+	      clock to reach the TPM0 module. The PORTB bit of the SIM\_SCGC5 is
+	      set to allow the system clock to reach Port B of the KL05. The MUX
+	      field of the PORTB\_PCR register is set to 111 to select TMP0 channel
+	      2.
+
+	\item Negative, so set sign bit. 16.75 = 10000.11. Normalize: 1.000011. Put
+	      into IEEE-754 and convert:
+	      -16.75 = \texttt{1  1000 0011  0000 1100 0000 00000000 0000 0000 000} \\
+	      -16.75 = \texttt{C186 0000}
+
+	\item \texttt{0x40b40000} = \texttt{0 1000 0001 0110 1000 0000 0000 0000 000} \\
+	      Sign bit is 0, number is $101.101_2$ = 5.625
+
+	\item
+	      \begin{enumerate}
+		      \item \texttt{0xc0a8 0000} $\cdot$ \texttt{0x3fd0 0000} = \texttt{0xc108 8000}
+		            \begin{align*}
+			            c0a80000 \cdot 3fd00000 = &                                                                                        \\
+			                                      & \left(1\right)\_\left(10000001\right)\_\left(01010000000000000000000\right)            \\
+			                                      & \cdot \left(0\right)\_\left(01111111\right)\_\left(10100000000000000000000\right)      \\
+			            %
+			            =                         & \left(0 \text{ XOR } 1\right)                                                          \\
+			                                      & \_\left(10000001+01111111-01111111\right)                                              \\
+			                                      & \_\left(1.01010000000000000000000 \cdot 1.10100000000000000000000\right)               \\
+			            %
+			            =                         & \left(1\right) \_ \left(10000001\right)                                                \\
+			                                      & \_\left(1.01010000000000000000000 \cdot 1.10100000000000000000000\right)               \\
+			            %
+			            =                         & \left(1\right) \_ \left(10000001\right)                                                \\
+			                                      & \_\left(0.0010101 + 0.10101 + 1.0101\right)                                            \\
+			            %
+			            c108 8000=                & \left(1\right) \_ \left(100 0001 0\right) \_ \left(000 1000 1000 0000 0000 0000\right)
+		            \end{align*}
+
+		      \item \texttt{0xc0a8 0000} $+$ \texttt{0x3fd0 0000} =
+		            \begin{align*}
+			            c0a8 0000 + 3fd0 0000 & =                                                                                    \\
+			                                  & \left(1\right)\_\left(100 0000 1\right)\_\left(010 1000 0000 0000 0000 0000\right)   \\
+			                                  & + \left(0\right)\_\left(011 1111 1\right)\_\left(101 0000 0000 0000 0000 0000\right) \\
+		            \end{align*}
+	      \end{enumerate}
+
+	\item
+	      Can be done by scanning through the entire A6.7 section of the
+	      ARM-v6M manual, because it can't be searched by the binary code, or
+	      by:
+	      \begin{verbatim}
+            printf '\x23\x06\x46\x18\x81\x02\x10\x91' > a.out && \
+            arm-none-eabi-objdump -EL -D -b binary -m arm -M force-thumb a.out
+          \end{verbatim}
+	      Either way, so long as little-endianess is considered, the following
+	      result is achieved:
+
+	      \begin{tabular}{ccc}
+		      Hex  & Binary              & ASM                 \\
+		      \hline
+		      \hline
+		      2306 & 0010 0011 0000 0110 & lsls r3, r4, \#24   \\
+		      4618 & 0100 0110 0001 1000 & adds r6, r0, r1     \\
+		      8102 & 1000 0001 0000 0010 & lsls r1, r0, \#10   \\
+		      1091 & 0001 0000 1001 0001 & str  r1, [sp, \#64] \\
+		      \hline
+		      \hline
+	      \end{tabular}
+
+	\item
+	      Observing little-endianess:
+
+	      \begin{tabular}{cc}
+		      ASM               & Hex  \\
+		      \hline
+		      \hline
+		      movs r4, \#15     & 0f24 \\
+		      mov r7, sp        & 6f46 \\
+		      subs r0, r4, r6   & a01b \\
+		      adds r2, r2, \#12 & 0c32 \\
+		      \hline
+		      \hline
+	      \end{tabular}
+
+	\item
+
+	      \begin{enumerate}
+		      \item
+		            \begin{itemize}
+			            \item ALU
+			            \item Control Unit
+			            \item CPU clock (from system clock)
+			            \item L1-3 caches
+			            \item Register file
+		            \end{itemize}
+		      \item
+		            \begin{itemize}
+			            \item Data bus
+			            \item Control bus
+			            \item Address bus
+			            \item Communicates with CPU, RAM, and I/O. Per my
+			                  understanding, they're connected to but not part
+			                  of the bus.
+		            \end{itemize}
+		      \item
+		            \begin{enumerate}
+			            \item Registers
+			            \item L1 Cache
+			            \item L2 Cache
+			            \item L3 Cache
+			            \item Main memory
+			            \item HDD/SDD
+			            \item DVD ROM
+		            \end{enumerate}
+	      \end{enumerate}
+\end{enumerate}
+
+\end{document}
