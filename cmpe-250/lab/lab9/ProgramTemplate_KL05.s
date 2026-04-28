@@ -545,6 +545,7 @@ UART0_ISR   PROC {}
             bcs UART0_ISR_disable_tx
             ; If successful, store
             strb r0, [r2, #UART0_D_OFFSET]
+
             b UART0_ISR_rxint
             ; Else, disable tx
 UART0_ISR_disable_tx
