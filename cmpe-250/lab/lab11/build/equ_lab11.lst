@@ -1,0 +1,55 @@
+   3              	.list
+   4              	
+   5              	.set PORT_PCR_SET_PTB2_UART0_RX  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_2_MASK) 
+   6              	.set PORT_PCR_SET_PTB1_UART0_TX  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_2_MASK) 
+   7              	.set SIM_SOPT2_UART0SRC_MCGFLLCLK  ,  (1 << SIM_SOPT2_UART0SRC_SHIFT) 
+   8              	.set SIM_SOPT5_UART0_EXTERN_MASK_CLEAR  , (SIM_SOPT5_UART0ODE_MASK | SIM_SOPT5_UART0RXSRC_MASK | SI
+   9              	.set UART0_BDH_9600  ,  0x01 
+  10              	.set UART0_BDL_9600  ,  0x38 
+  11              	.set UART0_C1_8N1  ,  0x00 
+  12              	.set UART0_C2_T_R  ,  (UART0_C2_TE_MASK | UART0_C2_RE_MASK) 
+  13              	.set UART0_C3_NO_TXINV  ,  0x00
+  14              	.set UART0_C4_OSR_16           ,  0x0F 
+  15              	.set UART0_C4_NO_MATCH_OSR_16  ,  UART0_C4_OSR_16 
+  16              	.set UART0_C5_NO_DMA_SSR_SYNC  ,  0x00 
+  17              	.set UART0_S1_CLEAR_FLAGS  ,  (UART0_S1_IDLE_MASK | UART0_S1_OR_MASK |    UART0_S1_NF_MASK |  UART0
+  18              	.set UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS  ,  (UART0_S2_LBKDIF_MASK | UART0_S2_RXEDGIF_
+  19              	
+  20              	.set NVIC_ICPR_UART0_MASK, UART0_IRQ_MASK
+  21              	.set UART0_IRQ_PRIORITY, 3
+  22              	.set NVIC_IPR_UART0_MASK, (3 << UART0_PRI_POS)
+  23              	.set NVIC_IPR_UART0_PRI_3, (UART0_IRQ_PRIORITY << UART0_PRI_POS)
+  24              	.set NVIC_ISER_UART0_MASK, UART0_IRQ_MASK
+  25              	
+  26              	.set UART0_C2_T_RI, (UART0_C2_RIE_MASK | UART0_C2_T_R)
+  27              	.set UART0_C2_TI_RI, (UART0_C2_TIE_MASK | UART0_C2_T_RI)
+  28              	
+  29              	// PIT MCR set MDIS and FRZ
+  30              	.set PIT_MCR_MF, (PIT_MCR_MDIS_MASK | PIT_MCR_FRZ_MASK)
+  31              	// PIT TSV for 10ms period
+  32              	.set PIT_LDVAL_10ms, 239861
+  33              	// Enable timer and timer interrupt
+  34              	.set PIT_TCTRL_TIE_TEN_MASK, (PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK)
+  35              	// NVIC PIT Priority
+  36              	.set PIT_IRQ_PRI, 0
+  37              	.set NVIC_IPR_PIT_MASK, (3 << PIT_PRI_POS)
+  38              	.set NVIC_IPR_PIT_PRI_0, (PIT_IRQ_PRI << PIT_PRI_POS)
+  39              	
+  40              	// Offsets from base record
+  41              	.set in_ptr, 0
+  42              	.set out_ptr, 4
+  43              	.set buf_start, 8
+  44              	.set buf_past, 12
+  45              	.set buf_size, 16
+  46              	.set num_enqd, 17
+  47              	
+  48              	// Sizes of buffers and records
+  49              	.set rx_qbuf_sz, 80
+  50              	.set rx_qrec_sz, 18
+  51              	.set tx_qbuf_sz, 80
+  52              	.set tx_qrec_sz, 18
+  53              	.set qbuf_sz,    80
+  54              	.set qrec_sz,    18
+  55              	
+  56              	.set offset_a_A, ('a' - 'A')
+  57              	.set max_string, 0x80

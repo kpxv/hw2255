@@ -1,0 +1,381 @@
+   4              	.list
+   5              	
+   6              	.syntax unified
+   7              	.thumb
+   8              	
+   9              	.section code, "ax"
+  10              	.global Reset_Handler
+  11              	Reset_Handler:
+  12 0000 72B6     	            cpsid I
+  13 0002 FFF7FEFF 	            bl Startup
+  14 0006 FFF7FEFF 	            bl Init_UART0_IRQ
+  15 000a FFF7FEFF 	            bl Init_PIT_IRQ
+  16 000e 62B6     	            cpsie I
+  17              	Main_loop:
+  18              	            // Print command string
+  19 0010 5748     	            ldr r0, =prompt1_s
+  20 0012 8021     	            movs r1, #max_string
+  21 0014 00F04BF8 	            bl PutStringSB 
+  22 0018 5648     	            ldr r0, =response
+  23              	            // Start timing the user
+  24 001a 0023     	            movs r3, #0
+  25 001c 0124     	            movs r4, #1
+  26 001e 564A     	            ldr r2, =pit_count
+  27 0020 1360     	            str r3, [r2]
+  28 0022 9FF85821 	            ldrb r2, =run_stop_watch
+  29 0026 1470     	            strb r4, [r2]
+  30              	            // Get response and stop timer
+  31 0028 00F04EF8 	            bl GetStringSB
+  32 002c 1370     	            strb r3, [r2]
+  33              	            // Print time
+  34 002e 3C20     	            movs r0, #'<'
+  35 0030 FFF7FEFF 	            bl PutChar
+  36 0034 5049     	            ldr r1, =pit_count
+  37 0036 0878     	            ldrb r0, [r1]
+  38 0038 00F070F8 	            bl PutNumU
+  39 003c 8021     	            movs r1, #max_string
+  40 003e 5048     	            ldr r0, =time_factor_s
+  41 0040 00F035F8 	            bl PutStringSB
+  42              	
+  43              	            // Print command string
+  44 0044 4F48     	            ldr r0, =prompt2_s
+  45 0046 00F032F8 	            bl PutStringSB 
+  46 004a 4A48     	            ldr r0, =response
+  47              	            // Start timing the user
+  48 004c 0023     	            movs r3, #0
+  49 004e 0124     	            movs r4, #1
+  50 0050 494A     	            ldr r2, =pit_count
+  51 0052 1360     	            str r3, [r2]
+  52 0054 9FF82421 	            ldrb r2, =run_stop_watch
+  53 0058 1470     	            strb r4, [r2]
+  54              	            // Get response and stop timer
+  55 005a 00F035F8 	            bl GetStringSB
+  56 005e 1370     	            strb r3, [r2]
+  57              	            // Print time
+  58 0060 3C20     	            movs r0, #'<'
+  59 0062 FFF7FEFF 	            bl PutChar
+  60 0066 4449     	            ldr r1, =pit_count
+  61 0068 0878     	            ldrb r0, [r1]
+  62 006a 00F057F8 	            bl PutNumU
+  63 006e 8021     	            movs r1, #max_string
+  64 0070 4348     	            ldr r0, =time_factor_s
+  65 0072 00F01CF8 	            bl PutStringSB
+  66              	
+  67              	            // Print command string
+  68 0076 4448     	            ldr r0, =prompt3_s
+  69 0078 00F019F8 	            bl PutStringSB 
+  70 007c 3D48     	            ldr r0, =response
+  71              	            // Start timing the user
+  72 007e 0023     	            movs r3, #0
+  73 0080 0124     	            movs r4, #1
+  74 0082 3D4A     	            ldr r2, =pit_count
+  75 0084 1360     	            str r3, [r2]
+  76 0086 9FF8F420 	            ldrb r2, =run_stop_watch
+  77 008a 1470     	            strb r4, [r2]
+  78              	            // Get response and stop timer
+  79 008c 00F01CF8 	            bl GetStringSB
+  80 0090 1370     	            strb r3, [r2]
+  81              	            // Print time
+  82 0092 3C20     	            movs r0, #'<'
+  83 0094 FFF7FEFF 	            bl PutChar
+  84 0098 3749     	            ldr r1, =pit_count
+  85 009a 0878     	            ldrb r0, [r1]
+  86 009c 00F03EF8 	            bl PutNumU
+  87 00a0 8021     	            movs r1, #max_string
+  88 00a2 3748     	            ldr r0, =time_factor_s
+  89 00a4 00F003F8 	            bl PutStringSB
+  90              	
+  91 00a8 3848     	            ldr r0, =goodbye_s
+  92 00aa 00F000F8 	            bl PutStringSB
+  93              	
+  94              	
+  95              	
+  96              	/**
+  97              	  * Prints a string
+  98              	  *
+  99              	  * Inputs:
+ 100              	  *     R0 : Memory addr of the string to print
+ 101              	  *     R1 : Capacity of the string
+ 102              	  * Outputs:
+ 103              	  *     None
+ 104              	  * Modifies:
+ 105              	  *     lr, psr
+ 106              	  */
+ 107              	PutStringSB:
+ 108 00ae 0FB5     	            push {r0-r3, lr}
+ 109 00b0 0200     	            movs r2, r0
+ 110 00b2 0023     	            movs r3, #0
+ 111              	PutStringSBLoop:
+ 112 00b4 8B42     	            cmp r3, r1
+ 113 00b6 06D0     	            beq PutStringSBTerminate    // Exit if buffer size exceeded
+ 114 00b8 D05C     	            ldrb r0, [r2, r3]
+ 115 00ba 0028     	            cmp r0, #0
+ 116 00bc 03D0     	            beq PutStringSBTerminate    // Exit if NUL
+ 117              	            
+ 118 00be FFF7FEFF 	            bl PutChar                  // Print
+ 119 00c2 0133     	            adds r3, r3, #1             // Increment string pointer
+ 120 00c4 F6E7     	            b PutStringSBLoop
+ 121              	PutStringSBTerminate:
+ 122 00c6 0FBD     	            pop {r0-r3, pc}
+ 123              	            
+ 124              	
+ 125              	
+ 126              	/**
+ 127              	  * Gets a string from UART
+ 128              	  *
+ 129              	  * Inputs:
+ 130              	  *     r0 : address of stored string
+ 131              	  *     r1 : buffer capacity
+ 132              	  * Outputs:
+ 133              	  *     a string at the memory location contained in r0
+ 134              	  * Modifies:
+ 135              	  *     psr
+ 136              	  */
+ 137              	GetStringSB:
+ 138 00c8 1FB5     	            push {r0-r4, lr}
+ 139 00ca 0029     	            cmp r1, #0
+ 140 00cc 25D0     	            beq GetStringSBTerminate   // String must have at least one character
+ 141 00ce 0139     	            subs r1, r1, #1
+ 142 00d0 0200     	            movs r2, r0
+ 143 00d2 0023     	            movs r3, #0
+ 144              	GetStringSBLoop:
+ 145 00d4 FFF7FEFF 	            bl GetChar
+ 146 00d8 0D28     	            cmp r0, #0x0D
+ 147 00da 18D0     	            beq GetStringSBCleanup      // End on return
+ 148 00dc 0828     	            cmp r0, #0x08
+ 149 00de 0AD0     	            beq GetStringSBBackspace    // Allow backspace
+ 150 00e0 7F28     	            cmp r0, #0x7F
+ 151 00e2 F7D0     	            beq GetStringSBLoop         // Get new character if control character
+ 152 00e4 1F28     	            cmp r0, #0x1F
+ 153 00e6 F5D9     	            bls GetStringSBLoop
+ 154 00e8 8B42     	            cmp r3, r1
+ 155 00ea F3D2     	            bhs GetStringSBLoop         // If buffer size reached, wait for return or backspace
+ 156 00ec D054     	            strb r0, [r2, r3]           // Store
+ 157 00ee 0133     	            adds r3, r3, #1             // Increment string pointer
+ 158 00f0 FFF7FEFF 	            bl PutChar
+ 159 00f4 EEE7     	            b GetStringSBLoop
+ 160              	GetStringSBBackspace:
+ 161 00f6 002B     	            cmp r3, #0
+ 162 00f8 ECD0     	            beq GetStringSBLoop         // Only backspace if there are characters in the string
+ 163 00fa FFF7FEFF 	            bl PutChar                  // Remove character from the screen
+ 164 00fe 2020     	            movs r0, #0x20
+ 165 0100 FFF7FEFF 	            bl PutChar
+ 166 0104 0820     	            movs r0, #0x08
+ 167 0106 FFF7FEFF 	            bl PutChar
+ 168 010a 013B     	            subs r3, r3, #1             // Decrement string poniter
+ 169 010c E2E7     	            b GetStringSBLoop
+ 170              	GetStringSBCleanup:
+ 171 010e 0024     	            movs r4, #0
+ 172 0110 D454     	            strb r4, [r2, r3]           // Store NUL terminator
+ 173 0112 1F48     				ldr r0, =crlf_s
+ 174 0114 8021     	            movs r1, #max_string
+ 175 0116 FFF7CAFF 	            bl PutStringSB              // Print newline
+ 176              	GetStringSBTerminate:
+ 177 011a 1FBD     	            pop {r0-r4, pc}
+ 178              	
+ 179              	
+ 180              	
+ 181              	/**
+ 182              	  * Send ASCII-encoded decimal of a byte
+ 183              	  *
+ 184              	  * Inputs:
+ 185              	  *     r0 : the byte to print
+ 186              	  * Outputs:
+ 187              	  *     none
+ 188              	  * Modifies:
+ 189              	  *     psr
+ 190              	  */
+ 191              	PutNumU:
+ 192 011c 17B5     	            push {r0-r2, r4, lr}
+ 193 011e 0028     	            cmp r0, #0
+ 194 0120 13D0     	            beq PutNumUPrintZero        // Handle 0
+ 195 0122 0200     	            movs r2, r0
+ 196 0124 0024     	            movs r4, #0
+ 197 0126 0100     				movs r1, r0
+ 198              	PutNumULoop:
+ 199 0128 0A20     	            movs r0, #10
+ 200 012a 00F013F8 	            bl Divu                     // Divide by 10
+ 201 012e 02B4     	            push {r1}                   // Push remainder
+ 202 0130 0134     	            adds r4, r4, #1             // Increment digit counter
+ 203 0132 0028     	            cmp r0, #0
+ 204 0134 01D0     	            beq PutNumUPop              // If quotient is 0, exit
+ 205 0136 0100     				movs r1, r0
+ 206 0138 F6E7     	            b PutNumULoop               // Divide quotient by 10
+ 207              	PutNumUPop:
+ 208 013a 002C     	            cmp r4, #0
+ 209 013c 09D0     	            beq PutNumUTerminate        // If 0 left to print, exit
+ 210 013e 01BC     	            pop {r0}
+ 211 0140 3030     				adds r0, r0, #'0'           // Convert from uint to char
+ 212 0142 FFF7FEFF 	            bl PutChar
+ 213 0146 013C     	            subs r4, r4, #1             // Decrement digit counter
+ 214 0148 F7E7     	            b PutNumUPop
+ 215              	PutNumUPrintZero:
+ 216 014a 3020     	            movs r0, #0x30
+ 217 014c FFF7FEFF 	            bl PutChar                  // Print ascii 0
+ 218 0150 FFE7     	            b PutNumUTerminate          // Leave
+ 219              	PutNumUTerminate:
+ 220 0152 17BD     	            pop {r0-r2, r4, pc}
+ 221              	
+ 222              	
+ 223              	
+ 224              	/**
+ 225              	  * Get a quotient and a remainder
+ 226              	  *
+ 227              	  * Inputs:
+ 228              	  *     R0 : The divisor
+ 229              	  *     R1 : The dividend
+ 230              	  * Outputs:
+ 231              	  *     R0 : The quotient
+ 232              	  *     R1 : The remainder
+ 233              	  * Modifies:
+ 234              	  *     LR, PSR
+ 235              	  */
+ 236              	Divu:
+ 237 0154 0028     	            cmp r0, #0      // sets carry flag if equal
+ 238 0156 0AD0     	            beq Divu_end
+ 239 0158 04B4     	            push {r2}
+ 240 015a 0022     	            movs r2, #0
+ 241              	Divu_loop:
+ 242 015c 8142     	            cmp r1, r0
+ 243 015e 02D3     	            blo Divu_cleanup
+ 244 0160 091A     	            subs r1, r1, r0
+ 245 0162 0132     	            adds r2, r2, #1
+ 246 0164 FAE7     	            b Divu_loop
+ 247              	Divu_cleanup:
+ 248 0166 1000     	            movs r0, r2
+ 249              	            // Clear apsr flags
+ 250 0168 0122     	            movs r2, #1
+ 251 016a 0132     	            adds r2, #1
+ 252 016c 04BC     	            pop {r2}
+ 253              	Divu_end:
+ 254 016e 7047     	            bx lr
+ 255              	
+ 256              	
+ 257              	
+ 258              	// ****************************************************************
+ 259              	// Vector Table Mapped to Address 0 at Reset
+ 260              	// Linker requires __Vectors to be exported
+ 261              	.section RESET, "a"
+ 262              	            //  EXPORT  __Vectors
+ 263              	            //  EXPORT  __Vectors_End
+ 264              	            //  EXPORT  __Vectors_Size
+ 265              	            //  IMPORT  __initial_sp
+ 266              	            //  IMPORT  Dummy_Handler
+ 267              	            //  IMPORT  HardFault_Handler
+ 268              	.global __Vectors
+ 269              	.global __Vectors_End
+ 270              	.global __Vectors_Size
+ 271              	__Vectors:
+ 272              	                                        // ARM core vectors
+ 273 0000 00000000 	            .word    __initial_sp       // 00:end of stack
+ 274 0004 00000000 	            .word    Reset_Handler      // 01:reset vector
+ 275 0008 00000000 	            .word    Dummy_Handler      // 02:NMI
+ 276 000c 00000000 	            .word    HardFault_Handler  // 03:hard fault
+ 277 0010 00000000 	            .word    Dummy_Handler      // 04:(reserved)
+ 278 0014 00000000 	            .word    Dummy_Handler      // 05:(reserved)
+ 279 0018 00000000 	            .word    Dummy_Handler      // 06:(reserved)
+ 280 001c 00000000 	            .word    Dummy_Handler      // 07:(reserved)
+ 281 0020 00000000 	            .word    Dummy_Handler      // 08:(reserved)
+ 282 0024 00000000 	            .word    Dummy_Handler      // 09:(reserved)
+ 283 0028 00000000 	            .word    Dummy_Handler      // 10:(reserved)
+ 284 002c 00000000 	            .word    Dummy_Handler      // 11:SVCall (supervisor call)
+ 285 0030 00000000 	            .word    Dummy_Handler      // 12:(reserved)
+ 286 0034 00000000 	            .word    Dummy_Handler      // 13:(reserved)
+ 287 0038 00000000 	            .word    Dummy_Handler      // 14:PendSV (PendableSrvReq)
+ 288              	                                        //    pendable request 
+ 289              	                                        //    for system service)
+ 290 003c 00000000 	            .word    Dummy_Handler      // 15:SysTick (system tick timer)
+ 291 0040 00000000 	            .word    Dummy_Handler      // 16:DMA channel 0 transfer 
+ 292              	                                        //    complete/error
+ 293 0044 00000000 	            .word    Dummy_Handler      // 17:DMA channel 1 transfer
+ 294              	                                        //    complete/error
+ 295 0048 00000000 	            .word    Dummy_Handler      // 18:DMA channel 2 transfer
+ 296              	                                        //    complete/error
+ 297 004c 00000000 	            .word    Dummy_Handler      // 19:DMA channel 3 transfer
+ 298              	                                        //    complete/error
+ 299 0050 00000000 	            .word    Dummy_Handler      // 20:(reserved)
+ 300 0054 00000000 	            .word    Dummy_Handler      // 21:FTFA command complete/
+ 301              	                                        //    read collision
+ 302 0058 00000000 	            .word    Dummy_Handler      // 22:low-voltage detect;
+ 303              	                                        //    low-voltage warning
+ 304 005c 00000000 	            .word    Dummy_Handler      // 23:low leakage wakeup
+ 305 0060 00000000 	            .word    Dummy_Handler      // 24:I2C0
+ 306 0064 00000000 	            .word    Dummy_Handler      // 25:(reserved)
+ 307 0068 00000000 	            .word    Dummy_Handler      // 26:SPI0
+ 308 006c 00000000 	            .word    Dummy_Handler      // 27:(reserved)
+ 309 0070 00000000 	            .word    UART0_ISR          // 28:UART0 (status; error)
+ 310 0074 00000000 	            .word    Dummy_Handler      // 29:(reserved)
+ 311 0078 00000000 	            .word    Dummy_Handler      // 30:(reserved)
+ 312 007c 00000000 	            .word    Dummy_Handler      // 31:ADC0
+ 313 0080 00000000 	            .word    Dummy_Handler      // 32:CMP0
+ 314 0084 00000000 	            .word    Dummy_Handler      // 33:TPM0
+ 315 0088 00000000 	            .word    Dummy_Handler      // 34:TPM1
+ 316 008c 00000000 	            .word    Dummy_Handler      // 35:(reserved)
+ 317 0090 00000000 	            .word    Dummy_Handler      // 36:RTC (alarm)
+ 318 0094 00000000 	            .word    Dummy_Handler      // 37:RTC (seconds)
+ 319 0098 00000000 	            .word    PIT_ISR            // 38:PIT
+ 320 009c 00000000 	            .word    Dummy_Handler      // 39:(reserved)
+ 321 00a0 00000000 	            .word    Dummy_Handler      // 40:(reserved)
+ 322 00a4 00000000 	            .word    Dummy_Handler      // 41:DAC0
+ 323 00a8 00000000 	            .word    Dummy_Handler      // 42:TSI0
+ 324 00ac 00000000 	            .word    Dummy_Handler      // 43:MCG
+ 325 00b0 00000000 	            .word    Dummy_Handler      // 44:LPTMR0
+ 326 00b4 00000000 	            .word    Dummy_Handler      // 45:(reserved)
+ 327 00b8 00000000 	            .word    Dummy_Handler      // 46:PORTA
+ 328 00bc 00000000 	            .word    Dummy_Handler      // 47:PORTB
+ 329              	__Vectors_End:
+ 330              	.set __Vectors_Size, __Vectors_End - __Vectors
+ 331              	.balign 4
+ 332              	
+ 333              	
+ 334              	
+ 335              	.section const, "a"
+ 336              	crlf_s:
+ 337 0000 0A0D00   	.byte 0x0a, 0x0d, 0x00
+ 338              	prompt1_s:
+ 339 0003 456E7465 	.ascii "Enter your name."
+ 339      7220796F 
+ 339      7572206E 
+ 339      616D652E 
+ 340 0013 0A0D     	.byte 0x0a, 0x0d
+ 341 0015 3E2000   	.asciz "> "
+ 342              	prompt2_s:
+ 343 0018 456E7465 	.ascii "Enter the date."
+ 343      72207468 
+ 343      65206461 
+ 343      74652E
+ 344 0027 0A0D     	.byte 0x0a, 0x0d
+ 345 0029 3E2000   	.asciz "> "
+ 346              	prompt3_s:
+ 347 002c 456E7465 	.ascii "Enter the last name of a 250 lab TA."
+ 347      72207468 
+ 347      65206C61 
+ 347      7374206E 
+ 347      616D6520 
+ 348 0050 0A0D     	.byte 0x0a, 0x0d
+ 349 0052 3E2000   	.asciz "> "
+ 350              	time_factor_s:
+ 351 0055 20782030 	.ascii " x 0.01 s"
+ 351      2E303120 
+ 351      73
+ 352 005e 0A0D00   	.byte 0x0a, 0x0d, 0x00
+ 353              	goodbye_s:
+ 354 0061 5468616E 	.ascii "Thank you.  Goodbye!"
+ 354      6B20796F 
+ 354      752E2020 
+ 354      476F6F64 
+ 354      62796521 
+ 355 0075 0A0D00   	.byte 0x0a, 0x0d, 0x00
+ 356              	
+ 357              	.balign 4
+ 358              	
+ 359              	
+ 360              	
+ 361              	.section data, "aw", %nobits
+ 362              	.balign 4
+ 363              	response:
+ 364 0000 00000000 	.skip max_string
+ 364      00000000 
+ 364      00000000 
+ 364      00000000 
+ 364      00000000 

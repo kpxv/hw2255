@@ -1,0 +1,2713 @@
+   1              	// **********************************************************************
+   2              	// Freescale MKL05Z32xxx4 device values and configuration code
+   3              	// * CPU Architecture values
+   4              	// * CPU Registers
+   5              	// * Various core, system, and peripheral modules and interfaces
+   6              	// [1] Freescale Semiconductor, <B>Kinetis L Peripheral Module Quick
+   7              	//     Reference</B>, KLQRUG, Rev. 0, 9/2012.
+   8              	// [2] Freescale Semiconductor, <B>KL05 Sub-Family Reference Manual</B>,
+   9              	//     KL05P48M48SF1RM, Rev. 3.1, 11/2012.
+  10              	// [3] Freescale Semiconductor, MKL05Z4.h, rev. 1.6, 4/11/2013
+  11              	// [4] Arm, core_cm0plus.h, v5.0.9, 8/21/2019
+  12              	// [5] RIT CMPE-250 MKL46Z4.s, rev. 1/5/2018
+  13              	// [6] Freescale startup_MKL05Z4.s
+  14              	//     CMSIS Cortex-M0plus Core Device Startup File for the MKL05Z4
+  15              	//     v1.6, 4/11/
+  16              	//     FTFA_FlashConfig and NV
+  17              	// [7] Freescale startup_MKL46Z4.s
+  18              	//     CMSIS Cortex-M0plus Core Device Startup File for the MKL64Z4
+  19              	//     v2.2, 4/12/2013
+  20              	//     FCF_ naming convention
+  21              	// ---------------------------------------------------------------
+  22              	// Author:  R. W. Melton
+  23              	// Date:  August 2, 2022
+  24              	// ***************************************************************
+  25              	// EQUates
+  26              	// Standard data masks
+  27              	.set BYTE_MASK         ,  0xFF
+  28              	.set NIBBLE_MASK       ,  0x0F
+  29              	// Standard data sizes (in bits)
+  30              	.set BYTE_BITS         ,  8
+  31              	.set NIBBLE_BITS       ,  4
+  32              	// Architecture data sizes (in bytes)
+  33              	.set WORD_SIZE         ,  4  // Cortex-M0+
+  34              	.set HALFWORD_SIZE     ,  2  // Cortex-M0+
+  35              	// Architecture data masks
+  36              	.set HALFWORD_MASK     ,  0xFFFF
+  37              	// Return                 
+  38              	.set RET_ADDR_T_MASK   ,  1  // Bit 0 of ret. addr. must be
+  39              	                          // set for BX, BLX, or POP
+  40              	                          // mask in thumb mode
+  41              	// ---------------------------------------------------------------
+  42              	// Vectors
+  43              	.set VECTOR_TABLE_SIZE ,  0x000000C0  // KL46
+  44              	.set VECTOR_SIZE       ,  4           // Bytes per vector
+  45              	// ---------------------------------------------------------------
+  46              	// CPU CONTROL:  Control register
+  47              	// 31-2:(reserved)
+  48              	//    1:SPSEL=current stack pointer select
+  49              	//            0=MSP (main stack pointer) (reset value)
+  50              	//            1=PSP (process stack pointer)
+  51              	//    0:nPRIV=not privileged
+  52              	//         0=privileged (Freescale/NXP "supervisor") (reset value)
+  53              	//         1=not privileged (Freescale/NXP "user")
+  54              	.set CONTROL_SPSEL_MASK   ,  2
+  55              	.set CONTROL_SPSEL_SHIFT  ,  1
+  56              	.set CONTROL_nPRIV_MASK   ,  1
+  57              	.set CONTROL_nPRIV_SHIFT  ,  0
+  58              	// ---------------------------------------------------------------
+  59              	// CPU PRIMASK:  Interrupt mask register
+  60              	// 31-1:(reserved)
+  61              	//    0:PM=prioritizable interrupt mask:
+  62              	//         0=all interrupts unmasked (reset value)
+  63              	//           (value after CPSIE I instruction)
+  64              	//         1=prioritizable interrrupts masked
+  65              	//           (value after CPSID I instruction)
+  66              	.set PRIMASK_PM_MASK   ,  1
+  67              	.set PRIMASK_PM_SHIFT  ,  0
+  68              	// ---------------------------------------------------------------
+  69              	// CPU PSR:  Program status register
+  70              	// Combined APSR, EPSR, and IPSR
+  71              	// ----------------------------------------------------------
+  72              	// CPU APSR:  Application Program Status Register
+  73              	// 31  :N=negative flag
+  74              	// 30  :Z=zero flag
+  75              	// 29  :C=carry flag
+  76              	// 28  :V=overflow flag
+  77              	// 27-0:(reserved)
+  78              	.set APSR_MASK     ,  0xF0000000
+  79              	.set APSR_SHIFT    ,  28
+  80              	.set APSR_N_MASK   ,  0x80000000
+  81              	.set APSR_N_SHIFT  ,  31
+  82              	.set APSR_Z_MASK   ,  0x40000000
+  83              	.set APSR_Z_SHIFT  ,  30
+  84              	.set APSR_C_MASK   ,  0x20000000
+  85              	.set APSR_C_SHIFT  ,  29
+  86              	.set APSR_V_MASK   ,  0x10000000
+  87              	.set APSR_V_SHIFT  ,  28
+  88              	// ----------------------------------------------------------
+  89              	// CPU EPSR
+  90              	// 31-25:(reserved)
+  91              	//    24:T=thumb state bit
+  92              	// 23- 0:(reserved)
+  93              	.set EPSR_MASK     ,  0x01000000
+  94              	.set EPSR_SHIFT    ,  24
+  95              	.set EPSR_T_MASK   ,  0x01000000
+  96              	.set EPSR_T_SHIFT  ,  24
+  97              	// ----------------------------------------------------------
+  98              	// CPU IPSR
+  99              	// 31-6:(reserved)
+ 100              	//  5-0:Exception number=number of current exception
+ 101              	//       0=thread mode
+ 102              	//       1:(reserved)
+ 103              	//       2=NMI
+ 104              	//       3=hard fault
+ 105              	//       4-10:(reserved)
+ 106              	//      11=SVCall
+ 107              	//      12-13:(reserved)
+ 108              	//      14=PendSV
+ 109              	//      15=SysTick
+ 110              	//      16=IRQ0
+ 111              	//      16-47:IRQ(Exception number - 16)
+ 112              	//      47=IRQ31
+ 113              	//      48-63:(reserved)
+ 114              	.set IPSR_MASK             ,  0x0000003F
+ 115              	.set IPSR_SHIFT            ,  0
+ 116              	.set IPSR_EXCEPTION_MASK   ,  0x0000003F
+ 117              	.set IPSR_EXCEPTION_SHIFT  ,  0
+ 118              	// ----------------------------------------------------------
+ 119              	.set PSR_N_MASK           ,  APSR_N_MASK
+ 120              	.set PSR_N_SHIFT          ,  APSR_N_SHIFT
+ 121              	.set PSR_Z_MASK           ,  APSR_Z_MASK
+ 122              	.set PSR_Z_SHIFT          ,  APSR_Z_SHIFT
+ 123              	.set PSR_C_MASK           ,  APSR_C_MASK
+ 124              	.set PSR_C_SHIFT          ,  APSR_C_SHIFT
+ 125              	.set PSR_V_MASK           ,  APSR_V_MASK
+ 126              	.set PSR_V_SHIFT          ,  APSR_V_SHIFT
+ 127              	.set PSR_T_MASK           ,  EPSR_T_MASK
+ 128              	.set PSR_T_SHIFT          ,  EPSR_T_SHIFT
+ 129              	.set PSR_EXCEPTION_MASK   ,  IPSR_EXCEPTION_MASK
+ 130              	.set PSR_EXCEPTION_SHIFT  ,  IPSR_EXCEPTION_SHIFT
+ 131              	// ---------------------------------------------------------------
+ 132              	// Cortex-M0+ Core
+ 133              	.set __CM0PLUS_REV           ,  0x0000  // Core revision r0p0
+ 134              	.set __MPU_PRESENT           ,  0       // Whether MPU is present
+ 135              	.set __NVIC_PRIO_BITS        ,  2       // Number of NVIC priority bits
+ 136              	.set __Vendor_SysTickConfig  ,  0       // Whether vendor-specific 
+ 137              	                                     // SysTickConfig is defined
+ 138              	.set __VTOR_PRESENT          ,  1       // Whether VTOR is present
+ 139              	// ---------------------------------------------------------------
+ 140              	// Interrupt numbers (IRQn)
+ 141              	// Interrupt vector is 16 + IRQn
+ 142              	// Core interrupts
+ 143              	.set NonMaskableInt_IRQn  ,  -14  // Non-maskable interrupt (NMI)
+ 144              	.set HardFault_IRQn       ,  -13  // Hard fault interrupt
+ 145              	.set SVCall_IRQn          ,  -5   // Supervisor call interrupt (SVCall)
+ 146              	.set PendSV_IRQn          ,  -2   // Pendable request for system-level service interrupt
+ 147              	                               // (PendableSrvReq)
+ 148              	.set SysTick_IRQn         ,  -1   // System tick timer interrupt (SysTick)
+ 149              	// --------------------------
+ 150              	// Device specific interrupts
+ 151              	.set DMA0_IRQn            ,  0   // DMA channel 0 transfer complete/error interrupt
+ 152              	.set DMA1_IRQn            ,  1   // DMA channel 1 transfer complete/error interrupt
+ 153              	.set DMA2_IRQn            ,  2   // DMA channel 2 transfer complete/error interrupt
+ 154              	.set DMA3_IRQn            ,  3   // DMA channel 3 transfer complete/error interrupt
+ 155              	.set Reserved20_IRQn      ,  4   // Reserved interrupt 20
+ 156              	.set FTFA_IRQn            ,  5   // FTFA command complete/read collision interrupt
+ 157              	.set LVD_LVW_IRQn         ,  6   // Low-voltage detect, low-voltage warning interrupt
+ 158              	.set LLW_IRQn             ,  7   // Low leakage wakeup interrupt
+ 159              	.set I2C0_IRQn            ,  8   // I2C0 interrupt
+ 160              	.set Reserved25_IRQn      ,  9   // Reserved interrupt 25
+ 161              	.set SPI0_IRQn            ,  10  // SPI0 interrupt
+ 162              	.set Reserved27_IRQn      ,  11  // Reserved interrupt 27
+ 163              	.set UART0_IRQn           ,  12  // UART0 status/error interrupt
+ 164              	.set Reserved29_IRQn      ,  13  // Reserved interrupt 29
+ 165              	.set Reserved30_IRQn      ,  14  // Reserved interrupt 30
+ 166              	.set ADC0_IRQn            ,  15  // ADC0 interrupt
+ 167              	.set CMP0_IRQn            ,  16  // CMP0 interrupt
+ 168              	.set TPM0_IRQn            ,  17  // TPM0 fault, overflow, and channels interrupt
+ 169              	.set TPM1_IRQn            ,  18  // TPM1 fault, overflow, and channels interrupt
+ 170              	.set Reserved35_IRQn      ,  19  // Reserved interrupt 35
+ 171              	.set RTC_IRQn             ,  20  // RTC alarm interrupt
+ 172              	.set RTC_Seconds_IRQn     ,  21  // RTC seconds interrupt
+ 173              	.set PIT_IRQn             ,  22  // PIT interrupt
+ 174              	.set Reserved39_IRQn      ,  23  // Reserved interrupt 39
+ 175              	.set Reserved40_IRQn      ,  24  // Reserved interrupt 40
+ 176              	.set DAC0_IRQn            ,  25  // DAC0 interrupt
+ 177              	.set TSI0_IRQn            ,  26  // TSI0 interrupt
+ 178              	.set MCG_IRQn             ,  27  // MCG interrupt
+ 179              	.set LPTimer_IRQn         ,  28  // LPTMR0 interrupt
+ 180              	.set Reserved45_IRQn      ,  29  // Reserved interrupt 45
+ 181              	.set PORTA_IRQn           ,  30  // Port A interrupt
+ 182              	.set PORTB_IRQn           ,  31  // Port B interrupt
+ 183              	// ---------------------------------------------------------------
+ 184              	// Memory map major version
+ 185              	// (Memory maps with equal major version number are compatible)
+ 186              	.set MCU_MEM_MAP_VERSION        , 0x0100
+ 187              	// Memory map minor version
+ 188              	.set MCU_MEM_MAP_VERSION_MINOR  ,  0x0006
+ 189              	// ---------------------------------------------------------------
+ 190              	// ADC
+ 191              	.set ADC0_BASE        ,  0x4003B000
+ 192              	// ADC_BASES        EQU  ADC0_BASE
+ 193              	// ADC_SC1_OFFSET   EQU  0x00
+ 194              	.set ADC_SC1A_OFFSET  ,  0x00
+ 195              	.set ADC_SC1B_OFFSET  ,  0x04
+ 196              	.set ADC_CFG1_OFFSET  ,  0x08
+ 197              	.set ADC_CFG2_OFFSET  ,  0x0C
+ 198              	// ADC_R_OFFSET     EQU  0x10
+ 199              	.set ADC_RA_OFFSET    ,  0x10
+ 200              	.set ADC_RB_OFFSET    ,  0x14
+ 201              	.set ADC_CV1_OFFSET   ,  0x18
+ 202              	.set ADC_CV2_OFFSET   ,  0x1C
+ 203              	.set ADC_SC2_OFFSET   ,  0x20
+ 204              	.set ADC_SC3_OFFSET   ,  0x24
+ 205              	.set ADC_OFS_OFFSET   ,  0x28
+ 206              	.set ADC_PG_OFFSET    ,  0x2C
+ 207              	// ADC_RESERVED_0_OFFSET  EQU  0x30
+ 208              	.set ADC_CLPD_OFFSET  ,  0x34
+ 209              	.set ADC_CLPS_OFFSET  ,  0x38
+ 210              	.set ADC_CLP4_OFFSET  ,  0x3C
+ 211              	.set ADC_CLP3_OFFSET  ,  0x40
+ 212              	.set ADC_CLP2_OFFSET  ,  0x44
+ 213              	.set ADC_CLP1_OFFSET  ,  0x48
+ 214              	.set ADC_CLP0_OFFSET  ,  0x4C
+ 215              	.set ADC0_CFG1        ,  (ADC0_BASE + ADC_CFG1_OFFSET)
+ 216              	.set ADC0_CFG2        ,  (ADC0_BASE + ADC_CFG2_OFFSET)
+ 217              	.set ADC0_CLPD        ,  (ADC0_BASE + ADC_CLPD_OFFSET)
+ 218              	.set ADC0_CLPS        ,  (ADC0_BASE + ADC_CLPS_OFFSET)
+ 219              	.set ADC0_CLP0        ,  (ADC0_BASE + ADC_CLP0_OFFSET)
+ 220              	.set ADC0_CLP1        ,  (ADC0_BASE + ADC_CLP1_OFFSET)
+ 221              	.set ADC0_CLP2        ,  (ADC0_BASE + ADC_CLP2_OFFSET)
+ 222              	.set ADC0_CLP3        ,  (ADC0_BASE + ADC_CLP3_OFFSET)
+ 223              	.set ADC0_CLP4        ,  (ADC0_BASE + ADC_CLP4_OFFSET)
+ 224              	.set ADC0_CV1         ,  (ADC0_BASE + ADC_CV1_OFFSET)
+ 225              	.set ADC0_CV2         ,  (ADC0_BASE + ADC_CV2_OFFSET)
+ 226              	.set ADC0_OFS         ,  (ADC0_BASE + ADC_OFS_OFFSET)
+ 227              	.set ADC0_PG          ,  (ADC0_BASE + ADC_PG_OFFSET) 
+ 228              	// ACD0_R           EQU  (ADC0_BASE + ADC_R_OFFSET)  
+ 229              	.set ADC0_RA          ,  ( ADC0_BASE + ADC_RA_OFFSET)  
+ 230              	.set ADC0_RB          ,  ( ADC0_BASE + ADC_RB_OFFSET)
+ 231              	// ADC0_RESERVED_0  EQU  ( ADC0_BASE + ADC_RESERVED_0_OFFSET)
+ 232              	// ADC0_SC1         EQU  ( ADC0_BASE + ADC_SC1_OFFSET)
+ 233              	.set ADC0_SC1A        ,  ( ADC0_BASE + ADC_SC1A_OFFSET)
+ 234              	.set ADC0_SC1B        ,  ( ADC0_BASE + ADC_SC1B_OFFSET)
+ 235              	.set ADC0_SC2         ,  ( ADC0_BASE + ADC_SC2_OFFSET)
+ 236              	.set ADC0_SC3         ,  ( ADC0_BASE + ADC_SC3_OFFSET)
+ 237              	// ---------------------------------------------------------------
+ 238              	// ADC_CFG1:  ADC configuration register 1
+ 239              	// 31-8:(reserved):read-only:0
+ 240              	//    7:ADLPC=ADC low-power configuration
+ 241              	//  6-5:ADIV=ADC clock divide select
+ 242              	//      Internal ADC clock = input clock / 2^ADIV
+ 243              	//    4:ADLSMP=ADC long sample time configuration
+ 244              	//             0=short
+ 245              	//             1=long
+ 246              	//  3-2:MODE=conversion mode selection
+ 247              	//           00=single-ended 8-bit conversion
+ 248              	//           01=single-ended 12-bit conversion
+ 249              	//           10=single-ended 10-bit conversion
+ 250              	//           11=(reserved; do not set this value)
+ 251              	//  1-0:ADICLK=ADC input clock select
+ 252              	//           00=bus clock
+ 253              	//           01=bus clock / 2
+ 254              	//           10=alternate clock (ALTCLK)
+ 255              	//           11=asynchronous clock (ADACK)
+ 256              	.set ADC_CFG1_ADLPC_MASK   ,  0x80
+ 257              	.set ADC_CFG1_ADLPC_SHIFT  ,  7
+ 258              	.set ADC_CFG1_ADIV_MASK    ,  0x60
+ 259              	.set ADC_CFG1_ADIV_SHIFT   ,  5
+ 260              	.set ADC_CFG1_ADLSMP_MASK  ,  0x10
+ 261              	.set ADC_CFG1_ADLSMP_SHIFT ,  4
+ 262              	.set ADC_CFG1_MODE_MASK    ,  0x0C
+ 263              	.set ADC_CFG1_MODE_SHIFT   ,  2
+ 264              	.set ADC_CFG1_ADICLK_MASK  ,  0x03
+ 265              	.set ADC_CFG1_ADICLK_SHIFT ,  0
+ 266              	// ---------------------------------------------------------------
+ 267              	// ADC_CFG2:  ADC configuration register 2
+ 268              	// 31-8:(reserved):read-only:0
+ 269              	//  7-5:(reserved):read-only:0
+ 270              	//    4:MUXSEL=ADC mux select
+ 271              	//             0=ADxxA channels are selected
+ 272              	//             1=ADxxB channels are selected
+ 273              	//    3:ADACKEN=ADC asynchronous clock output enable
+ 274              	//              0=asynchronous clock determined by ACD0_CFG1.ADICLK 
+ 275              	//              1=asynchronous clock enabled
+ 276              	//    2:ADHSC=ADC high-speed configuration
+ 277              	//            0=normal conversion
+ 278              	//            1=high-speed conversion (only 2 additional ADK cycles)
+ 279              	//  1-0:ADLSTS=ADC long sample time select (ADK cycles)
+ 280              	//           00=default longest sample time:  
+ 281              	//              24 total ADK cycles (20 extra)
+ 282              	//           01=16 total ADK cycles (12 extra)
+ 283              	//           10=10 total ADK cycles (6 extra)
+ 284              	//           11=6 total ADK cycles (2 extra)
+ 285              	.set ADC_CFG2_MUXSEL_MASK    ,  0x10
+ 286              	.set ADC_CFG2_MUXSEL_SHIFT   ,  4
+ 287              	.set ADC_CFG2_ADACKEN_MASK   ,  0x08
+ 288              	.set ADC_CFG2_ADACKEN_SHIFT  ,  3
+ 289              	.set ADC_CFG2_ADHSC_MASK     ,  0x04
+ 290              	.set ADC_CFG2_ADHSC_SHIFT    ,  2
+ 291              	.set ADC_CFG2_ADLSTS_MASK    ,  0x03
+ 292              	.set ADC_CFG2_ADLSTS_SHIFT   ,  0
+ 293              	// ---------------------------------------------------------------
+ 294              	// ADC_CLPD:  ADC plus-side general calibration value register D
+ 295              	// 31-6:(reserved):read-only:0
+ 296              	//  5-0:CLPD=calibration value
+ 297              	.set ADC_CLPD_MASK   ,  0x3F
+ 298              	.set ADC_CLPD_SHIFT  ,  0
+ 299              	// ---------------------------------------------------------------
+ 300              	// ADC_CLPS:  ADC plus-side general calibration value register S
+ 301              	// 31-6:(reserved):read-only:0
+ 302              	//  5-0:CLPS=calibration value
+ 303              	.set ADC_CLPS_MASK   ,  0x3F
+ 304              	.set ADC_CLPS_SHIFT  ,  0
+ 305              	// ---------------------------------------------------------------
+ 306              	// ADC_CLP0:  ADC plus-side general calibration value register 0
+ 307              	// 31-6:(reserved):read-only:0
+ 308              	//  5-0:CLP0=calibration value
+ 309              	.set ADC_CLP0_MASK   ,  0x3F
+ 310              	.set ADC_CLP0_SHIFT  ,  0
+ 311              	// ---------------------------------------------------------------
+ 312              	// ADC_CLP1:  ADC plus-side general calibration value register 1
+ 313              	// 31-7:(reserved):read-only:0
+ 314              	//  6-0:CLP1=calibration value
+ 315              	.set ADC_CLP1_MASK   ,  0x7F
+ 316              	.set ADC_CLP1_SHIFT  ,  0
+ 317              	// ---------------------------------------------------------------
+ 318              	// ADC_CLP2:  ADC plus-side general calibration value register 2
+ 319              	// 31-8:(reserved):read-only:0
+ 320              	//  7-0:CLP2=calibration value
+ 321              	.set ADC_CLP2_MASK   ,  0xFF
+ 322              	.set ADC_CLP2_SHIFT  ,  0
+ 323              	// ---------------------------------------------------------------
+ 324              	// ADC_CLP3:  ADC plus-side general calibration value register 3
+ 325              	// 31-9:(reserved):read-only:0
+ 326              	//  8-0:CLP3=calibration value
+ 327              	.set ADC_CLP3_MASK   ,  0x1FF
+ 328              	.set ADC_CLP3_SHIFT  ,  0
+ 329              	// ---------------------------------------------------------------
+ 330              	// ADC_CLP4:  ADC plus-side general calibration value register 4
+ 331              	// 31-10:(reserved):read-only:0
+ 332              	//  9- 0:CLP4=calibration value
+ 333              	.set ADC_CLP4_MASK   ,  0x3FF
+ 334              	.set ADC_CLP4_SHIFT  ,  0
+ 335              	// ---------------------------------------------------------------
+ 336              	// ADC_CVn:  ADC channel n compare value register
+ 337              	// CV1 used to compare result when ADC_SC2.ACFE=1
+ 338              	// CV2 used to compare result when ADC_SC2.ACREN=1
+ 339              	// 31-16:(reserved):read-only:0
+ 340              	// 15- 0:compare value (zero-extended to 16 bits,
+ 341              	//                      consistent with format of ACD_Rn)
+ 342              	.set ADC_CV_MASK   ,  0xFFFF
+ 343              	.set ADC_CV_SHIFT  ,  0
+ 344              	// ---------------------------------------------------------------
+ 345              	// ADC_OFS:  ADC offset correction register
+ 346              	// 31-16:(reserved):read-only:0
+ 347              	// 15- 0:OFS=offset error correction value
+ 348              	.set ADC_OFS_MASK   ,  0xFFFF
+ 349              	.set ADC_OFS_SHIFT  ,  0
+ 350              	// ---------------------------------------------------------------
+ 351              	// ADC_PG:  ADC plus-side gain register
+ 352              	// 31-16:(reserved):read-only:0
+ 353              	// 15- 0:PG=plus-side gain
+ 354              	.set ADC_PG_MASK   ,  0xFFFF
+ 355              	.set ADC_PG_SHIFT  ,  0
+ 356              	// ---------------------------------------------------------------
+ 357              	// ADC_Rn:  ADC channel n data result register
+ 358              	// 31-16:(reserved):read-only:0
+ 359              	// 15- 0:data result (zero-extended to 16 bits)
+ 360              	.set ADC_R_D_MASK   ,  0xFFFF
+ 361              	.set ADC_R_D_SHIFT  ,  0
+ 362              	// ---------------------------------------------------------------
+ 363              	// ADC_SC1n:  ADC channel n status and control register 1
+ 364              	// 31-8:(reserved):read-only:0
+ 365              	//    7:COCO=conversion complete flag (read-only)
+ 366              	//    6:AIEN=ADC interrupt enabled
+ 367              	//    5:(reserved)
+ 368              	//  4-0:ADCH=ADC input channel select
+ 369              	//           00000=AD0
+ 370              	//           00001=AD1
+ 371              	//           00010=AD2
+ 372              	//           00011=AD3
+ 373              	//           00100=AD4
+ 374              	//           00101=AD5 (12-bit DAC0 Output)
+ 375              	//           00110=AD6
+ 376              	//           00111=AD7
+ 377              	//           01000=AD8
+ 378              	//           01001=AD9
+ 379              	//           01010=AD10
+ 380              	//           01011=AD11
+ 381              	//           01100=AD12
+ 382              	//           01101=AD13
+ 383              	//           01110=(reserved)
+ 384              	//           01111=(reserved)
+ 385              	//           10000=(reserved)
+ 386              	//           10001=(reserved)
+ 387              	//           10010=(reserved)
+ 388              	//           10011=(reserved)
+ 389              	//           10100=(reserved)
+ 390              	//           10101=(reserved)
+ 391              	//           10110=(reserved)
+ 392              	//           10111=(reserved)
+ 393              	//           11000=(reserved)
+ 394              	//           11001=(reserved)
+ 395              	//           11010=temp sensor (single-ended)
+ 396              	//           11011=bandgap
+ 397              	//           11100=(reserved)
+ 398              	//           11101=VREFSH
+ 399              	//           11110=VREFSL
+ 400              	//           11111=disabled
+ 401              	.set ADC_SC1_COCO_MASK   ,  0x80
+ 402              	.set ADC_SC1_COCO_SHIFT  ,  7
+ 403              	.set ADC_SC1_AIEN_MASK   ,  0x40
+ 404              	.set ADC_SC1_AIEN_SHIFT  ,  6
+ 405              	.set ADC_SC1_ADCH_MASK   ,  0x1F
+ 406              	.set ADC_SC1_ADCH_SHIFT  ,  0
+ 407              	// ---------------------------------------------------------------
+ 408              	// ADC_SC2:  ADC status and control register 2
+ 409              	// 31-8:(reserved):read-only:0
+ 410              	//    7:ADACT=ADC conversion active
+ 411              	//    6:ADTRG=ADC conversion trigger select
+ 412              	//            0=software trigger
+ 413              	//            1=hardware trigger
+ 414              	//    5:ACFE=ADC compare function enable
+ 415              	//    4:ACFGT=ADC compare function greater than enable
+ 416              	//            based on values in ADC_CV1 and ADC_CV2
+ 417              	//            0=configure less than threshold and non-inclusive range
+ 418              	//            1=configure greater than threshold and non-inclusive range
+ 419              	//    3:ACREN=ADC compare function range enable
+ 420              	//            0=disabled; only ADC_CV1 compared
+ 421              	//            1=enabled; both ADC_CV1 and ADC_CV2 compared
+ 422              	//    2:DMAEN=DMA enable
+ 423              	//  1-0:REFSEL=voltage reference selection
+ 424              	//             00=default:VREFH and VREFL
+ 425              	//             01=alternative:VALTH and VALTL
+ 426              	//             10=(reserved)
+ 427              	//             11=(reserved)
+ 428              	.set ADC_SC2_ADACT_MASK    ,  0x80
+ 429              	.set ADC_SC2_ADACT_SHIFT   ,  7
+ 430              	.set ADC_SC2_ADTRG_MASK    ,  0x40
+ 431              	.set ADC_SC2_ADTRG_SHIFT   ,  6
+ 432              	.set ADC_SC2_ACFE_MASK     ,  0x20
+ 433              	.set ADC_SC2_ACFE_SHIFT    ,  5
+ 434              	.set ADC_SC2_ACFGT_MASK    ,  0x10
+ 435              	.set ADC_SC2_ACFGT_SHIFT   ,  4
+ 436              	.set ADC_SC2_ACREN_MASK    ,  0x08
+ 437              	.set ADC_SC2_ACREN_SHIFT   ,  3
+ 438              	.set ADC_SC2_DMAEN_MASK    ,  0x04
+ 439              	.set ADC_SC2_DMAEN_SHIFT   ,  2
+ 440              	.set ADC_SC2_REFSEL_MASK   ,  0x03
+ 441              	.set ADC_SC2_REFSEL_SHIFT  ,  0
+ 442              	// ---------------------------------------------------------------
+ 443              	// ADC_SC3:  ADC status and control register 3
+ 444              	// 31-8:(reserved):read-only:0
+ 445              	//    7:CAL=calibration
+ 446              	//          write:0=(no effect)
+ 447              	//                1=start calibration sequence
+ 448              	//          read:0=calibration sequence complete
+ 449              	//               1=calibration sequence in progress
+ 450              	//    6:CALF=calibration failed flag
+ 451              	//  5-4:(reserved):read-only:0
+ 452              	//    3:ADC=ADC continuous conversion enable (if ADC_SC3.AVGE = 1)
+ 453              	//    2:AVGE=hardware average enable
+ 454              	//  1-0:AVGS=hardware average select:  2^(2+AVGS) samples
+ 455              	.set ADC_SC3_CAL_MASK    ,  0x80
+ 456              	.set ADC_SC3_CAL_SHIFT   ,  7
+ 457              	.set ADC_SC3_CALF_MASK   ,  0x40
+ 458              	.set ADC_SC3_CALF_SHIFT  ,  6
+ 459              	.set ADC_SC3_ADCO_MASK   ,  0x08
+ 460              	.set ADC_SC3_ADCO_SHIFT  ,  3
+ 461              	.set ADC_SC3_AVGE_MASK   ,  0x04
+ 462              	.set ADC_SC3_AVGE_SHIFT  ,  2
+ 463              	.set ADC_SC3_AVGS_MASK   ,  0x03
+ 464              	.set ADC_SC3_AVGS_SHIFT  ,  0
+ 465              	// ---------------------------------------------------------------
+ 466              	// CMP
+ 467              	.set CMP0_BASE          ,  0x40073000
+ 468              	// CMP_BASES          EQU  CMP0_BASE
+ 469              	.set CMP0_CR0_OFFSET    ,  0x00
+ 470              	.set CMP0_CR1_OFFSET    ,  0x01
+ 471              	.set CMP0_FPR_OFFSET    ,  0x02
+ 472              	.set CMP0_SCR_OFFSET    ,  0x03
+ 473              	.set CMP0_DACCR_OFFSET  ,  0x04
+ 474              	.set CMP0_MUXCR_OFFSET  ,  0x05
+ 475              	.set CMP0_CR0           ,  (CMP0_BASE + CMP0_CR0_OFFSET)
+ 476              	.set CMP0_CR1           ,  (CMP0_BASE + CMP0_CR1_OFFSET)
+ 477              	.set CMP0_FPR           ,  (CMP0_BASE + CMP0_FPR_OFFSET)
+ 478              	.set CMP0_SCR           ,  (CMP0_BASE + CMP0_SCR_OFFSET)
+ 479              	.set CMP0_DACCR         ,  (CMP0_BASE + CMP0_DACCR_OFFSET)
+ 480              	.set CMP0_MUXCR         ,  (CMP0_BASE + CMP0_MUXCR_OFFSET)
+ 481              	// ---------------------------------------------------------------
+ 482              	// CMP0_CR0:  CMP0 control register 0 (0x00)
+ 483              	//   7:(reserved):read-only:0
+ 484              	// 6-4:FILTER_CNT=filter sample count (00)
+ 485              	//   3:(reserved):read-only:0
+ 486              	//   2:(reserved):read-only:0
+ 487              	// 1-0:HYSTCTR=comparator hard block hysteresis control (00)
+ 488              	.set CMP_CR0_HYSTCTR_MASK      ,  0x3
+ 489              	.set CMP_CR0_HYSTCTR_SHIFT     ,  0
+ 490              	.set CMP_CR0_FILTER_CNT_MASK   ,  0x70
+ 491              	.set CMP_CR0_FILTER_CNT_SHIFT  ,  4
+ 492              	// ---------------------------------------------------------------
+ 493              	// CMP0_CR1:  CMP0 control register 1 (0x00)
+ 494              	// 7:SE=sample enable (0)
+ 495              	// 6:WE=windowing enable (0)
+ 496              	// 5:TRIGM=trigger mode enable (0)
+ 497              	// 4:PMODE=power mode select (0)
+ 498              	//         0=low-speed comparison mode
+ 499              	//         1=high-speed comparison mode
+ 500              	// 3:INV=comparator invert (0)
+ 501              	// 2:COS=comparator output select (0)
+ 502              	//       0=filtered output COUT
+ 503              	//       1=unfiltered output COUTA
+ 504              	// 1:OPE=comparator output pin enable (0)
+ 505              	// 0:EN=comparator module enable (0)
+ 506              	.set CMP_CR1_EN_MASK      ,  0x1
+ 507              	.set CMP_CR1_EN_SHIFT     ,  0
+ 508              	.set CMP_CR1_OPE_MASK     ,  0x2
+ 509              	.set CMP_CR1_OPE_SHIFT    ,  1
+ 510              	.set CMP_CR1_COS_MASK     ,  0x4
+ 511              	.set CMP_CR1_COS_SHIFT    ,  2
+ 512              	.set CMP_CR1_INV_MASK     ,  0x8
+ 513              	.set CMP_CR1_INV_SHIFT    ,  3
+ 514              	.set CMP_CR1_PMODE_MASK   ,  0x10
+ 515              	.set CMP_CR1_PMODE_SHIFT  ,  4
+ 516              	.set CMP_CR1_TRIGM_MASK   ,  0x20
+ 517              	.set CMP_CR1_TRIGM_SHIFT  ,  5
+ 518              	.set CMP_CR1_WE_MASK      ,  0x40
+ 519              	.set CMP_CR1_WE_SHIFT     ,  6
+ 520              	.set CMP_CR1_SE_MASK      ,  0x80
+ 521              	.set CMP_CR1_SE_SHIFT     ,  7
+ 522              	// ---------------------------------------------------------------
+ 523              	// CMP0_FPR=CMP filter period register (0x00)
+ 524              	// 7-0:FILT_PER=CMP filter period register (0x00)
+ 525              	.set CMP_FPR_FILT_PER_MASK   ,  0xFF
+ 526              	.set CMP_FPR_FILT_PER_SHIFT  ,  0
+ 527              	// ---------------------------------------------------------------
+ 528              	// CMP0_SCR=CMP status and control register (0x00)
+ 529              	// 7:(reserved):read-only:0
+ 530              	// 6:DMAEN=DMA enable control (0)
+ 531              	// 5:(reserved):read-only:0
+ 532              	// 4:IER=comparator interrupt enable rising (0)
+ 533              	// 3:IEF=comparator interrupt enable falling (0)
+ 534              	// 2:CFR=analog comparator flag rising: w1c (0)
+ 535              	// 1:CFF=analog comparator flag falling: w1c (0)
+ 536              	// 0:COUT=analog comparator output:  read-only (0)
+ 537              	.set CMP_SCR_COUT_MASK    ,  0x1
+ 538              	.set CMP_SCR_COUT_SHIFT   ,  0
+ 539              	.set CMP_SCR_CFF_MASK     ,  0x2
+ 540              	.set CMP_SCR_CFF_SHIFT    ,  1
+ 541              	.set CMP_SCR_CFR_MASK     ,  0x4
+ 542              	.set CMP_SCR_CFR_SHIFT    ,  2
+ 543              	.set CMP_SCR_IEF_MASK     ,  0x8
+ 544              	.set CMP_SCR_IEF_SHIFT    ,  3
+ 545              	.set CMP_SCR_IER_MASK     ,  0x10
+ 546              	.set CMP_SCR_IER_SHIFT    ,  4
+ 547              	.set CMP_SCR_DMAEN_MASK   ,  0x40
+ 548              	.set CMP_SCR_DMAEN_SHIFT  ,  6
+ 549              	// ---------------------------------------------------------------
+ 550              	// CMP0_DACCR=DAC control register (0x00)
+ 551              	//   7:DACEN=DAC enable (0)
+ 552              	//   6:VRSEL=supply voltage reference source select (0)
+ 553              	//           0=Selected from mux by Vin1
+ 554              	//           1=Selected from mux by Vin2
+ 555              	// 5-0:VOSEL=DAC output voltage select (00000)
+ 556              	//           DAC0 = (Vin / 64) x (VOSEL[5:0] + 1)
+ 557              	.set CMP_DACCR_VOSEL_MASK   ,  0x3F
+ 558              	.set CMP_DACCR_VOSEL_SHIFT  ,  0
+ 559              	.set CMP_DACCR_VRSEL_MASK   ,  0x40
+ 560              	.set CMP_DACCR_VRSEL_SHIFT  ,  6
+ 561              	.set CMP_DACCR_DACEN_MASK   ,  0x80
+ 562              	.set CMP_DACCR_DACEN_SHIFT  ,  7
+ 563              	// ---------------------------------------------------------------
+ 564              	// CMP0_MUXCR=MUX control register (0x00)
+ 565              	//   7:PSTM=pass through mode enable (0)
+ 566              	//   6:(reserved):read-only:0
+ 567              	// 5-3:PSEL=plus input mux control (000)
+ 568              	//          selects IN[PSEL]
+ 569              	// 2-0:MSEL=minus input mux control (000)
+ 570              	//          selects IN[MSEL]
+ 571              	.set CMP_MUXCR_MSEL_MASK   ,  0x7
+ 572              	.set CMP_MUXCR_MSEL_SHIFT  ,  0
+ 573              	.set CMP_MUXCR_PSEL_MASK   ,  0x38
+ 574              	.set CMP_MUXCR_PSEL_SHIFT  ,  3
+ 575              	.set CMP_MUXCR_PSTM_MASK   ,  0x80
+ 576              	.set CMP_MUXCR_PSTM_SHIFT  ,  7
+ 577              	// ---------------------------------------------------------------
+ 578              	// DAC
+ 579              	.set DAC0_BASE          ,  0x4003F000
+ 580              	// DAC_BASES          EQU  DAC0_BASE
+ 581              	// DAC0_DAT_OFFSET    EQU  0x00
+ 582              	.set DAC0_DAT0L_OFFSET  ,  0x00
+ 583              	.set DAC0_DAT0H_OFFSET  ,  0x01
+ 584              	.set DAC0_DAT1L_OFFSET  ,  0x02
+ 585              	.set DAC0_DAT1H_OFFSET  ,  0x03
+ 586              	// DAC0_RESERVED_0_OFFSET  EQU  0x04
+ 587              	.set DAC0_SR_OFFSET     ,  0x20
+ 588              	.set DAC0_C0_OFFSET     ,  0x21
+ 589              	.set DAC0_C1_OFFSET     ,  0x22
+ 590              	.set DAC0_C2_OFFSET     ,  0x23
+ 591              	// DAC0_DAT           EQU  (DAC0_BASE + DAC0_DAT_OFFSET)
+ 592              	.set DAC0_DAT0L         ,  (DAC0_BASE + DAC0_DAT0L_OFFSET)
+ 593              	.set DAC0_DAT0H         ,  (DAC0_BASE + DAC0_DAT0H_OFFSET)
+ 594              	.set DAC0_DAT1L         ,  (DAC0_BASE + DAC0_DAT1L_OFFSET)
+ 595              	.set DAC0_DAT1H         ,  (DAC0_BASE + DAC0_DAT1H_OFFSET)
+ 596              	// DAC0_RESERVED_0    EQU  (DAC0_BASE + DAC0_RESERVED_0_OFFSET)
+ 597              	.set DAC0_SR            ,  (DAC0_BASE + DAC0_SR_OFFSET)
+ 598              	.set DAC0_C0            ,  (DAC0_BASE + DAC0_C0_OFFSET)
+ 599              	.set DAC0_C1            ,  (DAC0_BASE + DAC0_C1_OFFSET)
+ 600              	.set DAC0_C2            ,  (DAC0_BASE + DAC0_C2_OFFSET)
+ 601              	// ---------------------------------------------------------------
+ 602              	// DAC_DAT0H:  DAC data high register 0
+ 603              	// If buffer not enabled, Vout = Vin * (1 + DATA[11:0])/4096.
+ 604              	// 7-4:(reserved):read-only:0
+ 605              	// 3-0:DATA1=DATA[11:8] (0000)
+ 606              	.set DAC_DAT0H_MASK   ,  0x0F
+ 607              	.set DAC_DAT0H_SHIFT  ,  0
+ 608              	// ---------------------------------------------------------------
+ 609              	// DAC_DAT0L:  DAC data low register 0
+ 610              	// If buffer not enabled, Vout = Vin * (1 + DATA[11:0])/4096.
+ 611              	// 7-0:DATA0=DATA[7:0] (00000000)
+ 612              	.set DAC_DAT0L_MASK   ,  0xFF
+ 613              	.set DAC_DAT0L_SHIFT  ,  0
+ 614              	// ---------------------------------------------------------------
+ 615              	// DAC_DAT1H:  DAC data high register 1
+ 616              	// If buffer not enabled, Vout = Vin * (1 + DATA[11:0])/4096.
+ 617              	// 7-4:(reserved):read-only:0
+ 618              	// 3-0:DATA1=DATA[11:8] (0000)
+ 619              	.set DAC_DAT1H_MASK   ,  0x0F
+ 620              	.set DAC_DAT1H_SHIFT  ,  0
+ 621              	// ---------------------------------------------------------------
+ 622              	// DAC_DAT1L:  DAC data low register 1
+ 623              	// If buffer not enabled, Vout = Vin * (1 + DATA[11:0])/4096.
+ 624              	// 7-0:DATA0=DATA[7:0] (00000000)
+ 625              	.set DAC_DAT1L_MASK   ,  0xFF
+ 626              	.set DAC_DAT1L_SHIFT  ,  0
+ 627              	// ;---------------------------------------------------------------
+ 628              	// ;DAC_DATH:  DAC data high registers
+ 629              	// ;If buffer not enabled, Vout = Vin * (1 + DATA[11:0])/4096.
+ 630              	// ;7-4:(reserved):read-only:0
+ 631              	// ;3-0:DATA1=DATA[11:8] (0000)
+ 632              	// DAC_DATH_DATA0_MASK   EQU  0x0F
+ 633              	// DAC_DATH_DATA0_SHIFT  EQU  0
+ 634              	// ;---------------------------------------------------------------
+ 635              	// ;DAC_DATL:  DAC data low registers
+ 636              	// ;If buffer not enabled, Vout = Vin * (1 + DATA[11:0])/4096.
+ 637              	// ;7-0:DATA0=DATA[7:0] (00000000)
+ 638              	// DAC_DATL_DATA0_MASK   EQU  0xFF
+ 639              	// DAC_DATL_DATA0_SHIFT  EQU  0
+ 640              	// ---------------------------------------------------------------
+ 641              	// DAC_C0:  DAC control register 0
+ 642              	// 7:DACEN=DAC enable (0)
+ 643              	// 6:DACRFS=DAC reference select (0)
+ 644              	//          0:DACREF_1=VREFH
+ 645              	//          1:DACREF_2=VDDA (best for ADC operation)
+ 646              	// 5:DACTRGSEL=DAC trigger select (0)
+ 647              	//             0:HW
+ 648              	//             1:SW
+ 649              	// 4:DACSWTRG=DAC software trigger (0)
+ 650              	//            active-high write-only field that reads 0
+ 651              	//            DACBFEN & DACTRGSEL:  writing 1 advances buffer pointer
+ 652              	// 3:LPEN=DAC low power control (0)
+ 653              	//        0:high-power mode
+ 654              	//        1:low-power mode
+ 655              	// 2:(reserved):read-only:0
+ 656              	// 1:DACBTIEN=DAC buffer read pointer top flag interrupt enable (0)
+ 657              	// 0:DACBBIEN=DAC buffer read pointer bottom flag interrupt enable (0)
+ 658              	.set DAC_C0_DACEN_MASK       ,  0x80
+ 659              	.set DAC_C0_DACEN_SHIFT      ,  7
+ 660              	.set DAC_C0_DACRFS_MASK      ,  0x40
+ 661              	.set DAC_C0_DACRFS_SHIFT     ,  6
+ 662              	.set DAC_C0_DACTRGSEL_MASK   ,  0x20
+ 663              	.set DAC_C0_DACTRGSEL_SHIFT  ,  5
+ 664              	.set DAC_C0_DACSWTRG_MASK    ,  0x10
+ 665              	.set DAC_C0_DACSWTRG_SHIFT   ,  4
+ 666              	.set DAC_C0_LPEN_MASK        ,  0x08
+ 667              	.set DAC_C0_LPEN_SHIFT       ,  3
+ 668              	.set DAC_C0_DACBTIEN_MASK    ,  0x02
+ 669              	.set DAC_C0_DACBTIEN_SHIFT   ,  1
+ 670              	.set DAC_C0_DACBBIEN_MASK    ,  0x01
+ 671              	.set DAC_C0_DACBBIEN_SHIFT   ,  0
+ 672              	// ---------------------------------------------------------------
+ 673              	// DAC_C1:  DAC control register 1
+ 674              	//   7:DMAEN=DMA enable select (0)
+ 675              	// 6-3:(reserved):read-only:0000
+ 676              	//   2:DACBFMD=DAC buffer work mode select (0)
+ 677              	//             0:normal
+ 678              	//             1:one-time scan
+ 679              	//   1:(reserved):read-only:0
+ 680              	//   0:DACBFEN=DAC buffer enable (0)
+ 681              	//             0:disabled:data in first word of buffer
+ 682              	//             1:enabled:read pointer points to data
+ 683              	.set DAC_C1_DMAEN_MASK       ,  0x80
+ 684              	.set DAC_C1_DMAEN_SHIFT      ,  7
+ 685              	.set DAC_C1_DACBFMD_MASK     ,  0x04
+ 686              	.set DAC_C1_DACBFMD_SHIFT    ,  2
+ 687              	.set DAC_C1_DACBFEN_MASK     ,  0x01
+ 688              	.set DAC_C1_DACBFEN_SHIFT    ,  0
+ 689              	// ---------------------------------------------------------------
+ 690              	// DAC_C2:  DAC control register 2
+ 691              	// 7-5:(reserved):read-only:0
+ 692              	//   4:DACBFRP=DAC buffer read pointer (0)
+ 693              	// 3-1:(reserved):read-only:0
+ 694              	//   0:DACBFUP=DAC buffer read upper limit (1)
+ 695              	.set DAC_C2_DACBFRP_MASK   ,  0x10
+ 696              	.set DAC_C2_DACBFRP_SHIFT  ,  4
+ 697              	.set DAC_C2_DACBFUP_MASK   ,  0x01
+ 698              	.set DAC_C2_DACBFUP_SHIFT  ,  0
+ 699              	// ---------------------------------------------------------------
+ 700              	// DAC_SR:  DAC status register
+ 701              	// Writing 0 clears a field; writing 1 has no effect.
+ 702              	// 7-2:(reserved):read-only:000000
+ 703              	// 1:DACBFRPTF=DAC buffer read pointer top position flag (1)
+ 704              	//             Indicates whether pointer is zero
+ 705              	// 0:DACBFRPBF=DAC buffer read pointer bottom position flag (0)
+ 706              	//             Indicates whether pointer is equal to DAC0_C2.DACBFUP.
+ 707              	.set DAC_SR_DACBFRPTF_MASK   , 0x02
+ 708              	.set DAC_SR_DACBFRPTF_SHIFT  , 1
+ 709              	.set DAC_SR_DACBFRPBF_MASK   , 0x01
+ 710              	.set DAC_SR_DACBFRPBF_SHIFT  , 0
+ 711              	// ---------------------------------------------------------------
+ 712              	// Flash Configuration Field (FCF) 0x400-0x40F
+ 713              	// Following [6, 7]
+ 714              	// 16-byte flash configuration field that stores default protection settings
+ 715              	// (loaded on reset) and security information that allows the MCU to 
+ 716              	// restrict acces to the FTFL module.
+ 717              	// FCF Backdoor Comparison Key
+ 718              	// 8 bytes from 0x400-0x407
+ 719              	// -----------------------------------------------------
+ 720              	// FCF Backdoor Comparison Key 0
+ 721              	// 7-0:Backdoor Key 0
+ 722              	.set FCF_BACKDOOR_KEY0  ,  0xFF
+ 723              	.set BackDoorK0         ,  0xFF
+ 724              	// -----------------------------------------------------
+ 725              	// FCF Backdoor Comparison Key 1
+ 726              	// 7-0:Backdoor Key 1
+ 727              	.set FCF_BACKDOOR_KEY1  ,  0xFF
+ 728              	.set BackDoorK1         ,  0xFF
+ 729              	// -----------------------------------------------------
+ 730              	// FCF Backdoor Comparison Key 2
+ 731              	// 7-0:Backdoor Key 2
+ 732              	.set FCF_BACKDOOR_KEY2  ,  0xFF
+ 733              	.set BackDoorK2         ,  0xFF
+ 734              	// -----------------------------------------------------
+ 735              	// FCF Backdoor Comparison Key 3
+ 736              	// 7-0:Backdoor Key 3
+ 737              	.set FCF_BACKDOOR_KEY3  ,  0xFF
+ 738              	.set BackDoorK3         ,  0xFF
+ 739              	// -----------------------------------------------------
+ 740              	// FCF Backdoor Comparison Key 4
+ 741              	// 7-0:Backdoor Key 4
+ 742              	.set FCF_BACKDOOR_KEY4  ,  0xFF
+ 743              	.set BackDoorK4         ,  0xFF
+ 744              	// -----------------------------------------------------
+ 745              	// FCF Backdoor Comparison Key 5
+ 746              	// 7-0:Backdoor Key 5
+ 747              	.set FCF_BACKDOOR_KEY5  ,  0xFF
+ 748              	.set BackDoorK5         ,  0xFF
+ 749              	// -----------------------------------------------------
+ 750              	// FCF Backdoor Comparison Key 6
+ 751              	// 7-0:Backdoor Key 6
+ 752              	.set FCF_BACKDOOR_KEY6  ,  0xFF
+ 753              	.set BackDoorK6         ,  0xFF
+ 754              	// -----------------------------------------------------
+ 755              	// FCF Backdoor Comparison Key 7
+ 756              	// 7-0:Backdoor Key 7
+ 757              	.set FCF_BACKDOOR_KEY7  ,  0xFF
+ 758              	.set BackDoorK7         ,  0xFF
+ 759              	// -----------------------------------------------------
+ 760              	// FCF Flash nonvolatile option byte (FCF_FOPT)
+ 761              	// Allows user to customize operation of the MCU at boot time.
+ 762              	// 7-6:11:(reserved)
+ 763              	//   5: 1:FAST_INIT=fast initialization
+ 764              	// 4,0:11:LPBOOT=core and system clock divider:  2^(3-LPBOOT)
+ 765              	//   3: 1:RESET_PIN_CFG=enable reset pin following POR
+ 766              	//   2: 1:NMI_DIS=Enable NMI
+ 767              	//   1: 1:(reserved)
+ 768              	//   0:(see bit 4 above)
+ 769              	.set FCF_FOPT  ,  0xFF
+ 770              	.set FOPT      ,  0xFF
+ 771              	// -----------------------------------------------------
+ 772              	// FCF Program flash protection bytes (FCF_FPROT)
+ 773              	// Each program flash region can be protected from program and erase 
+ 774              	// operation by setting the associated PROT bit.  Each bit protects a 
+ 775              	// 1/32 region of the program flash memory.
+ 776              	// FCF FPROT0
+ 777              	// 7:1:FCF_PROT7=Program flash region 7/32 not protected
+ 778              	// 6:1:FCF_PROT6=Program flash region 6/32 not protected
+ 779              	// 5:1:FCF_PROT5=Program flash region 5/32 not protected
+ 780              	// 4:1:FCF_PROT4=Program flash region 4/32 not protected
+ 781              	// 3:1:FCF_PROT3=Program flash region 3/32 not protected
+ 782              	// 2:1:FCF_PROT2=Program flash region 2/32 not protected
+ 783              	// 1:1:FCF_PROT1=Program flash region 1/32 not protected
+ 784              	// 0:1:FCF_PROT0=Program flash region 0/32 not protected
+ 785              	.set FCF_FPROT0  ,  0xFF
+ 786              	.set nFPROT0     ,  0x00
+ 787              	.set FPROT0      ,  nFPROT0 ^ 0xFF
+ 788              	// -----------------------------------------------------
+ 789              	// FCF FPROT1
+ 790              	// 7:1:FCF_PROT15=Program flash region 15/32 not protected
+ 791              	// 6:1:FCF_PROT14=Program flash region 14/32 not protected
+ 792              	// 5:1:FCF_PROT13=Program flash region 13/32 not protected
+ 793              	// 4:1:FCF_PROT12=Program flash region 12/32 not protected
+ 794              	// 3:1:FCF_PROT11=Program flash region 11/32 not protected
+ 795              	// 2:1:FCF_PROT10=Program flash region 10/32 not protected
+ 796              	// 1:1:FCF_PROT9=Program flash region 9/32 not protected
+ 797              	// 0:1:FCF_PROT8=Program flash region 8/32 not protected
+ 798              	.set FCF_FPROT1  ,  0xFF
+ 799              	.set nFPROT1     ,  0x00
+ 800              	.set FPROT1      ,  nFPROT1 ^ 0xFF
+ 801              	// -----------------------------------------------------
+ 802              	// FCF FPROT2
+ 803              	// 7:1:FCF_PROT23=Program flash region 23/32 not protected
+ 804              	// 6:1:FCF_PROT22=Program flash region 22/32 not protected
+ 805              	// 5:1:FCF_PROT21=Program flash region 21/32 not protected
+ 806              	// 4:1:FCF_PROT20=Program flash region 20/32 not protected
+ 807              	// 3:1:FCF_PROT19=Program flash region 19/32 not protected
+ 808              	// 2:1:FCF_PROT18=Program flash region 18/32 not protected
+ 809              	// 1:1:FCF_PROT17=Program flash region 17/32 not protected
+ 810              	// 0:1:FCF_PROT16=Program flash region 16/32 not protected
+ 811              	.set FCF_FPROT2  ,  0xFF
+ 812              	.set nFPROT2     ,  0x00
+ 813              	.set FPROT2      ,  nFPROT2 ^ 0xFF
+ 814              	// -----------------------------------------------------
+ 815              	// FCF FPROT3
+ 816              	// 7:1:FCF_PROT31=Program flash region 31/32 not protected
+ 817              	// 6:1:FCF_PROT30=Program flash region 30/32 not protected
+ 818              	// 5:1:FCF_PROT29=Program flash region 29/32 not protected
+ 819              	// 4:1:FCF_PROT28=Program flash region 28/32 not protected
+ 820              	// 3:1:FCF_PROT27=Program flash region 27/32 not protected
+ 821              	// 2:1:FCF_PROT26=Program flash region 26/32 not protected
+ 822              	// 1:1:FCF_PROT25=Program flash region 25/32 not protected
+ 823              	// 0:1:FCF_PROT24=Program flash region 24/32 not protected
+ 824              	.set FCF_FPROT3  ,  0xFF
+ 825              	.set nFPROT3     ,  0x00
+ 826              	.set FPROT3      ,  nFPROT3 ^ 0xFF
+ 827              	// -----------------------------------------------------
+ 828              	// FCF Flash security byte (FCF_FSEC)
+ 829              	// WARNING: If SEC field is configured as "MCU security status is 
+ 830              	// secure" and MEEN field is configured as "Mass erase is disabled",
+ 831              	// MCU's security status cannot be set back to unsecure state since 
+ 832              	// mass erase via the debugger is blocked !!!
+ 833              	// 7-6:01:KEYEN=backdoor key security enable
+ 834              	//             :00=Backdoor key access disabled
+ 835              	//             :01=Backdoor key access disabled (preferred value)
+ 836              	//             :10=Backdoor key access enabled
+ 837              	//             :11=Backdoor key access disabled
+ 838              	// 5-4:11:MEEN=mass erase enable bits
+ 839              	//            (does not matter if SEC unsecure)
+ 840              	//            :00=mass erase enabled
+ 841              	//            :01=mass erase enabled
+ 842              	//            :10=mass erase disabled
+ 843              	//            :11=mass erase enabled
+ 844              	// 3-2:11:FSLACC=Freescale failure analysis access code
+ 845              	//              (does not matter if SEC unsecure)
+ 846              	//              :00=Freescale factory access granted
+ 847              	//              :01=Freescale factory access denied
+ 848              	//              :10=Freescale factory access denied
+ 849              	//              :11=Freescale factory access granted
+ 850              	// 1-0:10:SEC=flash security
+ 851              	//           :00=MCU secure
+ 852              	//           :01=MCU secure
+ 853              	//           :10=MCU unsecure (standard value)
+ 854              	//           :11=MCU secure
+ 855              	.set FCF_FSEC  ,  0x7E
+ 856              	.set FSEC      ,  0xFE
+ 857              	// ---------------------------------------------------------------
+ 858              	// Fast (zero wait state) GPIO (FGPIO) or (IOPORT)
+ 859              	// FGPIOx_PDD:  Port x Data Direction Register
+ 860              	//   Bit n:  0=Port x pin n configured as input
+ 861              	//           1=Port x pin n configured as output
+ 862              	// FGPIOx_PDIR:  Port x Data Input Register
+ 863              	//   Bit n:  Value read from Port x pin n (if input pin)
+ 864              	// FGPIOx_PDOR:  Port x Data Output Register
+ 865              	//   Bit n:  Value written to Port x pin n (if output pin)
+ 866              	// FGPIOx_PoOR: Port x operation o direction x Register
+ 867              	//   Operation o:  C=Clear (clear to 0)
+ 868              	//                 S=Set (set to 1)
+ 869              	//                 T=Toggle (complement)
+ 870              	//   Bit n:  0=Port x pin n not affected
+ 871              	//           1=Port x pin n affected
+ 872              	.set FGPIO_BASE         ,  0xF80FF000
+ 873              	.set FGPIO_PDOR_OFFSET  ,  0x00
+ 874              	.set FGPIO_PSOR_OFFSET  ,  0x04
+ 875              	.set FGPIO_PCOR_OFFSET  ,  0x08
+ 876              	.set FGPIO_PTOR_OFFSET  ,  0x0C
+ 877              	.set FGPIO_PDIR_OFFSET  ,  0x10
+ 878              	.set FGPIO_PDDR_OFFSET  ,  0x14
+ 879              	// FGPIOx not present in MKL05Z4.h:  FPTx instead
+ 880              	// FGPIOx included for compatibility with MKL46Z4.h
+ 881              	// Fast Port A
+ 882              	.set FGPIOA_BASE        ,  0xF80FF000
+ 883              	.set FGPIOA_PDOR        ,  (FGPIOA_BASE + GPIO_PDOR_OFFSET)
+ 884              	.set FGPIOA_PSOR        ,  (FGPIOA_BASE + GPIO_PSOR_OFFSET)
+ 885              	.set FGPIOA_PCOR        ,  (FGPIOA_BASE + GPIO_PCOR_OFFSET)
+ 886              	.set FGPIOA_PTOR        ,  (FGPIOA_BASE + GPIO_PTOR_OFFSET)
+ 887              	.set FGPIOA_PDIR        ,  (FGPIOA_BASE + GPIO_PDIR_OFFSET)
+ 888              	.set FGPIOA_PDDR        ,  (FGPIOA_BASE + GPIO_PDDR_OFFSET)
+ 889              	// Fast Port B
+ 890              	.set FGPIOB_BASE        ,  0xF80FF040
+ 891              	.set FGPIOB_PDOR        ,  (FGPIOB_BASE + GPIO_PDOR_OFFSET)
+ 892              	.set FGPIOB_PSOR        ,  (FGPIOB_BASE + GPIO_PSOR_OFFSET)
+ 893              	.set FGPIOB_PCOR        ,  (FGPIOB_BASE + GPIO_PCOR_OFFSET)
+ 894              	.set FGPIOB_PTOR        ,  (FGPIOB_BASE + GPIO_PTOR_OFFSET)
+ 895              	.set FGPIOB_PDIR        ,  (FGPIOB_BASE + GPIO_PDIR_OFFSET)
+ 896              	.set FGPIOB_PDDR        ,  (FGPIOB_BASE + GPIO_PDDR_OFFSET)
+ 897              	// Fast GPIO
+ 898              	// FGPIO_BASES        EQU  FGPIOA_BASE
+ 899              	// ---------------------------------------------------------------
+ 900              	// FPTx not present in MKL46Z4.h
+ 901              	// Fast (zero wait state) general-purpose input and output (FPTx)
+ 902              	// FPTx_PDD:  Port x Data Direction Register
+ 903              	//   Bit n:  0=Port x pin n configured as input
+ 904              	//           1=Port x pin n configured as output
+ 905              	// FPTx_PDIR:  Port x Data Input Register
+ 906              	//   Bit n:  Value read from Port x pin n (if input pin)
+ 907              	// FPTx_PDOR:  Port x Data Output Register
+ 908              	//   Bit n:  Value written to Port x pin n (if output pin)
+ 909              	// FPTx_PoOR: Port x operation o direction x Register
+ 910              	//   Operation o:  C=Clear (clear to 0)
+ 911              	//                 S=Set (set to 1)
+ 912              	//                 T=Toggle (complement)
+ 913              	//   Bit n:  0=Port x pin n not affected
+ 914              	//           1=Port x pin n affected
+ 915              	.set FPT_BASE         ,  0xF80FF000
+ 916              	.set FPT_PDOR_OFFSET  ,  0x00
+ 917              	.set FPT_PSOR_OFFSET  ,  0x04
+ 918              	.set FPT_PCOR_OFFSET  ,  0x08
+ 919              	.set FPT_PTOR_OFFSET  ,  0x0C
+ 920              	.set FPT_PDIR_OFFSET  ,  0x10
+ 921              	.set FPT_PDDR_OFFSET  ,  0x14
+ 922              	.set FPTA_OFFSET      ,  0x00
+ 923              	.set FPTB_OFFSET      ,  0x40
+ 924              	// Fast Port A (FPTA)
+ 925              	.set FPTA_BASE        ,  0xF80FF000
+ 926              	.set FPTA_PSOR        ,  (FPTA_BASE + FPT_PSOR_OFFSET)
+ 927              	.set FPTA_PDOR        ,  (FPTA_BASE + FPT_PDOR_OFFSET)
+ 928              	.set FPTA_PCOR        ,  (FPTA_BASE + FPT_PCOR_OFFSET)
+ 929              	.set FPTA_PTOR        ,  (FPTA_BASE + FPT_PTOR_OFFSET)
+ 930              	.set FPTA_PDIR        ,  (FPTA_BASE + FPT_PDIR_OFFSET)
+ 931              	.set FPTA_PDDR        ,  (FPTA_BASE + FPT_PDDR_OFFSET)
+ 932              	// Fast Port B (FPTB)
+ 933              	.set FPTB_BASE        ,  0xF80FF040
+ 934              	.set FPTB_PDOR        ,  (FPTB_BASE + FPT_PDOR_OFFSET)
+ 935              	.set FPTB_PSOR        ,  (FPTB_BASE + FPT_PSOR_OFFSET)
+ 936              	.set FPTB_PCOR        ,  (FPTB_BASE + FPT_PCOR_OFFSET)
+ 937              	.set FPTB_PTOR        ,  (FPTB_BASE + FPT_PTOR_OFFSET)
+ 938              	.set FPTB_PDIR        ,  (FPTB_BASE + FPT_PDIR_OFFSET)
+ 939              	.set FPTB_PDDR        ,  (FPTB_BASE + FPT_PDDR_OFFSET)
+ 940              	// ---------------------------------------------------------------
+ 941              	// Flash configuration field
+ 942              	// Nonvolatile (NV) Peripheral access layer
+ 943              	// Following [3]
+ 944              	.set FTFA_FlashConfig_BASE             ,  0x400
+ 945              	.set FTFA_FlashConfig_BACKKEY3_OFFSET  ,  0x0
+ 946              	.set FTFA_FlashConfig_BACKKEY2_OFFSET  ,  0x1
+ 947              	.set FTFA_FlashConfig_BACKKEY1_OFFSET  ,  0x2
+ 948              	.set FTFA_FlashConfig_BACKKEY0_OFFSET  ,  0x3
+ 949              	.set FTFA_FlashConfig_BACKKEY7_OFFSET  ,  0x4
+ 950              	.set FTFA_FlashConfig_BACKKEY6_OFFSET  ,  0x5
+ 951              	.set FTFA_FlashConfig_BACKKEY5_OFFSET  ,  0x6
+ 952              	.set FTFA_FlashConfig_BACKKEY4_OFFSET  ,  0x7
+ 953              	.set FTFA_FlashConfig_FPROT3_OFFSET    ,  0x8
+ 954              	.set FTFA_FlashConfig_FPROT2_OFFSET    ,  0x9
+ 955              	.set FTFA_FlashConfig_FPROT1_OFFSET    ,  0xA
+ 956              	.set FTFA_FlashConfig_FPROT0_OFFSET    ,  0xB
+ 957              	.set FTFA_FlashConfig_FSEC_OFFSET      ,  0xC
+ 958              	.set FTFA_FlashConfig_FOPT_OFFSET      ,  0xD
+ 959              	.set FTFA_FlashConfig_BACKKEY3         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY3_OFFSET
+ 960              	.set FTFA_FlashConfig_BACKKEY2         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY2_OFFSET
+ 961              	.set FTFA_FlashConfig_BACKKEY1         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY1_OFFSET
+ 962              	.set FTFA_FlashConfig_BACKKEY0         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY0_OFFSET
+ 963              	.set FTFA_FlashConfig_BACKKEY7         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY7_OFFSET
+ 964              	.set FTFA_FlashConfig_BACKKEY6         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY6_OFFSET
+ 965              	.set FTFA_FlashConfig_BACKKEY5         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY5_OFFSET
+ 966              	.set FTFA_FlashConfig_BACKKEY4         ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_BACKKEY4_OFFSET
+ 967              	.set FTFA_FlashConfig_FPROT3           ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_FPROT3_OFFSET)
+ 968              	.set FTFA_FlashConfig_FPROT2           ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_FPROT2_OFFSET)
+ 969              	.set FTFA_FlashConfig_FPROT1           ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_FPROT1_OFFSET)
+ 970              	.set FTFA_FlashConfig_FPROT0           ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_FPROT0_OFFSET)
+ 971              	.set FTFA_FlashConfig_FSEC             ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_FSEC_OFFSET)
+ 972              	.set FTFA_FlashConfig_FOPT             ,  (FTFA_FlashConfig_BASE + FTFA_FlashConfig_FOPT_OFFSET)
+ 973              	// ---------------------------------------------------------------
+ 974              	// NV FCF Backdoor Comparison Key 3
+ 975              	.set FTFA_FlashConfig_BACKKEY3_KEY_MASK   ,  0xFF
+ 976              	.set FTFA_FlashConfig_BACKKEY3_KEY_SHIFT  ,  0
+ 977              	// ---------------------------------------------------------------
+ 978              	// NV FCF Backdoor Comparison Key 2
+ 979              	.set FTFA_FlashConfig_BACKKEY2_KEY_MASK   ,  0xFF
+ 980              	.set FTFA_FlashConfig_BACKKEY2_KEY_SHIFT  ,  0
+ 981              	// ---------------------------------------------------------------
+ 982              	// NV FCF Backdoor Comparison Key 1
+ 983              	.set FTFA_FlashConfig_BACKKEY1_KEY_MASK   ,  0xFF
+ 984              	.set FTFA_FlashConfig_BACKKEY1_KEY_SHIFT  ,  0
+ 985              	// ---------------------------------------------------------------
+ 986              	// NV FCF Backdoor Comparison Key 0
+ 987              	.set FTFA_FlashConfig_BACKKEY0_KEY_MASK   ,  0xFF
+ 988              	.set FTFA_FlashConfig_BACKKEY0_KEY_SHIFT  ,  0
+ 989              	// ---------------------------------------------------------------
+ 990              	// NV FCF Backdoor Comparison Key 7
+ 991              	.set FTFA_FlashConfig_BACKKEY7_KEY_MASK   ,  0xFF
+ 992              	.set FTFA_FlashConfig_BACKKEY7_KEY_SHIFT  ,  0
+ 993              	// ---------------------------------------------------------------
+ 994              	// NV FCF Backdoor Comparison Key 6
+ 995              	.set FTFA_FlashConfig_BACKKEY6_KEY_MASK   ,  0xFF
+ 996              	.set FTFA_FlashConfig_BACKKEY6_KEY_SHIFT  ,  0
+ 997              	// ---------------------------------------------------------------
+ 998              	// NV FCF Backdoor Comparison Key 5
+ 999              	.set FTFA_FlashConfig_BACKKEY5_KEY_MASK   ,  0xFF
+ 1000              	.set FTFA_FlashConfig_BACKKEY5_KEY_SHIFT  ,  0
+ 1001              	// ---------------------------------------------------------------
+ 1002              	// NV FCF Backdoor Comparison Key 4
+ 1003              	.set FTFA_FlashConfig_BACKKEY4_KEY_MASK   ,  0xFF
+ 1004              	.set FTFA_FlashConfig_BACKKEY4_KEY_SHIFT  ,  0
+ 1005              	// ---------------------------------------------------------------
+ 1006              	// NV FCF Flash Program Protection Byte 3
+ 1007              	.set FTFA_FlashConfig_FPROT3_PROT_MASK   ,  0xFF
+ 1008              	.set FTFA_FlashConfig_FPROT3_PROT_SHIFT  ,  0
+ 1009              	// ---------------------------------------------------------------
+ 1010              	// NV FCF Flash Program Protection Byte 2
+ 1011              	.set FTFA_FlashConfig_FPROT2_PROT_MASK   ,  0xFF
+ 1012              	.set FTFA_FlashConfig_FPROT2_PROT_SHIFT  ,  0
+ 1013              	// ---------------------------------------------------------------
+ 1014              	// NV FCF Flash Program Protection Byte 1
+ 1015              	.set FTFA_FlashConfig_FPROT1_PROT_MASK   ,  0xFF
+ 1016              	.set FTFA_FlashConfig_FPROT1_PROT_SHIFT  ,  0
+ 1017              	// ---------------------------------------------------------------
+ 1018              	// NV FCF Flash Program Protection Byte 0
+ 1019              	.set FTFA_FlashConfig_FPROT0_PROT_MASK   ,  0xFF
+ 1020              	.set FTFA_FlashConfig_FPROT0_PROT_SHIFT  ,  0
+ 1021              	// ---------------------------------------------------------------
+ 1022              	// NV FCF Flash Security Register
+ 1023              	// 7-6:KEYEN=backdoor key security enable
+ 1024              	//          :00,01(preferred),11=backdoor key access disabled
+ 1025              	//          :10=backdoor key access enabled
+ 1026              	// 5-4:MEEN=mass erase enable bits
+ 1027              	//         :00,01,11=mass erase enabled
+ 1028              	//         :10=mass erase disabled
+ 1029              	// 3-2:FSLACC=Freescale failure analysis access code
+ 1030              	//           :00,11=Freescale factory access granted
+ 1031              	//           :01,10=Freescale factory access denied
+ 1032              	// 1-0:SEC=flash security
+ 1033              	//        :00,01,11=secure
+ 1034              	//        :10=unsecure (standard shipping condition)
+ 1035              	.set FTFA_FlashConfig_FSEC_SEC_MASK      ,  0x3
+ 1036              	.set FTFA_FlashConfig_FSEC_SEC_SHIFT     ,  0
+ 1037              	.set FTFA_FlashConfig_FSEC_FSLACC_MASK   ,  0xC
+ 1038              	.set FTFA_FlashConfig_FSEC_FSLACC_SHIFT  ,  2
+ 1039              	.set FTFA_FlashConfig_FSEC_MEEN_MASK     ,  0x30
+ 1040              	.set FTFA_FlashConfig_FSEC_MEEN_SHIFT    ,  4
+ 1041              	.set FTFA_FlashConfig_FSEC_KEYEN_MASK    ,  0xC0
+ 1042              	.set FTFA_FlashConfig_FSEC_KEYEN_SHIFT   ,  6
+ 1043              	// ---------------------------------------------------------------
+ 1044              	// NV FCF Flash Option Register
+ 1045              	.set FTFA_FlashConfig_FOPT_LPBOOT0_MASK         ,  0x1
+ 1046              	.set FTFA_FlashConfig_FOPT_LPBOOT0_SHIFT        ,  0
+ 1047              	.set FTFA_FlashConfig_FOPT_NMI_DIS_MASK         ,  0x4
+ 1048              	.set FTFA_FlashConfig_FOPT_NMI_DIS_SHIFT        ,  2
+ 1049              	.set FTFA_FlashConfig_FOPT_RESET_PIN_CFG_MASK   ,  0x8
+ 1050              	.set FTFA_FlashConfig_FOPT_RESET_PIN_CFG_SHIFT  ,  3
+ 1051              	.set FTFA_FlashConfig_FOPT_LPBOOT1_MASK         ,  0x10
+ 1052              	.set FTFA_FlashConfig_FOPT_LPBOOT1_SHIFT        ,  4
+ 1053              	.set FTFA_FlashConfig_FOPT_FAST_INIT_MASK       ,  0x20
+ 1054              	.set FTFA_FlashConfig_FOPT_FAST_INIT_SHIFT      ,  5
+ 1055              	// ---------------------------------------------------------------
+ 1056              	// General-purpose input and output (GPIO)
+ 1057              	// GPIOx_PDD:  Port x Data Direction Register
+ 1058              	//   Bit n:  0=Port x pin n configured as input
+ 1059              	//           1=Port x pin n configured as output
+ 1060              	// GPIOx_PDIR:  Port x Data Input Register
+ 1061              	//   Bit n:  Value read from Port x pin n (if input pin)
+ 1062              	// GPIOx_PDOR:  Port x Data Output Register
+ 1063              	//   Bit n:  Value written to Port x pin n (if output pin)
+ 1064              	// GPIOx_PoOR: Port x operation o direction x Register
+ 1065              	//   Operation o:  C=Clear (clear to 0)
+ 1066              	//                 S=Set (set to 1)
+ 1067              	//                 T=Toggle (complement)
+ 1068              	//   Bit n:  0=Port x pin n not affected
+ 1069              	//           1=Port x pin n affected
+ 1070              	.set GPIO_BASE         ,  0x400FF000
+ 1071              	.set GPIO_PDOR_OFFSET  ,  0x00
+ 1072              	.set GPIO_PSOR_OFFSET  ,  0x04
+ 1073              	.set GPIO_PCOR_OFFSET  ,  0x08
+ 1074              	.set GPIO_PTOR_OFFSET  ,  0x0C
+ 1075              	.set GPIO_PDIR_OFFSET  ,  0x10
+ 1076              	.set GPIO_PDDR_OFFSET  ,  0x14
+ 1077              	// GPIOx not present in MKL05Z4.h:  PTx instead
+ 1078              	// GPIOx included for compatibility with MKL46Z4.h
+ 1079              	.set GPIOA_OFFSET      ,  0x00
+ 1080              	.set GPIOB_OFFSET      ,  0x40
+ 1081              	// Port A
+ 1082              	.set GPIOA_BASE        ,  0x400FF000
+ 1083              	.set GPIOA_PDOR        ,  (GPIOA_BASE + GPIO_PDOR_OFFSET)
+ 1084              	.set GPIOA_PSOR        ,  (GPIOA_BASE + GPIO_PSOR_OFFSET)
+ 1085              	.set GPIOA_PCOR        ,  (GPIOA_BASE + GPIO_PCOR_OFFSET)
+ 1086              	.set GPIOA_PTOR        ,  (GPIOA_BASE + GPIO_PTOR_OFFSET)
+ 1087              	.set GPIOA_PDIR        ,  (GPIOA_BASE + GPIO_PDIR_OFFSET)
+ 1088              	.set GPIOA_PDDR        ,  (GPIOA_BASE + GPIO_PDDR_OFFSET)
+ 1089              	// Port B
+ 1090              	.set GPIOB_BASE        ,  0x400FF040
+ 1091              	.set GPIOB_PDOR        ,  (GPIOB_BASE + GPIO_PDOR_OFFSET)
+ 1092              	.set GPIOB_PSOR        ,  (GPIOB_BASE + GPIO_PSOR_OFFSET)
+ 1093              	.set GPIOB_PCOR        ,  (GPIOB_BASE + GPIO_PCOR_OFFSET)
+ 1094              	.set GPIOB_PTOR        ,  (GPIOB_BASE + GPIO_PTOR_OFFSET)
+ 1095              	.set GPIOB_PDIR        ,  (GPIOB_BASE + GPIO_PDIR_OFFSET)
+ 1096              	.set GPIOB_PDDR        ,  (GPIOB_BASE + GPIO_PDDR_OFFSET)
+ 1097              	// ---------------------------------------------------------------
+ 1098              	// IOPORT:  GPIO alias for zero wait state access to GPIO
+ 1099              	// See FGPIO
+ 1100              	// ---------------------------------------------------------------
+ 1101              	// Multipurpose clock generator (MCG)
+ 1102              	.set MCG_BASE          ,  0x40064000
+ 1103              	.set MCG_C1_OFFSET     ,  0x00
+ 1104              	.set MCG_C2_OFFSET     ,  0x01
+ 1105              	.set MCG_C3_OFFSET     ,  0x02
+ 1106              	.set MCG_C4_OFFSET     ,  0x03
+ 1107              	.set MCG_C6_OFFSET     ,  0x05
+ 1108              	.set MCG_S_OFFSET      ,  0x06
+ 1109              	.set MCG_SC_OFFSET     ,  0x08
+ 1110              	.set MCG_ATCVH_OFFSET  ,  0x0A
+ 1111              	.set MCG_ATCVL_OFFSET  ,  0x0B
+ 1112              	.set MCG_C1            ,  (MCG_BASE + MCG_C1_OFFSET)
+ 1113              	.set MCG_C2            ,  (MCG_BASE + MCG_C2_OFFSET)
+ 1114              	.set MCG_C3            ,  (MCG_BASE + MCG_C3_OFFSET)
+ 1115              	.set MCG_C4            ,  (MCG_BASE + MCG_C4_OFFSET)
+ 1116              	.set MCG_C6            ,  (MCG_BASE + MCG_C6_OFFSET)
+ 1117              	.set MCG_S             ,  (MCG_BASE + MCG_S_OFFSET)
+ 1118              	.set MCG_SC            ,  (MCG_BASE + MCG_SC_OFFSET)
+ 1119              	.set MCG_ATCVH         ,  (MCG_BASE + MCG_ATCVH_OFFSET)
+ 1120              	.set MCG_ATCVL         ,  (MCG_BASE + MCG_ATCVL_OFFSET)
+ 1121              	// ---------------------------------------------------------------
+ 1122              	// MCG_C1 MCG Control 1 Register(0x04)
+ 1123              	// 7-6:CLKS=clock source select (00)
+ 1124              	//         :00=output of FLL
+ 1125              	//         :01=internal reference clock
+ 1126              	//         :10=external reference clock
+ 1127              	//         :11=(reserved)
+ 1128              	// 5-3:FRDIV=FLL external reference divider (000)
+ 1129              	//     (depends on MCG_C2.RANGE0)
+ 1130              	//          :first divider is for RANGE0=0
+ 1131              	//          :second divider is for all other RANGE0 values
+ 1132              	//          :000=  1 or   32
+ 1133              	//          :001=  2 or   64
+ 1134              	//          :010=  4 or  128
+ 1135              	//          :011=  8 or  256
+ 1136              	//          :100= 16 or  512
+ 1137              	//          :101= 32 or 1024
+ 1138              	//          :110= 64 or 1280
+ 1139              	//          :111=128 or 1536
+ 1140              	//   2:IREFS=internal reference select (for FLL) (1)
+ 1141              	//          :0=external reference clock
+ 1142              	//          :1=slow internal reference clock
+ 1143              	//   1:IRCLKEN=internal reference clock (MCGIRCLK) enable (0)
+ 1144              	//   0:IREFSTEN=internal reference stop enable (0)
+ 1145              	.set MCG_C1_CLKS_MASK       , 0xC0
+ 1146              	.set MCG_C1_CLKS_SHIFT      , 6
+ 1147              	.set MCG_C1_FRDIV_MASK      , 0x38
+ 1148              	.set MCG_C1_FRDIV_SHIFT     , 3
+ 1149              	.set MCG_C1_IREFS_MASK      , 0x04
+ 1150              	.set MCG_C1_IREFS_SHIFT     , 2
+ 1151              	.set MCG_C1_IRCLKEN_MASK    , 0x02
+ 1152              	.set MCG_C1_IRCLKEN_SHIFT   , 1
+ 1153              	.set MCG_C1_IREFSTEN_MASK   , 0x01
+ 1154              	.set MCG_C1_IREFSTEN_SHIFT  , 0
+ 1155              	// ---------------------------------------------------------------
+ 1156              	// MCG_C2 MCG Control 2 Register(0xC0)
+ 1157              	//   7:LOCRE0=loss of clock reset enable (1)
+ 1158              	//           :0=interrupt request on loss of OCS0 external reference clock
+ 1159              	//           :1=reset request on loss of OCS0 external reference clock
+ 1160              	//   6:(reserved):read-only:0
+ 1161              	// 5-4:RANGE0=frequency range select (00)
+ 1162              	//           :00=low frequency range for crystal oscillator
+ 1163              	//           :01=high frequency range for crystal oscillator
+ 1164              	//           :1X=very high frequency range for crystal oscillator
+ 1165              	//   3:HGO0=high gain oscillator select (0)
+ 1166              	//         :0=low-power operation
+ 1167              	//         :1=high-gain operation
+ 1168              	//   2:EREFS0=external reference select (0)
+ 1169              	//           :0=external reference clock
+ 1170              	//           :1=oscillator
+ 1171              	//   1:LP=low power select (0)
+ 1172              	//       :0=FLL or PLL not disabled in bypass modes
+ 1173              	//       :1=FLL or PLL disabled in bypass modes (lower power)
+ 1174              	//   0:IRCS=internal reference clock select (0)
+ 1175              	//         :0=slow internal reference clock
+ 1176              	//         :1=fast internal reference clock
+ 1177              	.set MCG_C2_LOCRE0_MASK        ,  0x80
+ 1178              	.set MCG_C2_LOCRE0_SHIFT       ,  7
+ 1179              	.set MCG_C2_RANGE0_MASK        ,  0x30
+ 1180              	.set MCG_C2_RANGE0_SHIFT       ,  4
+ 1181              	.set MCG_C2_HGO0_MASK          ,  0x08
+ 1182              	.set MCG_C2_HGO0_SHIFT         ,  3
+ 1183              	.set MCG_C2_EREFS0_MASK        ,  0x04
+ 1184              	.set MCG_C2_EREFS0_SHIFT       ,  2
+ 1185              	.set MCG_C2_LP_MASK            ,  0x02
+ 1186              	.set MCG_C2_LP_SHIFT           ,  1
+ 1187              	.set MCG_C2_IRCS_MASK          ,  0x01
+ 1188              	.set MCG_C2_IRCS_SHIFT         ,  0
+ 1189              	// ---------------------------------------------------------------
+ 1190              	// MCG_C3 MCG Control 3 Register (0xXX)
+ 1191              	// 7-0:SCTRIM=slow internal reference clock trim setting;
+ 1192              	//            on reset, loaded with a factory trim value
+ 1193              	.set MCG_C3_SCTRIM_MASK   ,  0xFF
+ 1194              	.set MCG_C3_SCTRIM_SHIFT  ,  0
+ 1195              	// ---------------------------------------------------------------
+ 1196              	// MCG_C4 MCG Control 4 Register (2_000XXXXX)
+ 1197              	//   7:DMX32=DCO maximum frequency with 32.768 kHz reference (0)
+ 1198              	//          :0=default range of 25%
+ 1199              	//          :1=fine-tuned for 32.768 kHz reference
+ 1200              	// 6-5:DRST_DRS=DCO range select (00)
+ 1201              	//             :00=low range (default)
+ 1202              	//             :01=mid range
+ 1203              	//             :10=mid-high range
+ 1204              	//             :11=high range
+ 1205              	// 4-1:FCTRIM=fast internal reference clock trim setting (XXXX)
+ 1206              	//            on reset, loaded with a factory trim value
+ 1207              	//   0:SCFTRIM=slow internal reference clock fine trim (X)
+ 1208              	//            on reset, loaded with a factory trim value
+ 1209              	.set MCG_C4_DMX32_MASK      ,  0x80
+ 1210              	.set MCG_C4_DMX32_SHIFT     ,  7
+ 1211              	.set MCG_C4_DRST_DRS_MASK   ,  0x60
+ 1212              	.set MCG_C4_DRST_DRS_SHIFT  ,  5
+ 1213              	.set MCG_C4_FCTRIM_MASK     ,  0x1E
+ 1214              	.set MCG_C4_FCTRIM_SHIFT    ,  1
+ 1215              	.set MCG_C4_SCFTRIM_MASK    ,  0x1
+ 1216              	.set MCG_C4_SCFTRIM_SHIFT   ,  0
+ 1217              	// ---------------------------------------------------------------
+ 1218              	// MCG_C6 MCG Control 6 Register (0x00)
+ 1219              	// 7-6:(reserved):read-only:00
+ 1220              	//   5:CME=clock monitor enable (0)
+ 1221              	// 4-0:(reserved):read-only:00000
+ 1222              	.set MCG_C6_CME_MASK      ,  0x20
+ 1223              	.set MCG_C6_CME_SHIFT     ,  5
+ 1224              	// ---------------------------------------------------------------
+ 1225              	// MCG_S MCG Status Register (0x10)
+ 1226              	// 7-5:(reserved):read-only:000
+ 1227              	//   4:IREFST=internal reference status (1)
+ 1228              	//           :0=FLL source external
+ 1229              	//           :1=FLL source internal
+ 1230              	// 3-2:CLKST=clock mode status (00)
+ 1231              	//          :00=FLL
+ 1232              	//          :01=internal reference
+ 1233              	//          :10=external reference
+ 1234              	//          :11=(reserved)
+ 1235              	//   1:OSCINIT0=OSC initialization (complete)
+ 1236              	//   0:IRCST=internal reference clock status
+ 1237              	//          :0=slow (32 kHz)
+ 1238              	//          :1=fast (4 MHz)
+ 1239              	.set MCG_S_IREFST_MASK      ,  0x10
+ 1240              	.set MCG_S_IREFST_SHIFT     ,  4
+ 1241              	.set MCG_S_CLKST_MASK       ,  0x0C
+ 1242              	.set MCG_S_CLKST_SHIFT      ,  2
+ 1243              	.set MCG_S_OSCINIT0_MASK    ,  0x02
+ 1244              	.set MCG_S_OSCINIT0_SHIFT   ,  1
+ 1245              	.set MCG_S_IRCST_MASK       ,  0x01
+ 1246              	.set MCG_S_IRCST_SHIFT      ,  0
+ 1247              	// ---------------------------------------------------------------
+ 1248              	// MCG_SC:  MCG Status and Control Register (0x02)
+ 1249              	//   7:ATME=automatic trim machine enable (0)
+ 1250              	//   6:ATMS=automatic trim machine select (0)
+ 1251              	//         :0=32-kHz internal reference clock
+ 1252              	//         :1=4-MHz internal reference clock
+ 1253              	//   5:ATMF=automatic trim machine fail flag (read only) (0)
+ 1254              	//   4:FLTPRSRV=FLL filter preserve enable (0)
+ 1255              	// 3-1:FCRDIV=fast clock internal reference divider (001)
+ 1256              	//           :000=  1
+ 1257              	//           :001=  2
+ 1258              	//           :010=  4
+ 1259              	//           :011=  8
+ 1260              	//           :100= 16
+ 1261              	//           :101= 32
+ 1262              	//           :110= 64
+ 1263              	//           :111=128
+ 1264              	//   0:LOCS0=OSC0 loss of clock status (0)
+ 1265              	.set MCG_SC_ATME_MASK       ,  0x80
+ 1266              	.set MCG_SC_ATME_SHIFT      ,  7
+ 1267              	.set MCG_SC_ATMS_MASK       ,  0x40
+ 1268              	.set MCG_SC_ATMS_SHIFT      ,  6
+ 1269              	.set MCG_SC_ATMF_MASK       ,  0x20
+ 1270              	.set MCG_SC_ATMF_SHIFT      ,  5
+ 1271              	.set MCG_SC_FLTPRSRV_MASK   ,  0x10
+ 1272              	.set MCG_SC_FLTPRSRV_SHIFT  ,  4
+ 1273              	.set MCG_SC_FCRDIV_MASK     ,  0xE
+ 1274              	.set MCG_SC_FCRDIV_SHIFT    ,  1
+ 1275              	.set MCG_SC_LOCS0_MASK      ,  0x01
+ 1276              	.set MCG_SC_LOCS0_SHIFT     ,  0
+ 1277              	// ---------------------------------------------------------------
+ 1278              	// MCG_ATCVH:  MCG Auto Trim Compare Value High Register (0x00)
+ 1279              	// 7-0:ATCVH=Auto trim machine compare value high (0x00)
+ 1280              	.set MCG_ATCVH_ATCVH_MASK   ,  0xFF
+ 1281              	.set MCG_ATCVH_ATCVH_SHIFT  ,  0
+ 1282              	// ---------------------------------------------------------------
+ 1283              	// MCG_ATCVL:  MCG Auto Trim Compare Value Low Register (0x00)
+ 1284              	// 7-0:ATCVL=Auto trim machine compare value low (0x00)
+ 1285              	.set MCG_ATCVL_ATCVL_MASK   ,  0xFF
+ 1286              	.set MCG_ATCVL_ATCVL_SHIFT  ,  0
+ 1287              	// ---------------------------------------------------------------
+ 1288              	// Nonvolatile (flash configuration field)
+ 1289              	// NV Peripheral access layer
+ 1290              	// Following [3]
+ 1291              	.set NV_BASE             ,  0x400
+ 1292              	.set NV_BACKKEY3_OFFSET  ,  0x0
+ 1293              	.set NV_BACKKEY2_OFFSET  ,  0x1
+ 1294              	.set NV_BACKKEY1_OFFSET  ,  0x2
+ 1295              	.set NV_BACKKEY0_OFFSET  ,  0x3
+ 1296              	.set NV_BACKKEY7_OFFSET  ,  0x4
+ 1297              	.set NV_BACKKEY6_OFFSET  ,  0x5
+ 1298              	.set NV_BACKKEY5_OFFSET  ,  0x6
+ 1299              	.set NV_BACKKEY4_OFFSET  ,  0x7
+ 1300              	.set NV_FPROT3_OFFSET    ,  0x8
+ 1301              	.set NV_FPROT2_OFFSET    ,  0x9
+ 1302              	.set NV_FPROT1_OFFSET    ,  0xA
+ 1303              	.set NV_FPROT0_OFFSET    ,  0xB
+ 1304              	.set NV_FSEC_OFFSET      ,  0xC
+ 1305              	.set NV_FOPT_OFFSET      ,  0xD
+ 1306              	.set NV_BACKKEY3         ,  (NV_BASE + NV_BACKKEY3_OFFSET)
+ 1307              	.set NV_BACKKEY2         ,  (NV_BASE + NV_BACKKEY2_OFFSET)
+ 1308              	.set NV_BACKKEY1         ,  (NV_BASE + NV_BACKKEY1_OFFSET)
+ 1309              	.set NV_BACKKEY0         ,  (NV_BASE + NV_BACKKEY0_OFFSET)
+ 1310              	.set NV_BACKKEY7         ,  (NV_BASE + NV_BACKKEY7_OFFSET)
+ 1311              	.set NV_BACKKEY6         ,  (NV_BASE + NV_BACKKEY6_OFFSET)
+ 1312              	.set NV_BACKKEY5         ,  (NV_BASE + NV_BACKKEY5_OFFSET)
+ 1313              	.set NV_BACKKEY4         ,  (NV_BASE + NV_BACKKEY4_OFFSET)
+ 1314              	.set NV_FPROT3           ,  (NV_BASE + NV_FPROT3_OFFSET)
+ 1315              	.set NV_FPROT2           ,  (NV_BASE + NV_FPROT2_OFFSET)
+ 1316              	.set NV_FPROT1           ,  (NV_BASE + NV_FPROT1_OFFSET)
+ 1317              	.set NV_FPROT0           ,  (NV_BASE + NV_FPROT0_OFFSET)
+ 1318              	.set NV_FSEC             ,  (NV_BASE + NV_FSEC_OFFSET)
+ 1319              	.set NV_FOPT             ,  (NV_BASE + NV_FOPT_OFFSET)
+ 1320              	// ---------------------------------------------------------------
+ 1321              	// NV FCF Backdoor Comparison Key 3
+ 1322              	.set NV_BACKKEY3_KEY_MASK   ,  0xFF
+ 1323              	.set NV_BACKKEY3_KEY_SHIFT  ,  0
+ 1324              	// ---------------------------------------------------------------
+ 1325              	// NV FCF Backdoor Comparison Key 2
+ 1326              	.set NV_BACKKEY2_KEY_MASK   ,  0xFF
+ 1327              	.set NV_BACKKEY2_KEY_SHIFT  ,  0
+ 1328              	// ---------------------------------------------------------------
+ 1329              	// NV FCF Backdoor Comparison Key 1
+ 1330              	.set NV_BACKKEY1_KEY_MASK   ,  0xFF
+ 1331              	.set NV_BACKKEY1_KEY_SHIFT  ,  0
+ 1332              	// ---------------------------------------------------------------
+ 1333              	// NV FCF Backdoor Comparison Key 0
+ 1334              	.set NV_BACKKEY0_KEY_MASK   ,  0xFF
+ 1335              	.set NV_BACKKEY0_KEY_SHIFT  ,  0
+ 1336              	// ---------------------------------------------------------------
+ 1337              	// NV FCF Backdoor Comparison Key 7
+ 1338              	.set NV_BACKKEY7_KEY_MASK   ,  0xFF
+ 1339              	.set NV_BACKKEY7_KEY_SHIFT  ,  0
+ 1340              	// ---------------------------------------------------------------
+ 1341              	// NV FCF Backdoor Comparison Key 6
+ 1342              	.set NV_BACKKEY6_KEY_MASK   ,  0xFF
+ 1343              	.set NV_BACKKEY6_KEY_SHIFT  ,  0
+ 1344              	// ---------------------------------------------------------------
+ 1345              	// NV FCF Backdoor Comparison Key 5
+ 1346              	.set NV_BACKKEY5_KEY_MASK   ,  0xFF
+ 1347              	.set NV_BACKKEY5_KEY_SHIFT  ,  0
+ 1348              	// ---------------------------------------------------------------
+ 1349              	// NV FCF Backdoor Comparison Key 4
+ 1350              	.set NV_BACKKEY4_KEY_MASK   ,  0xFF
+ 1351              	.set NV_BACKKEY4_KEY_SHIFT  ,  0
+ 1352              	// ---------------------------------------------------------------
+ 1353              	// NV FCF Flash Program Protection Byte 3
+ 1354              	.set NV_FPROT3_PROT_MASK   ,  0xFF
+ 1355              	.set NV_FPROT3_PROT_SHIFT  ,  0
+ 1356              	// ---------------------------------------------------------------
+ 1357              	// NV FCF Flash Program Protection Byte 2
+ 1358              	.set NV_FPROT2_PROT_MASK   ,  0xFF
+ 1359              	.set NV_FPROT2_PROT_SHIFT  ,  0
+ 1360              	// ---------------------------------------------------------------
+ 1361              	// NV FCF Flash Program Protection Byte 1
+ 1362              	.set NV_FPROT1_PROT_MASK   ,  0xFF
+ 1363              	.set NV_FPROT1_PROT_SHIFT  ,  0
+ 1364              	// ---------------------------------------------------------------
+ 1365              	// NV FCF Flash Program Protection Byte 0
+ 1366              	.set NV_FPROT0_PROT_MASK   ,  0xFF
+ 1367              	.set NV_FPROT0_PROT_SHIFT  ,  0
+ 1368              	// ---------------------------------------------------------------
+ 1369              	// NV FCF Flash Security Register
+ 1370              	// 7-6:KEYEN=backdoor key security enable
+ 1371              	//          :00,01(preferred),11=backdoor key access disabled
+ 1372              	//          :10=backdoor key access enabled
+ 1373              	// 5-4:MEEN=mass erase enable bits
+ 1374              	//         :00,01,11=mass erase enabled
+ 1375              	//         :10=mass erase disabled
+ 1376              	// 3-2:FSLACC=Freescale failure analysis access code
+ 1377              	//           :00,11=Freescale factory access granted
+ 1378              	//           :01,10=Freescale factory access denied
+ 1379              	// 1-0:SEC=flash security
+ 1380              	//        :00,01,11=secure
+ 1381              	//        :10=unsecure (standard shipping condition)
+ 1382              	.set NV_FSEC_SEC_MASK      ,  0x3
+ 1383              	.set NV_FSEC_SEC_SHIFT     ,  0
+ 1384              	.set NV_FSEC_FSLACC_MASK   ,  0xC
+ 1385              	.set NV_FSEC_FSLACC_SHIFT  ,  2
+ 1386              	.set NV_FSEC_MEEN_MASK     ,  0x30
+ 1387              	.set NV_FSEC_MEEN_SHIFT    ,  4
+ 1388              	.set NV_FSEC_KEYEN_MASK    ,  0xC0
+ 1389              	.set NV_FSEC_KEYEN_SHIFT   ,  6
+ 1390              	// ---------------------------------------------------------------
+ 1391              	// NV FCF Flash Option Register
+ 1392              	.set NV_FOPT_LPBOOT0_MASK         ,  0x1
+ 1393              	.set NV_FOPT_LPBOOT0_SHIFT        ,  0
+ 1394              	.set NV_FOPT_NMI_DIS_MASK         ,  0x4
+ 1395              	.set NV_FOPT_NMI_DIS_SHIFT        ,  2
+ 1396              	.set NV_FOPT_RESET_PIN_CFG_MASK   ,  0x8
+ 1397              	.set NV_FOPT_RESET_PIN_CFG_SHIFT  ,  3
+ 1398              	.set NV_FOPT_LPBOOT1_MASK         ,  0x10
+ 1399              	.set NV_FOPT_LPBOOT1_SHIFT        ,  4
+ 1400              	.set NV_FOPT_FAST_INIT_MASK       ,  0x20
+ 1401              	.set NV_FOPT_FAST_INIT_SHIFT      ,  5
+ 1402              	// ---------------------------------------------------------------
+ 1403              	// Nested vectored interrupt controller (NVIC)
+ 1404              	// Part of system control space (SCS)
+ 1405              	.set NVIC_BASE         ,  0xE000E100
+ 1406              	.set NVIC_ISER_OFFSET  ,  0x00
+ 1407              	.set NVIC_ICER_OFFSET  ,  0x80
+ 1408              	.set NVIC_ISPR_OFFSET  ,  0x100
+ 1409              	.set NVIC_ICPR_OFFSET  ,  0x180
+ 1410              	.set NVIC_IPR0_OFFSET  ,  0x300
+ 1411              	.set NVIC_IPR1_OFFSET  ,  0x304
+ 1412              	.set NVIC_IPR2_OFFSET  ,  0x308
+ 1413              	.set NVIC_IPR3_OFFSET  ,  0x30C
+ 1414              	.set NVIC_IPR4_OFFSET  ,  0x310
+ 1415              	.set NVIC_IPR5_OFFSET  ,  0x314
+ 1416              	.set NVIC_IPR6_OFFSET  ,  0x318
+ 1417              	.set NVIC_IPR7_OFFSET  ,  0x31C
+ 1418              	.set NVIC_ISER         ,  (NVIC_BASE + NVIC_ISER_OFFSET)
+ 1419              	.set NVIC_ICER         ,  (NVIC_BASE + NVIC_ICER_OFFSET)
+ 1420              	.set NVIC_ISPR         ,  (NVIC_BASE + NVIC_ISPR_OFFSET)
+ 1421              	.set NVIC_ICPR         ,  (NVIC_BASE + NVIC_ICPR_OFFSET)
+ 1422              	.set NVIC_IPR0         ,  (NVIC_BASE + NVIC_IPR0_OFFSET)
+ 1423              	.set NVIC_IPR1         ,  (NVIC_BASE + NVIC_IPR1_OFFSET)
+ 1424              	.set NVIC_IPR2         ,  (NVIC_BASE + NVIC_IPR2_OFFSET)
+ 1425              	.set NVIC_IPR3         ,  (NVIC_BASE + NVIC_IPR3_OFFSET)
+ 1426              	.set NVIC_IPR4         ,  (NVIC_BASE + NVIC_IPR4_OFFSET)
+ 1427              	.set NVIC_IPR5         ,  (NVIC_BASE + NVIC_IPR5_OFFSET)
+ 1428              	.set NVIC_IPR6         ,  (NVIC_BASE + NVIC_IPR6_OFFSET)
+ 1429              	.set NVIC_IPR7         ,  (NVIC_BASE + NVIC_IPR7_OFFSET)
+ 1430              	// ---------------------------------------------------------------
+ 1431              	// NVIC IPR assignments
+ 1432              	.set DMA0_IPR         ,  NVIC_IPR0  // DMA channel 0 transfer complete/error interrupt
+ 1433              	.set DMA1_IPR         ,  NVIC_IPR0  // DMA channel 1 transfer complete/error interrupt
+ 1434              	.set DMA2_IPR         ,  NVIC_IPR0  // DMA channel 2 transfer complete/error interrupt
+ 1435              	.set DMA3_IPR         ,  NVIC_IPR0  // DMA channel 3 transfer complete/error interrupt
+ 1436              	.set Reserved20_IPR   ,  NVIC_IPR1  // Reserved interrupt 20
+ 1437              	.set FTFA_IPR         ,  NVIC_IPR1  // FTFA command complete/read collision interrupt
+ 1438              	.set LVD_LVW_IPR      ,  NVIC_IPR1  // Low-voltage detect, low-voltage warning interrupt
+ 1439              	.set LLW_IPR          ,  NVIC_IPR1  // Low leakage wakeup interrupt
+ 1440              	.set I2C0_IPR         ,  NVIC_IPR2  // I2C0 interrupt
+ 1441              	.set Reserved25_IPR   ,  NVIC_IPR2  // Reserved interrupt 25
+ 1442              	.set SPI0_IPR         ,  NVIC_IPR2  // SPI0 interrupt
+ 1443              	.set Reserved27_IPR   ,  NVIC_IPR2  // Reserved interrupt 27
+ 1444              	.set UART0_IPR        ,  NVIC_IPR3  // UART0 status/error interrupt
+ 1445              	.set Reserved29_IPR   ,  NVIC_IPR3  // Reserved interrupt 29
+ 1446              	.set Reserved30_IPR   ,  NVIC_IPR3  // Reserved interrupt 30
+ 1447              	.set ADC0_IPR         ,  NVIC_IPR3  // ADC0 interrupt
+ 1448              	.set CMP0_IPR         ,  NVIC_IPR4  // CMP0 interrupt
+ 1449              	.set TPM0_IPR         ,  NVIC_IPR4  // TPM0 fault, overflow, and channels interrupt
+ 1450              	.set TPM1_IPR         ,  NVIC_IPR4  // TPM1 fault, overflow, and channels interrupt
+ 1451              	.set Reserved35_IPR   ,  NVIC_IPR4  // Reserved interrupt 35
+ 1452              	.set RTC_IPR          ,  NVIC_IPR5  // RTC alarm interrupt
+ 1453              	.set RTC_Seconds_IPR  ,  NVIC_IPR5  // RTC seconds interrupt
+ 1454              	.set PIT_IPR          ,  NVIC_IPR5  // PIT interrupt
+ 1455              	.set Reserved39_IPR   ,  NVIC_IPR5  // Reserved interrupt 39
+ 1456              	.set Reserved40_IPR   ,  NVIC_IPR6  // Reserved interrupt 40
+ 1457              	.set DAC0_IPR         ,  NVIC_IPR6  // DAC0 interrupt
+ 1458              	.set TSI0_IPR         ,  NVIC_IPR6  // TSI0 interrupt
+ 1459              	.set MCG_IPR          ,  NVIC_IPR6  // MCG interrupt
+ 1460              	.set LPTimer_IPR      ,  NVIC_IPR7  // LPTMR0 interrupt
+ 1461              	.set Reserved45_IPR   ,  NVIC_IPR7  // Reserved interrupt 45
+ 1462              	.set PORTA_IPR        ,  NVIC_IPR7  // Port A interrupt
+ 1463              	.set PORTB_IPR        ,  NVIC_IPR7  // Port B interrupt
+ 1464              	// ---------------------------------------------------------------
+ 1465              	// NVIC IPR position
+ 1466              	// priority is a 2-bit value (0-3)
+ 1467              	// position EQUates are for LSB of priority
+ 1468              	.set DMA0_PRI_POS         ,   (8 -__NVIC_PRIO_BITS)  // DMA channel 0 transfer complete/error inter
+ 1469              	.set DMA1_PRI_POS         ,  (16 -__NVIC_PRIO_BITS)  // DMA channel 1 transfer complete/error inter
+ 1470              	.set DMA2_PRI_POS         ,  (24 -__NVIC_PRIO_BITS)  // DMA channel 2 transfer complete/error inter
+ 1471              	.set DMA3_PRI_POS         ,  (32 -__NVIC_PRIO_BITS)  // DMA channel 3 transfer complete/error inter
+ 1472              	.set Reserved20_PRI_POS   ,   (8 -__NVIC_PRIO_BITS)  // Reserved interrupt 20
+ 1473              	.set FTFA_PRI_POS         ,  (16 -__NVIC_PRIO_BITS)  // FTFA command complete/read collision interr
+ 1474              	.set LVD_LVW_PRI_POS      ,  (24 -__NVIC_PRIO_BITS)  // Low-voltage detect, low-voltage warning int
+ 1475              	.set LLW_PRI_POS          ,  (32 -__NVIC_PRIO_BITS)  // Low leakage wakeup interrupt
+ 1476              	.set I2C0_PRI_POS         ,   (8 -__NVIC_PRIO_BITS)  // I2C0 interrupt
+ 1477              	.set Reserved25_PRI_POS   ,  (16 -__NVIC_PRIO_BITS)  // Reserved interrupt 25
+ 1478              	.set SPI0_PRI_POS         ,  (24 -__NVIC_PRIO_BITS)  // SPI0 interrupt
+ 1479              	.set Reserved27_PRI_POS   ,  (32 -__NVIC_PRIO_BITS)  // Reserved interrupt 27
+ 1480              	.set UART0_PRI_POS        ,   (8 -__NVIC_PRIO_BITS)  // UART0 status/error interrupt
+ 1481              	.set Reserved29_PRI_POS   ,  (16 -__NVIC_PRIO_BITS)  // Reserved interrupt 29
+ 1482              	.set Reserved30_PRI_POS   ,  (24 -__NVIC_PRIO_BITS)  // Reserved interrupt 30
+ 1483              	.set ADC0_PRI_POS         ,  (32 -__NVIC_PRIO_BITS)  // ADC0 interrupt
+ 1484              	.set CMP0_PRI_POS         ,   (8 -__NVIC_PRIO_BITS)  // CMP0 interrupt
+ 1485              	.set TPM0_PRI_POS         ,  (16 -__NVIC_PRIO_BITS)  // TPM0 fault, overflow, and channels interrup
+ 1486              	.set TPM1_PRI_POS         ,  (24 -__NVIC_PRIO_BITS)  // TPM1 fault, overflow, and channels interrup
+ 1487              	.set Reserved35_PRI_POS   ,  (32 -__NVIC_PRIO_BITS)  // Reserved interrupt 35
+ 1488              	.set RTC_PRI_POS          ,   (8 -__NVIC_PRIO_BITS)  // RTC alarm interrupt
+ 1489              	.set RTC_Seconds_PRI_POS  ,  (16 -__NVIC_PRIO_BITS)  // RTC seconds interrupt
+ 1490              	.set PIT_PRI_POS          ,  (24 -__NVIC_PRIO_BITS)  // PIT interrupt
+ 1491              	.set Reserved39_PRI_POS   ,  (32 -__NVIC_PRIO_BITS)  // Reserved interrupt 39
+ 1492              	.set Reserved40_PRI_POS   ,   (8 -__NVIC_PRIO_BITS)  // Reserved interrupt 40
+ 1493              	.set DAC0_PRI_POS         ,  (16 -__NVIC_PRIO_BITS)  // DAC0 interrupt
+ 1494              	.set TSI0_PRI_POS         ,  (24 -__NVIC_PRIO_BITS)  // TSI0 interrupt
+ 1495              	.set MCG_PRI_POS          ,  (32 -__NVIC_PRIO_BITS)  // MCG interrupt
+ 1496              	.set LPTimer_PRI_POS      ,   (8 -__NVIC_PRIO_BITS)  // LPTMR0 interrupt
+ 1497              	.set Reserved45_PRI_POS   ,  (16 -__NVIC_PRIO_BITS)  // Reserved interrupt 45
+ 1498              	.set PORTA_PRI_POS        ,  (24 -__NVIC_PRIO_BITS)  // Port A interrupt
+ 1499              	.set PORTB_PRI_POS        ,  (32 -__NVIC_PRIO_BITS)  // Port B interrupt
+ 1500              	// ---------------------------------------------------------------
+ 1501              	// NVIC IRQ masks for ICER, ISER, ICPR, and ISPR
+ 1502              	.set DMA0_IRQ_MASK         ,  (1 << DMA0_IRQn      )   // DMA channel 0 transfer complete/error int
+ 1503              	.set DMA1_IRQ_MASK         ,  (1 << DMA1_IRQn      )   // DMA channel 1 transfer complete/error int
+ 1504              	.set DMA2_IRQ_MASK         ,  (1 << DMA2_IRQn      )   // DMA channel 2 transfer complete/error int
+ 1505              	.set DMA3_IRQ_MASK         ,  (1 << DMA3_IRQn      )   // DMA channel 3 transfer complete/error int
+ 1506              	.set Reserved20_IRQ_MASK   ,  (1 << Reserved20_IRQn)   // Reserved interrupt 20
+ 1507              	.set FTFA_IRQ_MASK         ,  (1 << FTFA_IRQn      )   // FTFA command complete/read collision inte
+ 1508              	.set LVD_LVW_IRQ_MASK      ,  (1 << LVD_LVW_IRQn   )   // Low-voltage detect, low-voltage warning i
+ 1509              	.set LLW_IRQ_MASK          ,  (1 << LLW_IRQn       )   // Low leakage wakeup interrupt
+ 1510              	.set I2C0_IRQ_MASK         ,  (1 << I2C0_IRQn      )   // I2C0 interrupt
+ 1511              	.set Reserved25_IRQ_MASK   ,  (1 << Reserved25_IRQn)   // Reserved interrupt 25
+ 1512              	.set SPI0_IRQ_MASK         ,  (1 << SPI0_IRQn      )   // SPI0 interrupt
+ 1513              	.set Reserved27_IRQ_MASK   ,  (1 << Reserved27_IRQn)   // Reserved interrupt 27
+ 1514              	.set UART0_IRQ_MASK        ,  (1 << UART0_IRQn     )   // UART0 status/error interrupt
+ 1515              	.set Reserved29_IRQ_MASK   ,  (1 << Reserved29_IRQn)   // Reserved interrupt 29
+ 1516              	.set Reserved30_IRQ_MASK   ,  (1 << Reserved30_IRQn)   // Reserved interrupt 30
+ 1517              	.set ADC0_IRQ_MASK         ,  (1 << ADC0_IRQn      )   // ADC0 interrupt
+ 1518              	.set CMP0_IRQ_MASK         ,  (1 << CMP0_IRQn      )   // CMP0 interrupt
+ 1519              	.set TPM0_IRQ_MASK         ,  (1 << TPM0_IRQn      )   // TPM0 fault, overflow, and channels interr
+ 1520              	.set TPM1_IRQ_MASK         ,  (1 << TPM1_IRQn      )   // TPM1 fault, overflow, and channels interr
+ 1521              	.set Reserved35_IRQ_MASK   ,  (1 << Reserved35_IRQn)   // Reserved interrupt 35
+ 1522              	.set RTC_IRQ_MASK          ,  (1 << RTC_IRQn       )   // RTC alarm interrupt
+ 1523              	.set RTC_Seconds_IRQ_MASK  ,  (1 << RTC_Seconds_IRQn)  // RTC seconds interrupt
+ 1524              	.set PIT_IRQ_MASK          ,  (1 << PIT_IRQn       )   // PIT interrupt
+ 1525              	.set Reserved39_IRQ_MASK   ,  (1 << Reserved39_IRQn)   // Reserved interrupt 39
+ 1526              	.set Reserved40_IRQ_MASK   ,  (1 << Reserved40_IRQn)   // Reserved interrupt 40
+ 1527              	.set DAC0_IRQ_MASK         ,  (1 << DAC0_IRQn      )   // DAC0 interrupt
+ 1528              	.set TSI0_IRQ_MASK         ,  (1 << TSI0_IRQn      )   // TSI0 interrupt
+ 1529              	.set MCG_IRQ_MASK          ,  (1 << MCG_IRQn       )   // MCG interrupt
+ 1530              	.set LPTimer_IRQ_MASK      ,  (1 << LPTimer_IRQn   )   // LPTMR0 interrupt
+ 1531              	.set Reserved45_IRQ_MASK   ,  (1 << Reserved45_IRQn)   // Reserved interrupt 45
+ 1532              	.set PORTA_IRQ_MASK        ,  (1 << PORTA_IRQn     )   // Port A interrupt
+ 1533              	.set PORTB_IRQ_MASK        ,  (1 << PORTB_IRQn     )   // Port B interrupt
+ 1534              	// ---------------------------------------------------------------
+ 1535              	// NVIC vectors
+ 1536              	.set Init_SP_Vector      ,   0  // End of stack
+ 1537              	.set Reset_Vector        ,   1  // Reset
+ 1538              	.set NMI_Vector          ,   2  // Non-maskable interrupt (NMI)
+ 1539              	.set Hard_Fault_Vector   ,   3  // Hard fault interrupt
+ 1540              	.set Reserved04_Vector   ,   4  // (reserved)
+ 1541              	.set Reserved05_Vector   ,   5  // (reserved)
+ 1542              	.set Reserved06_Vector   ,   6  // (reserved)
+ 1543              	.set Reserved07_Vector   ,   7  // (reserved)
+ 1544              	.set Reserved08_Vector   ,   8  // (reserved)
+ 1545              	.set Reserved09_Vector   ,   9  // (reserved)
+ 1546              	.set Reserved10_Vector   ,  10  // (reserved)
+ 1547              	.set SVCall_Vector       ,  11  // Supervisor call interrupt (SVCall)
+ 1548              	.set Reserved12_Vector   ,  12  // (reserved)
+ 1549              	.set Reserved13_Vector   ,  13  // (reserved)
+ 1550              	.set PendSV_Vector       ,  14  // Pendable request for system-level service interrupt
+ 1551              	                             // (PendableSrvReq)
+ 1552              	.set SysTick_Vector      ,  15  // System tick timer interrupt (SysTick)
+ 1553              	.set DMA0_Vector         ,  16  // DMA channel 0 transfer complete/error interrupt
+ 1554              	.set DMA1_Vector         ,  17  // DMA channel 1 transfer complete/error interrupt
+ 1555              	.set DMA2_Vector         ,  18  // DMA channel 2 transfer complete/error interrupt
+ 1556              	.set DMA3_Vector         ,  19  // DMA channel 3 transfer complete/error interrupt
+ 1557              	.set Reserved20_Vector   ,  20  // Reserved interrupt 20
+ 1558              	.set FTFA_Vector         ,  21  // FTFA command complete/read collision interrupt
+ 1559              	.set LVD_LVW_Vector      ,  22  // Low-voltage detect, low-voltage warning interrupt
+ 1560              	.set LLW_Vector          ,  23  // Low leakage wakeup interrupt
+ 1561              	.set I2C0_Vector         ,  24  // I2C0 interrupt
+ 1562              	.set Reserved25_Vector   ,  25  // Reserved interrupt 25
+ 1563              	.set SPI0_Vector         ,  26  // SPI0 interrupt
+ 1564              	.set Reserved27_Vector   ,  27  // Reserved interrupt 27
+ 1565              	.set UART0_Vector        ,  28  // UART0 status/error interrupt
+ 1566              	.set Reserved29_Vector   ,  29  // Reserved interrupt 29
+ 1567              	.set Reserved30_Vector   ,  30  // Reserved interrupt 30
+ 1568              	.set ADC0_Vector         ,  31  // ADC0 interrupt
+ 1569              	.set CMP0_Vector         ,  32  // CMP0 interrupt
+ 1570              	.set TPM0_Vector         ,  33  // TPM0 fault, overflow, and channels interrupt
+ 1571              	.set TPM1_Vector         ,  34  // TPM1 fault, overflow, and channels interrupt
+ 1572              	.set Reserved35_Vector   ,  35  // Reserved interrupt 35
+ 1573              	.set RTC_Vector          ,  36  // RTC alarm interrupt
+ 1574              	.set RTC_Seconds_Vector  ,  37  // RTC seconds interrupt
+ 1575              	.set PIT_Vector          ,  38  // PIT interrupt
+ 1576              	.set Reserved39_Vector   ,  39  // Reserved interrupt 39
+ 1577              	.set Reserved40_Vector   ,  40  // Reserved interrupt 40
+ 1578              	.set DAC0_Vector         ,  41  // DAC0 interrupt
+ 1579              	.set TSI0_Vector         ,  42  // TSI0 interrupt
+ 1580              	.set MCG_Vector          ,  43  // MCG interrupt
+ 1581              	.set LPTimer_Vector      ,  44  // LPTMR0 interrupt
+ 1582              	.set Reserved45_Vector   ,  45  // Reserved interrupt 45
+ 1583              	.set PORTA_Vector        ,  46  // Port A interrupt
+ 1584              	.set PORTB_Vector        ,  47  // Port B interrupt
+ 1585              	// ---------------------------------------------------------------
+ 1586              	// OSC
+ 1587              	.set OSC0_BASE       ,  0x40065000
+ 1588              	.set OSC0_CR_OFFSET  ,  0
+ 1589              	.set OSC0_CR         ,  (OSC0_BASE + OSC0_CR_OFFSET)
+ 1590              	// ---------------------------------------------------------------
+ 1591              	// OSC0_CR (0x00)
+ 1592              	// 7:ERCLKEN=external reference enable, OSCERCLK (0)
+ 1593              	// 6:(reserved):read-only:0
+ 1594              	// 5:EREFSTEN=external reference stop enable (0)
+ 1595              	// 4:(reserved):read-only:0
+ 1596              	// 3:SC2P=oscillator 2-pF capacitor load configure (0)
+ 1597              	// 2:SC4P=oscillator 4-pF capacitor load configure (0)
+ 1598              	// 1:SC8P=oscillator 8-pF capacitor load configure (0)
+ 1599              	// 0:SC16P=oscillator 16-pF capacitor load configure (0)
+ 1600              	.set OSC_CR_SC16P_MASK      ,  0x1
+ 1601              	.set OSC_CR_SC16P_SHIFT     ,  0
+ 1602              	.set OSC_CR_SC8P_MASK       ,  0x2
+ 1603              	.set OSC_CR_SC8P_SHIFT      ,  1
+ 1604              	.set OSC_CR_SC4P_MASK       ,  0x4
+ 1605              	.set OSC_CR_SC4P_SHIFT      ,  2
+ 1606              	.set OSC_CR_SC2P_MASK       ,  0x8
+ 1607              	.set OSC_CR_SC2P_SHIFT      ,  3
+ 1608              	.set OSC_CR_EREFSTEN_MASK   ,  0x20
+ 1609              	.set OSC_CR_EREFSTEN_SHIFT  ,  5
+ 1610              	.set OSC_CR_ERCLKEN_MASK    ,  0x80
+ 1611              	.set OSC_CR_ERCLKEN_SHIFT   ,  7
+ 1612              	// ---------------------------------------------------------------
+ 1613              	// PIT
+ 1614              	.set PIT_BASE            ,  0x40037000
+ 1615              	.set PIT_CH0_BASE        ,  0x40037100
+ 1616              	.set PIT_CH1_BASE        ,  0x40037110
+ 1617              	.set PIT_LDVAL_OFFSET    , 0x00
+ 1618              	.set PIT_CVAL_OFFSET     , 0x04
+ 1619              	.set PIT_TCTRL_OFFSET    , 0x08
+ 1620              	.set PIT_TFLG_OFFSET     , 0x0C
+ 1621              	.set PIT_MCR_OFFSET      ,  0x00
+ 1622              	.set PIT_LTMR64H_OFFSET  ,  0xE0
+ 1623              	.set PIT_LTMR64L_OFFSET  ,  0xE4
+ 1624              	.set PIT_LDVAL0_OFFSET   ,  0x100
+ 1625              	.set PIT_CVAL0_OFFSET    ,  0x104
+ 1626              	.set PIT_TCTRL0_OFFSET   ,  0x108
+ 1627              	.set PIT_TFLG0_OFFSET    ,  0x10C
+ 1628              	.set PIT_LDVAL1_OFFSET   ,  0x110
+ 1629              	.set PIT_CVAL1_OFFSET    ,  0x114
+ 1630              	.set PIT_TCTRL1_OFFSET   ,  0x118
+ 1631              	.set PIT_TFLG1_OFFSET    ,  0x11C
+ 1632              	.set PIT_MCR      ,  (PIT_BASE + PIT_MCR_OFFSET)
+ 1633              	.set PIT_LTMR64H  ,  (PIT_BASE + PIT_LTMR64H_OFFSET)
+ 1634              	.set PIT_LTMR64L  ,  (PIT_BASE + PIT_LTMR64L_OFFSET)
+ 1635              	.set PIT_LDVAL0   ,  (PIT_BASE + PIT_LDVAL0_OFFSET)
+ 1636              	.set PIT_CVAL0    ,  (PIT_BASE + PIT_CVAL0_OFFSET)
+ 1637              	.set PIT_TCTRL0   ,  (PIT_BASE + PIT_TCTRL0_OFFSET)
+ 1638              	.set PIT_TFLG0    ,  (PIT_BASE + PIT_TFLG0_OFFSET)
+ 1639              	.set PIT_LDVAL1   ,  (PIT_BASE + PIT_LDVAL1_OFFSET)
+ 1640              	.set PIT_CVAL1    ,  (PIT_BASE + PIT_CVAL1_OFFSET)
+ 1641              	.set PIT_TCTRL1   ,  (PIT_BASE + PIT_TCTRL1_OFFSET)
+ 1642              	.set PIT_TFLG1    ,  (PIT_BASE + PIT_TFLG1_OFFSET)
+ 1643              	// ---------------------------------------------------------------
+ 1644              	// PIT_CVALn:  current timer value register (channel n)
+ 1645              	// 31-0:TVL=current timer value
+ 1646              	// ---------------------------------------------------------------
+ 1647              	// PIT_LDVALn:  timer load value register (channel n)
+ 1648              	// 31-0:TSV=timer start value
+ 1649              	//          PIT chan. n counts down from this value to 0,
+ 1650              	//          then sets TIF and loads LDVALn
+ 1651              	// ---------------------------------------------------------------
+ 1652              	// PIT_LTMR64H:  PIT upper lifetime timer register
+ 1653              	// for applications chaining timer 0 and timer 1 for 64-bit timer
+ 1654              	// 31-0:LTH=life timer value (high word)
+ 1655              	//          value of timer 1 (CVAL1); read before PIT_LTMR64L
+ 1656              	// ---------------------------------------------------------------
+ 1657              	// PIT_LTMR64L:  PIT lower lifetime timer register
+ 1658              	// for applications chaining timer 0 and timer 1 for 64-bit timer
+ 1659              	// 31-0:LTL=life timer value (low word)
+ 1660              	//          value of timer 0 (CVAL0); read after PIT_LTMR64H
+ 1661              	// ---------------------------------------------------------------
+ 1662              	// PIT_MCR:  PIT module control register
+ 1663              	// 31-3:(reserved):read-only:0
+ 1664              	//    2:(reserved)
+ 1665              	//    1:MDIS=module disable (PIT section)
+ 1666              	//           RTI timer not affected by this field
+ 1667              	//           must be enabled before any other setup
+ 1668              	//    0:FRZ=freeze:  continue'/stop timers in debug mode
+ 1669              	.set PIT_MCR_MDIS_MASK   ,  0x00000002
+ 1670              	.set PIT_MCR_MDIS_SHIFT  ,  1
+ 1671              	.set PIT_MCR_FRZ_MASK    ,  0x00000001
+ 1672              	.set PIT_MCR_FRZ_SHIFT   ,  0
+ 1673              	// ---------------------------------------------------------------
+ 1674              	// PIT_TCTRLn:  timer control register (channel n)
+ 1675              	// 31-3:(reserved):read-only:0
+ 1676              	//    2:CHN=chain mode (enable)
+ 1677              	//           in chain mode, channel n-1 must expire before
+ 1678              	//                          channel n counts
+ 1679              	//           timer 0 cannot be changed
+ 1680              	//    1:TIE=timer interrupt enable (on TIF)
+ 1681              	//    0:TEN=timer enable
+ 1682              	.set PIT_TCTRL_CHN_MASK   ,  0x00000004
+ 1683              	.set PIT_TCTRL_CHN_SHIFT  ,  2
+ 1684              	.set PIT_TCTRL_TIE_MASK   ,  0x00000002
+ 1685              	.set PIT_TCTRL_TIE_SHIFT  ,  1
+ 1686              	.set PIT_TCTRL_TEN_MASK   ,  0x00000001
+ 1687              	.set PIT_TCTRL_TEN_SHIFT  ,  0
+ 1688              	// ---------------------------------------------------------------
+ 1689              	// PIT_TFLGn:  timer flag register (channel n)
+ 1690              	// 31-1:(reserved):read-only:0
+ 1691              	//    0:TIF=timer interrupt flag
+ 1692              	//          write 1 to clear
+ 1693              	.set PIT_TFLG_TIF_MASK   ,  0x00000001
+ 1694              	.set PIT_TFLG_TIF_SHIFT  ,  0
+ 1695              	// ---------------------------------------------------------------
+ 1696              	// Port A
+ 1697              	.set PORTA_BASE         ,  0x40049000
+ 1698              	.set PORTA_PCR0_OFFSET  ,  0x00
+ 1699              	.set PORTA_PCR1_OFFSET  ,  0x04
+ 1700              	.set PORTA_PCR2_OFFSET  ,  0x08
+ 1701              	.set PORTA_PCR3_OFFSET  ,  0x0C
+ 1702              	.set PORTA_PCR4_OFFSET  ,  0x10
+ 1703              	.set PORTA_PCR5_OFFSET  ,  0x14
+ 1704              	.set PORTA_PCR6_OFFSET  ,  0x18
+ 1705              	.set PORTA_PCR7_OFFSET  ,  0x1C
+ 1706              	.set PORTA_PCR8_OFFSET  ,  0x20
+ 1707              	.set PORTA_PCR9_OFFSET  ,  0x24
+ 1708              	.set PORTA_PCR10_OFFSET ,  0x28
+ 1709              	.set PORTA_PCR11_OFFSET ,  0x2C
+ 1710              	.set PORTA_PCR12_OFFSET ,  0x30
+ 1711              	.set PORTA_PCR13_OFFSET ,  0x34
+ 1712              	.set PORTA_PCR14_OFFSET ,  0x38
+ 1713              	.set PORTA_PCR15_OFFSET ,  0x3C
+ 1714              	.set PORTA_PCR16_OFFSET ,  0x40
+ 1715              	.set PORTA_PCR17_OFFSET ,  0x44
+ 1716              	.set PORTA_PCR18_OFFSET ,  0x48
+ 1717              	.set PORTA_PCR19_OFFSET ,  0x4C
+ 1718              	.set PORTA_PCR20_OFFSET ,  0x50
+ 1719              	.set PORTA_PCR21_OFFSET ,  0x54
+ 1720              	.set PORTA_PCR22_OFFSET ,  0x58
+ 1721              	.set PORTA_PCR23_OFFSET ,  0x5C
+ 1722              	.set PORTA_PCR24_OFFSET ,  0x60
+ 1723              	.set PORTA_PCR25_OFFSET ,  0x64
+ 1724              	.set PORTA_PCR26_OFFSET ,  0x68
+ 1725              	.set PORTA_PCR27_OFFSET ,  0x6C
+ 1726              	.set PORTA_PCR28_OFFSET ,  0x70
+ 1727              	.set PORTA_PCR29_OFFSET ,  0x74
+ 1728              	.set PORTA_PCR30_OFFSET ,  0x78
+ 1729              	.set PORTA_PCR31_OFFSET ,  0x7C
+ 1730              	.set PORTA_GPCLR_OFFSET ,  0x80
+ 1731              	.set PORTA_GPCHR_OFFSET ,  0x84
+ 1732              	.set PORTA_ISFR_OFFSET  ,  0xA0
+ 1733              	.set PORTA_PCR0         ,  (PORTA_BASE + PORTA_PCR0_OFFSET)
+ 1734              	.set PORTA_PCR1         ,  (PORTA_BASE + PORTA_PCR1_OFFSET)
+ 1735              	.set PORTA_PCR2         ,  (PORTA_BASE + PORTA_PCR2_OFFSET)
+ 1736              	.set PORTA_PCR3         ,  (PORTA_BASE + PORTA_PCR3_OFFSET)
+ 1737              	.set PORTA_PCR4         ,  (PORTA_BASE + PORTA_PCR4_OFFSET)
+ 1738              	.set PORTA_PCR5         ,  (PORTA_BASE + PORTA_PCR5_OFFSET)
+ 1739              	.set PORTA_PCR6         ,  (PORTA_BASE + PORTA_PCR6_OFFSET)
+ 1740              	.set PORTA_PCR7         ,  (PORTA_BASE + PORTA_PCR7_OFFSET)
+ 1741              	.set PORTA_PCR8         ,  (PORTA_BASE + PORTA_PCR8_OFFSET)
+ 1742              	.set PORTA_PCR9         ,  (PORTA_BASE + PORTA_PCR9_OFFSET)
+ 1743              	.set PORTA_PCR10        ,  (PORTA_BASE + PORTA_PCR10_OFFSET)
+ 1744              	.set PORTA_PCR11        ,  (PORTA_BASE + PORTA_PCR11_OFFSET)
+ 1745              	.set PORTA_PCR12        ,  (PORTA_BASE + PORTA_PCR12_OFFSET)
+ 1746              	.set PORTA_PCR13        ,  (PORTA_BASE + PORTA_PCR13_OFFSET)
+ 1747              	.set PORTA_PCR14        ,  (PORTA_BASE + PORTA_PCR14_OFFSET)
+ 1748              	.set PORTA_PCR15        ,  (PORTA_BASE + PORTA_PCR15_OFFSET)
+ 1749              	.set PORTA_PCR16        ,  (PORTA_BASE + PORTA_PCR16_OFFSET)
+ 1750              	.set PORTA_PCR17        ,  (PORTA_BASE + PORTA_PCR17_OFFSET)
+ 1751              	.set PORTA_PCR18        ,  (PORTA_BASE + PORTA_PCR18_OFFSET)
+ 1752              	.set PORTA_PCR19        ,  (PORTA_BASE + PORTA_PCR19_OFFSET)
+ 1753              	.set PORTA_PCR20        ,  (PORTA_BASE + PORTA_PCR20_OFFSET)
+ 1754              	.set PORTA_PCR21        ,  (PORTA_BASE + PORTA_PCR21_OFFSET)
+ 1755              	.set PORTA_PCR22        ,  (PORTA_BASE + PORTA_PCR22_OFFSET)
+ 1756              	.set PORTA_PCR23        ,  (PORTA_BASE + PORTA_PCR23_OFFSET)
+ 1757              	.set PORTA_PCR24        ,  (PORTA_BASE + PORTA_PCR24_OFFSET)
+ 1758              	.set PORTA_PCR25        ,  (PORTA_BASE + PORTA_PCR25_OFFSET)
+ 1759              	.set PORTA_PCR26        ,  (PORTA_BASE + PORTA_PCR26_OFFSET)
+ 1760              	.set PORTA_PCR27        ,  (PORTA_BASE + PORTA_PCR27_OFFSET)
+ 1761              	.set PORTA_PCR28        ,  (PORTA_BASE + PORTA_PCR28_OFFSET)
+ 1762              	.set PORTA_PCR29        ,  (PORTA_BASE + PORTA_PCR29_OFFSET)
+ 1763              	.set PORTA_PCR30        ,  (PORTA_BASE + PORTA_PCR30_OFFSET)
+ 1764              	.set PORTA_PCR31        ,  (PORTA_BASE + PORTA_PCR31_OFFSET)
+ 1765              	.set PORTA_GPCLR        ,  (PORTA_BASE + PORTA_GPCLR_OFFSET)
+ 1766              	.set PORTA_GPCHR        ,  (PORTA_BASE + PORTA_GPCHR_OFFSET)
+ 1767              	.set PORTA_ISFR         ,  (PORTA_BASE + PORTA_ISFR_OFFSET)
+ 1768              	// ---------------------------------------------------------------
+ 1769              	// Port B
+ 1770              	.set PORTB_BASE         ,  0x4004A000
+ 1771              	.set PORTB_PCR0_OFFSET  ,  0x00
+ 1772              	.set PORTB_PCR1_OFFSET  ,  0x04
+ 1773              	.set PORTB_PCR2_OFFSET  ,  0x08
+ 1774              	.set PORTB_PCR3_OFFSET  ,  0x0C
+ 1775              	.set PORTB_PCR4_OFFSET  ,  0x10
+ 1776              	.set PORTB_PCR5_OFFSET  ,  0x14
+ 1777              	.set PORTB_PCR6_OFFSET  ,  0x18
+ 1778              	.set PORTB_PCR7_OFFSET  ,  0x1C
+ 1779              	.set PORTB_PCR8_OFFSET  ,  0x20
+ 1780              	.set PORTB_PCR9_OFFSET  ,  0x24
+ 1781              	.set PORTB_PCR10_OFFSET ,  0x28
+ 1782              	.set PORTB_PCR11_OFFSET ,  0x2C
+ 1783              	.set PORTB_PCR12_OFFSET ,  0x30
+ 1784              	.set PORTB_PCR13_OFFSET ,  0x34
+ 1785              	.set PORTB_PCR14_OFFSET ,  0x38
+ 1786              	.set PORTB_PCR15_OFFSET ,  0x3C
+ 1787              	.set PORTB_PCR16_OFFSET ,  0x40
+ 1788              	.set PORTB_PCR17_OFFSET ,  0x44
+ 1789              	.set PORTB_PCR18_OFFSET ,  0x48
+ 1790              	.set PORTB_PCR19_OFFSET ,  0x4C
+ 1791              	.set PORTB_PCR20_OFFSET ,  0x50
+ 1792              	.set PORTB_PCR21_OFFSET ,  0x54
+ 1793              	.set PORTB_PCR22_OFFSET ,  0x58
+ 1794              	.set PORTB_PCR23_OFFSET ,  0x5C
+ 1795              	.set PORTB_PCR24_OFFSET ,  0x60
+ 1796              	.set PORTB_PCR25_OFFSET ,  0x64
+ 1797              	.set PORTB_PCR26_OFFSET ,  0x68
+ 1798              	.set PORTB_PCR27_OFFSET ,  0x6C
+ 1799              	.set PORTB_PCR28_OFFSET ,  0x70
+ 1800              	.set PORTB_PCR29_OFFSET ,  0x74
+ 1801              	.set PORTB_PCR30_OFFSET ,  0x78
+ 1802              	.set PORTB_PCR31_OFFSET ,  0x7C
+ 1803              	.set PORTB_GPCLR_OFFSET ,  0x80
+ 1804              	.set PORTB_GPCHR_OFFSET ,  0x84
+ 1805              	.set PORTB_ISFR_OFFSET  ,  0xA0
+ 1806              	.set PORTB_PCR0         ,  (PORTB_BASE + PORTB_PCR0_OFFSET)
+ 1807              	.set PORTB_PCR1         ,  (PORTB_BASE + PORTB_PCR1_OFFSET)
+ 1808              	.set PORTB_PCR2         ,  (PORTB_BASE + PORTB_PCR2_OFFSET)
+ 1809              	.set PORTB_PCR3         ,  (PORTB_BASE + PORTB_PCR3_OFFSET)
+ 1810              	.set PORTB_PCR4         ,  (PORTB_BASE + PORTB_PCR4_OFFSET)
+ 1811              	.set PORTB_PCR5         ,  (PORTB_BASE + PORTB_PCR5_OFFSET)
+ 1812              	.set PORTB_PCR6         ,  (PORTB_BASE + PORTB_PCR6_OFFSET)
+ 1813              	.set PORTB_PCR7         ,  (PORTB_BASE + PORTB_PCR7_OFFSET)
+ 1814              	.set PORTB_PCR8         ,  (PORTB_BASE + PORTB_PCR8_OFFSET)
+ 1815              	.set PORTB_PCR9         ,  (PORTB_BASE + PORTB_PCR9_OFFSET)
+ 1816              	.set PORTB_PCR10        ,  (PORTB_BASE + PORTB_PCR10_OFFSET)
+ 1817              	.set PORTB_PCR11        ,  (PORTB_BASE + PORTB_PCR11_OFFSET)
+ 1818              	.set PORTB_PCR12        ,  (PORTB_BASE + PORTB_PCR12_OFFSET)
+ 1819              	.set PORTB_PCR13        ,  (PORTB_BASE + PORTB_PCR13_OFFSET)
+ 1820              	.set PORTB_PCR14        ,  (PORTB_BASE + PORTB_PCR14_OFFSET)
+ 1821              	.set PORTB_PCR15        ,  (PORTB_BASE + PORTB_PCR15_OFFSET)
+ 1822              	.set PORTB_PCR16        ,  (PORTB_BASE + PORTB_PCR16_OFFSET)
+ 1823              	.set PORTB_PCR17        ,  (PORTB_BASE + PORTB_PCR17_OFFSET)
+ 1824              	.set PORTB_PCR18        ,  (PORTB_BASE + PORTB_PCR18_OFFSET)
+ 1825              	.set PORTB_PCR19        ,  (PORTB_BASE + PORTB_PCR19_OFFSET)
+ 1826              	.set PORTB_PCR20        ,  (PORTB_BASE + PORTB_PCR20_OFFSET)
+ 1827              	.set PORTB_PCR21        ,  (PORTB_BASE + PORTB_PCR21_OFFSET)
+ 1828              	.set PORTB_PCR22        ,  (PORTB_BASE + PORTB_PCR22_OFFSET)
+ 1829              	.set PORTB_PCR23        ,  (PORTB_BASE + PORTB_PCR23_OFFSET)
+ 1830              	.set PORTB_PCR24        ,  (PORTB_BASE + PORTB_PCR24_OFFSET)
+ 1831              	.set PORTB_PCR25        ,  (PORTB_BASE + PORTB_PCR25_OFFSET)
+ 1832              	.set PORTB_PCR26        ,  (PORTB_BASE + PORTB_PCR26_OFFSET)
+ 1833              	.set PORTB_PCR27        ,  (PORTB_BASE + PORTB_PCR27_OFFSET)
+ 1834              	.set PORTB_PCR28        ,  (PORTB_BASE + PORTB_PCR28_OFFSET)
+ 1835              	.set PORTB_PCR29        ,  (PORTB_BASE + PORTB_PCR29_OFFSET)
+ 1836              	.set PORTB_PCR30        ,  (PORTB_BASE + PORTB_PCR30_OFFSET)
+ 1837              	.set PORTB_PCR31        ,  (PORTB_BASE + PORTB_PCR31_OFFSET)
+ 1838              	.set PORTB_GPCLR        ,  (PORTB_BASE + PORTB_GPCLR_OFFSET)
+ 1839              	.set PORTB_GPCHR        ,  (PORTB_BASE + PORTB_GPCHR_OFFSET)
+ 1840              	.set PORTB_ISFR         ,  (PORTB_BASE + PORTB_ISFR_OFFSET)
+ 1841              	// ---------------------------------------------------------------
+ 1842              	// PORTx_PCRn (Port x pin control register n [for pin n])
+ 1843              	// 31-25:(reserved):read-only:0
+ 1844              	//    24:ISF=interrupt status flag; write 1 clears
+ 1845              	// 23-20:(reserved):read-only:0
+ 1846              	// 19-16:IRCQ=interrupt configuration
+ 1847              	//           :0000=interrupt/DMA request disabled
+ 1848              	//           :0001=DMA request on rising edge
+ 1849              	//           :0010=DMA request on falling edge
+ 1850              	//           :0011=DMA request on either edge
+ 1851              	//           :1000=interrupt when logic zero
+ 1852              	//           :1001=interrupt on rising edge
+ 1853              	//           :1010=interrupt on falling edge
+ 1854              	//           :1011=interrupt on either edge
+ 1855              	//           :1100=interrupt when logic one
+ 1856              	//           :others=reserved
+ 1857              	// 15-11:(reserved):read-only:0
+ 1858              	// 10-08:MUX=Pin mux control
+ 1859              	//          :000=pin disabled (analog)
+ 1860              	//          :001=alternative 1 (GPIO)
+ 1861              	//          :010-111=alternatives 2-7 (chip-specific)
+ 1862              	//     7:(reserved):read-only:0
+ 1863              	//     6:DSE=Drive strength enable
+ 1864              	//          :0=low
+ 1865              	//          :1=high
+ 1866              	//     5:(reserved):read-only:0
+ 1867              	//     4:PFE=Passive filter enable
+ 1868              	//     3:(reserved):read-only:0
+ 1869              	//     2:SRE=Slew rate enable
+ 1870              	//          :0=fast
+ 1871              	//          :1=slow
+ 1872              	//     1:PE=Pull enable
+ 1873              	//     0:PS=Pull select (if PE=1)
+ 1874              	//         :0=internal pulldown
+ 1875              	//         :1=internal pullup
+ 1876              	.set PORT_PCR_ISF_MASK           ,  0x1000000
+ 1877              	.set PORT_PCR_ISF_SHIFT          ,  24
+ 1878              	.set PORT_PCR_IRCQ_MASK          ,  0xF0000
+ 1879              	.set PORT_PCR_IRCQ_SHIFT         ,  16
+ 1880              	.set PORT_PCR_MUX_MASK           ,  0x700
+ 1881              	.set PORT_PCR_MUX_SHIFT          ,  8
+ 1882              	.set PORT_PCR_DSE_MASK           ,  0x40
+ 1883              	.set PORT_PCR_DSE_SHIFT          ,  6
+ 1884              	.set PORT_PCR_PFE_MASK           ,  0x10
+ 1885              	.set PORT_PCR_PFE_SHIFT          ,  4
+ 1886              	.set PORT_PCR_SRE_MASK           ,  0x04
+ 1887              	.set PORT_PCR_SRE_SHIFT          ,  2
+ 1888              	.set PORT_PCR_PE_MASK            ,  0x02
+ 1889              	.set PORT_PCR_PE_SHIFT           ,  1
+ 1890              	.set PORT_PCR_PS_MASK            ,  0x01
+ 1891              	.set PORT_PCR_PS_SHIFT           ,  0
+ 1892              	.set PORT_PCR_MUX_SELECT_0_MASK  ,  0x00000000 // analog
+ 1893              	.set PORT_PCR_MUX_SELECT_1_MASK  ,  0x00000100 // GPIO
+ 1894              	.set PORT_PCR_MUX_SELECT_2_MASK  ,  0x00000200
+ 1895              	.set PORT_PCR_MUX_SELECT_3_MASK  ,  0x00000300
+ 1896              	.set PORT_PCR_MUX_SELECT_4_MASK  ,  0x00000400
+ 1897              	.set PORT_PCR_MUX_SELECT_5_MASK  ,  0x00000500
+ 1898              	.set PORT_PCR_MUX_SELECT_6_MASK  ,  0x00000600
+ 1899              	.set PORT_PCR_MUX_SELECT_7_MASK  ,  0x00000700
+ 1900              	// ---------------------------------------------------------------
+ 1901              	// PORTx_GPCLR (Port x global pin control low register) 
+ 1902              	// (32-bit write only)
+ 1903              	// 31-16:GPWE=global pin write enable; write only (0x0000)
+ 1904              	//       bit n:  0=PORTx_PCR<n-16> not updated from GPWD
+ 1905              	//               1=PORTx_PCR<n-16> is updated from GPWD
+ 1906              	//  15-0:GPWD=global pin write data; write only (0x0000)
+ 1907              	//       Value written to PORTx_PCR[15:0] selected by GPWE
+ 1908              	.set PORT_GPCLR_GPWE_MASK   ,  0xFFFF0000
+ 1909              	.set PORT_GPCLR_GPWE_SHIFT  ,  16
+ 1910              	.set PORT_GPCLR_GPWD_MASK   ,  0xFFFF
+ 1911              	.set PORT_GPCLR_GPWD_SHIFT  ,  0
+ 1912              	// ---------------------------------------------------------------
+ 1913              	// PORTx_GPCHR (Port x global pin control high register)
+ 1914              	// (32-bit write only)
+ 1915              	// 31-16:GPWE=global pin write enable; write only (0x0000)
+ 1916              	//       bit n:  0=PORTx_PCRn not updated from GPWD
+ 1917              	//               1=PORTx_PCRn is updated from GPWD
+ 1918              	//  15-0:GPWD=global pin write data; write only (0x0000)
+ 1919              	//       Value written to PORTx_PCR[15:0] selected by GPWE
+ 1920              	.set PORT_GPCHR_GPWE_MASK   ,  0xFFFF0000
+ 1921              	.set PORT_GPCHR_GPWE_SHIFT  ,  16
+ 1922              	.set PORT_GPCHR_GPWD_MASK   ,  0xFFFF
+ 1923              	.set PORT_GPCHR_GPWD_SHIFT  ,  0
+ 1924              	// ---------------------------------------------------------------
+ 1925              	// PORTx_ISFR (Port x interrupt status flag register)
+ 1926              	// (bit n read-only if PORTX pin n does not support interrupts)
+ 1927              	// (bit n write 1 clears bit n)
+ 1928              	// bit n:  0:  PORTx pin n configured interrupt not detected
+ 1929              	//         1:  PORTx pin n configured interrupt detected
+ 1930              	//             * If used to generate DMA request,
+ 1931              	//               automatically cleared on DMA transfer completion
+ 1932              	//             * Otherwise, remains 1 until 1 written
+ 1933              	//       bit nn:  0=PORTx_PCRnn not updated from GPWD
+ 1934              	//                1=PORTx_PCRnn is updated from GPWD
+ 1935              	//  15-0:GPWD=global pin write data; write only (0x0000)
+ 1936              	//       Value written to PORTx_PCR[15:0] selected by GPWE
+ 1937              	.set PORT_ISFR_ISF_MASK   ,  0xFFFFFFFF
+ 1938              	.set PORT_ISFR_ISF_SHIFT  ,  0
+ 1939              	// ---------------------------------------------------------------
+ 1940              	// PTx not present in MKL46Z4.h
+ 1941              	// General-purpose input and output (PTx)
+ 1942              	// PTx_PDD:  Port x Data Direction Register
+ 1943              	//   Bit n:  0=Port x pin n configured as input
+ 1944              	//           1=Port x pin n configured as output
+ 1945              	// PTx_PDIR:  Port x Data Input Register
+ 1946              	//   Bit n:  Value read from Port x pin n (if input pin)
+ 1947              	// PTx_PDOR:  Port x Data Output Register
+ 1948              	//   Bit n:  Value written to Port x pin n (if output pin)
+ 1949              	// PTx_PoOR: Port x operation o direction x Register
+ 1950              	//   Operation o:  C=Clear (clear to 0)
+ 1951              	//                 S=Set (set to 1)
+ 1952              	//                 T=Toggle (complement)
+ 1953              	//   Bit n:  0=Port x pin n not affected
+ 1954              	//           1=Port x pin n affected
+ 1955              	.set PT_BASE         ,  0x400FF000
+ 1956              	.set PT_PDOR_OFFSET  ,  0x00
+ 1957              	.set PT_PSOR_OFFSET  ,  0x04
+ 1958              	.set PT_PCOR_OFFSET  ,  0x08
+ 1959              	.set PT_PTOR_OFFSET  ,  0x0C
+ 1960              	.set PT_PDIR_OFFSET  ,  0x10
+ 1961              	.set PT_PDDR_OFFSET  ,  0x14
+ 1962              	.set PTA_OFFSET      ,  0x00
+ 1963              	.set PTB_OFFSET      ,  0x40
+ 1964              	// Port A (PTA)
+ 1965              	.set PTA_BASE        ,  0x400FF000
+ 1966              	.set PTA_PDOR        ,  (PTA_BASE + PT_PDOR_OFFSET)
+ 1967              	.set PTA_PSOR        ,  (PTA_BASE + PT_PSOR_OFFSET)
+ 1968              	.set PTA_PCOR        ,  (PTA_BASE + PT_PCOR_OFFSET)
+ 1969              	.set PTA_PTOR        ,  (PTA_BASE + PT_PTOR_OFFSET)
+ 1970              	.set PTA_PDIR        ,  (PTA_BASE + PT_PDIR_OFFSET)
+ 1971              	.set PTA_PDDR        ,  (PTA_BASE + PT_PDDR_OFFSET)
+ 1972              	// Port B (PTB)
+ 1973              	.set PTB_BASE         ,  0x400FF040
+ 1974              	.set PTB_PDOR         ,  (PTB_BASE + PT_PDOR_OFFSET)
+ 1975              	.set PTB_PSOR         ,  (PTB_BASE + PT_PSOR_OFFSET)
+ 1976              	.set PTB_PCOR         ,  (PTB_BASE + PT_PCOR_OFFSET)
+ 1977              	.set PTB_PTOR         ,  (PTB_BASE + PT_PTOR_OFFSET)
+ 1978              	.set PTB_PDIR         ,  (PTB_BASE + PT_PDIR_OFFSET)
+ 1979              	.set PTB_PDDR         ,  (PTB_BASE + PT_PDDR_OFFSET)
+ 1980              	// ---------------------------------------------------------------
+ 1981              	// IOPORT:  GPIO alias for zero wait state access to GPIO
+ 1982              	// See FGPIO
+ 1983              	// ---------------------------------------------------------------
+ 1984              	// System integration module (SIM)
+ 1985              	.set SIM_BASE             ,  0x40047000
+ 1986              	.set SIM_SOPT1_OFFSET     ,  0x00
+ 1987              	.set SIM_SOPT1CFG_OFFSET  ,  0x04
+ 1988              	.set SIM_SOPT2_OFFSET     ,  0x1004
+ 1989              	.set SIM_SOPT4_OFFSET     ,  0x100C
+ 1990              	.set SIM_SOPT5_OFFSET     ,  0x1010
+ 1991              	.set SIM_SOPT7_OFFSET     ,  0x1018
+ 1992              	.set SIM_SDID_OFFSET      ,  0x1024
+ 1993              	.set SIM_SCGC4_OFFSET     ,  0x1034
+ 1994              	.set SIM_SCGC5_OFFSET     ,  0x1038
+ 1995              	.set SIM_SCGC6_OFFSET     ,  0x103C
+ 1996              	.set SIM_SCGC7_OFFSET     ,  0x1040
+ 1997              	.set SIM_CLKDIV1_OFFSET   ,  0x1044
+ 1998              	.set SIM_FCFG1_OFFSET     ,  0x104C
+ 1999              	.set SIM_FCFG2_OFFSET     ,  0x1050
+ 2000              	.set SIM_UIDMH_OFFSET     ,  0x1058
+ 2001              	.set SIM_UIDML_OFFSET     ,  0x105C
+ 2002              	.set SIM_UIDL_OFFSET      ,  0x1060
+ 2003              	.set SIM_COPC_OFFSET      ,  0x1100
+ 2004              	.set SIM_SRVCOP_OFFSET    ,  0x1104
+ 2005              	.set SIM_CLKDIV1          ,  (SIM_BASE + SIM_CLKDIV1_OFFSET)
+ 2006              	.set SIM_COPC             ,  (SIM_BASE + SIM_COPC_OFFSET)
+ 2007              	.set SIM_FCFG1            ,  (SIM_BASE + SIM_FCFG1_OFFSET)
+ 2008              	.set SIM_FCFG2            ,  (SIM_BASE + SIM_FCFG2_OFFSET)
+ 2009              	.set SIM_SCGC4            ,  (SIM_BASE + SIM_SCGC4_OFFSET) 
+ 2010              	.set SIM_SCGC5            ,  (SIM_BASE + SIM_SCGC5_OFFSET)
+ 2011              	.set SIM_SCGC6            ,  (SIM_BASE + SIM_SCGC6_OFFSET)
+ 2012              	.set SIM_SCGC7            ,  (SIM_BASE + SIM_SCGC7_OFFSET)
+ 2013              	.set SIM_SDID             ,  (SIM_BASE + SIM_SDID_OFFSET)
+ 2014              	.set SIM_SOPT1            ,  (SIM_BASE + SIM_SOPT1_OFFSET)
+ 2015              	.set SIM_SOPT1CFG         ,  (SIM_BASE + SIM_SOPT1CFG_OFFSET)
+ 2016              	.set SIM_SOPT2            ,  (SIM_BASE + SIM_SOPT2_OFFSET)
+ 2017              	.set SIM_SOPT4            ,  (SIM_BASE + SIM_SOPT4_OFFSET)
+ 2018              	.set SIM_SOPT5            ,  (SIM_BASE + SIM_SOPT5_OFFSET)
+ 2019              	.set SIM_SOPT7            ,  (SIM_BASE + SIM_SOPT7_OFFSET)
+ 2020              	.set SIM_SRVCOP           ,  (SIM_BASE + SIM_SRVCOP_OFFSET)
+ 2021              	.set SIM_UIDL             ,  (SIM_BASE + SIM_UIDL_OFFSET)
+ 2022              	.set SIM_UIDMH            ,  (SIM_BASE + SIM_UIDMH_OFFSET)
+ 2023              	.set SIM_UIDML            ,  (SIM_BASE + SIM_UIDML_OFFSET)
+ 2024              	// ---------------------------------------------------------------
+ 2025              	// SIM_CLKDIV1
+ 2026              	// 31-28:OUTDIV1=clock 1 output divider value
+ 2027              	//              :set divider for core/system clock,
+ 2028              	//              :from which bus/flash clocks are derived
+ 2029              	//              :divide by OUTDIV1 + 1
+ 2030              	// 27-19:Reserved; read-only; always 0
+ 2031              	// 18-16:OUTDIV4=clock 4 output divider value
+ 2032              	//              :sets divider for bus and flash clocks,
+ 2033              	//              :relative to core/system clock
+ 2034              	//              :divide by OUTDIV4 + 1
+ 2035              	// 15-00:Reserved; read-only; always 0
+ 2036              	.set SIM_CLKDIV1_OUTDIV1_MASK       , 0xF0000000
+ 2037              	.set SIM_CLKDIV1_OUTDIV1_SHIFT      , 28
+ 2038              	.set SIM_CLKDIV1_OUTDIV4_MASK       , 0x00070000
+ 2039              	.set SIM_CLKDIV1_OUTDIV4_SHIFT      , 16
+ 2040              	// ---------------------------------------------------------------
+ 2041              	// SIM_COPC
+ 2042              	// 31-04:Reserved; read-only; always 0
+ 2043              	// 03-02:COPT=COP watchdog timeout
+ 2044              	//           :00=disabled
+ 2045              	//           :01=timeout after 2^5 LPO cycles or 2^13 bus cycles
+ 2046              	//           :10=timeout after 2^8 LPO cycles or 2^16 bus cycles
+ 2047              	//           :11=timeout after 2^10 LPO cycles or 2^18 bus cycles
+ 2048              	//    01:COPCLKS=COP clock select
+ 2049              	//              :0=internal 1 kHz
+ 2050              	//              :1=bus clock
+ 2051              	//    00:COPW=COP windowed mode
+ 2052              	.set COP_COPT_MASK      ,  0x0000000C
+ 2053              	.set COP_COPT_SHIFT     ,  2
+ 2054              	.set COP_COPCLKS_MASK   ,  0x00000002
+ 2055              	.set COP_COPCLKS_SHIFT  ,  1
+ 2056              	.set COP_COPW_MASK      ,  0x00000001
+ 2057              	.set COP_COPW_SHIFT     ,  1
+ 2058              	// ---------------------------------------------------------------
+ 2059              	// SIM_SCGC4
+ 2060              	// 1->31-28:Reserved; read-only; always 1
+ 2061              	// 0->27-24:Reserved; read-only; always 0
+ 2062              	// 0->   23:SPI1=SPI1 clock gate control (disabled)
+ 2063              	// 0->   22:SPI0=SPI0 clock gate control (disabled)
+ 2064              	// 0->21-20:Reserved; read-only; always 0
+ 2065              	// 0->   19:CMP=comparator clock gate control (disabled)
+ 2066              	// 0->   18:USBOTG=USB clock gate control (disabled)
+ 2067              	// 0->17-14:Reserved; read-only; always 0
+ 2068              	// 0->   13:Reserved; read-only; always 0
+ 2069              	// 0->   12:UART2=UART2 clock gate control (disabled)
+ 2070              	// 1->   11:UART1=UART1 clock gate control (disabled)
+ 2071              	// 0->   10:UART0=UART0 clock gate control (disabled)
+ 2072              	// 0->09-08:Reserved; read-only; always 0
+ 2073              	// 0->   07:I2C1=I2C1 clock gate control (disabled)
+ 2074              	// 0->   06:I2C0=I2C0 clock gate control (disabled)
+ 2075              	// 1->05-04:Reserved; read-only; always 1
+ 2076              	// 0->03-00:Reserved; read-only; always 0
+ 2077              	.set SIM_SCGC4_SPI0_MASK     ,  0x00400000
+ 2078              	.set SIM_SCGC4_SPI0_SHIFT    ,  22
+ 2079              	.set SIM_SCGC4_CMP_MASK      ,  0x00080000
+ 2080              	.set SIM_SCGC4_CMP_SHIFT     ,  19
+ 2081              	.set SIM_SCGC4_UART0_MASK    ,  0x00000400
+ 2082              	.set SIM_SCGC4_UART0_SHIFT   ,  10
+ 2083              	.set SIM_SCGC4_I2C0_MASK     ,  0x00000040
+ 2084              	.set SIM_SCGC4_I2C0_SHIFT    ,  6
+ 2085              	// ---------------------------------------------------------------
+ 2086              	// SIM_SCGC5
+ 2087              	// 31-20:Reserved; read-only; always 0
+ 2088              	//    19:SLCD=segment LCD clock gate control
+ 2089              	// 18-14:Reserved; read-only; always 0
+ 2090              	//    13:PORTE=Port E clock gate control
+ 2091              	//    12:PORTD=Port D clock gate control
+ 2092              	//    11:PORTC=Port C clock gate control
+ 2093              	//    10:PORTB=Port B clock gate control
+ 2094              	//     9:PORTA=Port A clock gate control
+ 2095              	// 08-07:Reserved; read-only; always 1
+ 2096              	//     6:Reserved; read-only; always 0
+ 2097              	//     5:TSI=TSI access control
+ 2098              	// 04-02:Reserved; read-only; always 0
+ 2099              	//     1:Reserved; read-only; always 0
+ 2100              	//     0:LPTMR=Low power timer access control
+ 2101              	.set SIM_SCGC5_PORTB_MASK   ,  0x00000400
+ 2102              	.set SIM_SCGC5_PORTB_SHIFT  ,  10
+ 2103              	.set SIM_SCGC5_PORTA_MASK   ,  0x00000200
+ 2104              	.set SIM_SCGC5_PORTA_SHIFT  ,  9
+ 2105              	.set SIM_SCGC5_TSI_MASK     ,  0x00000020
+ 2106              	.set SIM_SCGC5_TSI_SHIFT    ,  5
+ 2107              	.set SIM_SCGC5_LPTMR_MASK   ,  0x00000001
+ 2108              	.set SIM_SCGC5_LPTMR_SHIFT  ,  0
+ 2109              	// ---------------------------------------------------------------
+ 2110              	// SIM_SCGC6
+ 2111              	//    31:DAC0=DAC0 clock gate control
+ 2112              	//    30:(reserved):read-only:0
+ 2113              	//    29:RTC=RTC access control
+ 2114              	//    28:(reserved):read-only:0
+ 2115              	//    27:ADC0=ADC0 clock gate control
+ 2116              	//    26:TPM2=TPM2 clock gate control
+ 2117              	//    25:TPM1=TMP1 clock gate control
+ 2118              	//    24:TPM0=TMP0 clock gate control
+ 2119              	//    23:PIT=PIT clock gate control
+ 2120              	// 22-16:(reserved)
+ 2121              	//    15:(reserved)
+ 2122              	// 14-02:(reserved)
+ 2123              	//     1:DMAMUX=DMA mux clock gate control
+ 2124              	//     0:FTF=flash memory clock gate control
+ 2125              	.set SIM_SCGC6_DAC0_MASK     ,  0x80000000
+ 2126              	.set SIM_SCGC6_DAC0_SHIFT    ,  31
+ 2127              	.set SIM_SCGC6_RTC_MASK      ,  0x20000000
+ 2128              	.set SIM_SCGC6_RTC_SHIFT     ,  29
+ 2129              	.set SIM_SCGC6_ADC0_MASK     ,  0x08000000
+ 2130              	.set SIM_SCGC6_ADC0_SHIFT    ,  27
+ 2131              	.set SIM_SCGC6_TPM1_MASK     ,  0x02000000
+ 2132              	.set SIM_SCGC6_TPM1_SHIFT    ,  25
+ 2133              	.set SIM_SCGC6_TPM0_MASK     ,  0x01000000
+ 2134              	.set SIM_SCGC6_TPM0_SHIFT    ,  24
+ 2135              	.set SIM_SCGC6_PIT_MASK      ,  0x00800000
+ 2136              	.set SIM_SCGC6_PIT_SHIFT     ,  23
+ 2137              	.set SIM_SCGC6_DMAMUX_MASK   ,  0x00000002
+ 2138              	.set SIM_SCGC6_DMAMUX_SHIFT  ,  1
+ 2139              	.set SIM_SCGC6_FTF_MASK      ,  0x00000001
+ 2140              	.set SIM_SCGC6_FTF_SHIFT     ,  0
+ 2141              	// ---------------------------------------------------------------
+ 2142              	// SIM_SOPT1 (POR or LVD:  0x80000000)
+ 2143              	//    31:USBREGEN=USB voltage regulator enable (1)
+ 2144              	//    30:USBSSTBY=USB voltage regulator standby during stop, VLPS, LLS, and VLLS (0)
+ 2145              	//    29:USBVSTBY=USB voltage regulator standby during VLPS and VLLS (0)
+ 2146              	// 28-20:(reserved):read-only:000000000
+ 2147              	// 19-18:OSC32KSEL=32K oscillator clock select (00)
+ 2148              	//       (ERCLK32K for sLCD, RTC, and LPTMR)
+ 2149              	//                 00:System oscillator (OSC32KCLK)
+ 2150              	//                 01:(reserved)
+ 2151              	//                 10:RTC_CLKIN
+ 2152              	//                 11:LPO 1kHz
+ 2153              	//  17-6:(reserved):read-only:000000000000
+ 2154              	//   5-0:(reserved)
+ 2155              	.set SIM_SOPT1_OSC32KSEL_MASK   ,  0xC0000
+ 2156              	.set SIM_SOPT1_OSC32KSEL_SHIFT  ,  18
+ 2157              	// ---------------------------------------------------------------
+ 2158              	// SIM_SOPT2
+ 2159              	// 31-28:(reserved):read-only:0
+ 2160              	// 27-26:UART0SRC=UART0 clock source select
+ 2161              	//                00:clock disabled
+ 2162              	//                01:MCGFLLCLK
+ 2163              	//                10:OSCERCLK
+ 2164              	//                11:MCGIRCLK
+ 2165              	// 25-24:TPMSRC=TPM clock source select
+ 2166              	//              00:clock disabled
+ 2167              	//              01:MCGFLLCLK
+ 2168              	//              10:OSCERCLK
+ 2169              	//              11:MCGIRCLK
+ 2170              	// 23-19:(reserved):read-only:0
+ 2171              	// 15- 8:(reserved):read-only:0
+ 2172              	//  7- 5:CLKOUTSEL=CLKOUT select
+ 2173              	//                 000:(reserved)
+ 2174              	//                 001:(reserved)
+ 2175              	//                 010:bus clock
+ 2176              	//                 011:LPO clock (1 KHz)
+ 2177              	//                 100:MCGIRCLK
+ 2178              	//                 101:(reserved)
+ 2179              	//                 110:OSCERCLK
+ 2180              	//                 110:(reserved)
+ 2181              	//     4:RTCCLKOUTSEL=RTC clock out select
+ 2182              	//                    0:RTC (1 Hz)
+ 2183              	//                    1:OSCERCLK
+ 2184              	//  3- 0:(reserved):read-only:0
+ 2185              	.set SIM_SOPT2_UART0SRC_MASK       ,  0x0C000000
+ 2186              	.set SIM_SOPT2_UART0SRC_SHIFT      ,  26
+ 2187              	.set SIM_SOPT2_TPMSRC_MASK         ,  0x03000000
+ 2188              	.set SIM_SOPT2_TPMSRC_SHIFT        ,  24
+ 2189              	.set SIM_SOPT2_CLKOUTSEL_MASK      ,  0xE0
+ 2190              	.set SIM_SOPT2_CLKOUTSEL_SHIFT     ,  5
+ 2191              	.set SIM_SOPT2_RTCCLKOUTSEL_MASK   ,  0x10
+ 2192              	.set SIM_SOPT2_RTCCLKOUTSEL_SHIFT  ,  4
+ 2193              	// ---------------------------------------------------------------
+ 2194              	// SIM_SOPT5
+ 2195              	// 31-20:Reserved; read-only; always 0
+ 2196              	//    19:Reserved; read-only; always 0
+ 2197              	//    18:UART2ODE=UART2 open drain enable
+ 2198              	//    17:UART1ODE=UART1 open drain enable
+ 2199              	//    16:UART0ODE=UART0 open drain enable
+ 2200              	// 15-07:Reserved; read-only; always 0
+ 2201              	//    06:UART1TXSRC=UART1 receive data select
+ 2202              	//                 :0=UART1_RX pin
+ 2203              	//                 :1=CMP0 output
+ 2204              	// 05-04:UART1TXSRC=UART1 transmit data select source
+ 2205              	//                 :00=UART1_TX pin
+ 2206              	//                 :01=UART1_TX pin modulated with TPM1 channel 0 output
+ 2207              	//                 :10=UART1_TX pin modulated with TPM2 channel 0 output
+ 2208              	//                 :11=(reserved)
+ 2209              	//    03:Reserved; read-only; always 0
+ 2210              	//    02:UART0RXSRC=UART0 receive data select
+ 2211              	//                 :0=UART0_RX pin
+ 2212              	//                 :1=CMP0 output
+ 2213              	// 01-00:UART0TXSRC=UART0 transmit data select source
+ 2214              	//                 :00=UART0_TX pin
+ 2215              	//                 :01=UART0_TX pin modulated with TPM1 channel 0 output
+ 2216              	//                 :10=UART0_TX pin modulated with TPM2 channel 0 output
+ 2217              	//                 :11=(reserved)
+ 2218              	.set SIM_SOPT5_UART0ODE_MASK     ,  0x00010000
+ 2219              	.set SIM_SOPT5_UART0ODE_SHIFT    ,  16
+ 2220              	.set SIM_SOPT5_UART0RXSRC_MASK   ,  0x00000004
+ 2221              	.set SIM_SOPT5_UART0RXSRC_SHIFT  ,  2
+ 2222              	.set SIM_SOPT5_UART0TXSRC_MASK   ,  0x00000001
+ 2223              	.set SIM_SOPT5_UART0TXSRC_SHIFT  ,  0
+ 2224              	// ---------------------------------------------------------------
+ 2225              	// Timer/PWM modules (TPMx)
+ 2226              	.set TPM_SC_OFFSET      ,  0x00
+ 2227              	.set TPM_CNT_OFFSET     ,  0x04
+ 2228              	.set TPM_MOD_OFFSET     ,  0x08
+ 2229              	.set TPM_C0SC_OFFSET    ,  0x0C
+ 2230              	.set TPM_C0V_OFFSET     ,  0x10
+ 2231              	.set TPM_C1SC_OFFSET    ,  0x14
+ 2232              	.set TPM_C1V_OFFSET     ,  0x18
+ 2233              	.set TPM_C2SC_OFFSET    ,  0x1C
+ 2234              	.set TPM_C2V_OFFSET     ,  0x20
+ 2235              	.set TPM_C3SC_OFFSET    ,  0x24
+ 2236              	.set TPM_C3V_OFFSET     ,  0x28
+ 2237              	.set TPM_C4SC_OFFSET    ,  0x2C
+ 2238              	.set TPM_C4V_OFFSET     ,  0x30
+ 2239              	.set TPM_C5SC_OFFSET    ,  0x34
+ 2240              	.set TPM_C5V_OFFSET     ,  0x38
+ 2241              	// TPM_CONTROLS_OFFSET  EQU  TPM_C0SC_OFFSET
+ 2242              	// TPM_RESERVED_0_OFFSET  EQU  0x3C
+ 2243              	.set TPM_STATUS_OFFSET  ,  0x50
+ 2244              	// TPM_RESERVED_1_OFFSET  EQU  0x54
+ 2245              	.set TPM_CONF_OFFSET    ,  0x84
+ 2246              	// ---------------------------------------------------------------
+ 2247              	// Timer/PWM module 0 (TPM0)
+ 2248              	.set TPM0_BASE           ,  0x40038000
+ 2249              	// TPM_BASES           EQU  TPM0_BASE
+ 2250              	.set TPM0_SC      , (TPM0_BASE + TPM_SC_OFFSET    )
+ 2251              	.set TPM0_CNT     , (TPM0_BASE + TPM_CNT_OFFSET   )
+ 2252              	.set TPM0_MOD     , (TPM0_BASE + TPM_MOD_OFFSET   )
+ 2253              	.set TPM0_C0SC    , (TPM0_BASE + TPM_C0SC_OFFSET  )
+ 2254              	.set TPM0_C0V     , (TPM0_BASE + TPM_C0V_OFFSET   )
+ 2255              	.set TPM0_C1SC    , (TPM0_BASE + TPM_C1SC_OFFSET  )
+ 2256              	.set TPM0_C1V     , (TPM0_BASE + TPM_C1V_OFFSET   )
+ 2257              	.set TPM0_C2SC    , (TPM0_BASE + TPM_C2SC_OFFSET  )
+ 2258              	.set TPM0_C2V     , (TPM0_BASE + TPM_C2V_OFFSET   )
+ 2259              	.set TPM0_C3SC    , (TPM0_BASE + TPM_C3SC_OFFSET  )
+ 2260              	.set TPM0_C3V     , (TPM0_BASE + TPM_C3V_OFFSET   )
+ 2261              	.set TPM0_C4SC    , (TPM0_BASE + TPM_C4SC_OFFSET  )
+ 2262              	.set TPM0_C4V     , (TPM0_BASE + TPM_C4V_OFFSET   )
+ 2263              	.set TPM0_C5SC    , (TPM0_BASE + TPM_C5SC_OFFSET  )
+ 2264              	.set TPM0_C5V     , (TPM0_BASE + TPM_C5V_OFFSET   )
+ 2265              	// TPM0_CONTROLS  EQU  (TPM0_BASE + TPM_CONTROLS_OFFSET)
+ 2266              	// TPM0_RESERVED_0  EQU (TPM0_BASE + TPM_RESERVED_0_OFFSET)
+ 2267              	.set TPM0_STATUS  , (TPM0_BASE + TPM_STATUS_OFFSET)
+ 2268              	// TPM0_RESERVED_1  EQU (TPM0_BASE + TPM_RESERVED_1_OFFSET)
+ 2269              	.set TPM0_CONF    , (TPM0_BASE + TPM_CONF_OFFSET  )
+ 2270              	// ---------------------------------------------------------------
+ 2271              	// Timer/PWM module 1 (TPM1)
+ 2272              	.set TPM1_BASE           ,  0x40039000
+ 2273              	.set TPM1_SC      , (TPM1_BASE + TPM_SC_OFFSET    )
+ 2274              	.set TPM1_CNT     , (TPM1_BASE + TPM_CNT_OFFSET   )
+ 2275              	.set TPM1_MOD     , (TPM1_BASE + TPM_MOD_OFFSET   )
+ 2276              	.set TPM1_C0SC    , (TPM1_BASE + TPM_C0SC_OFFSET  )
+ 2277              	.set TPM1_C0V     , (TPM1_BASE + TPM_C0V_OFFSET   )
+ 2278              	.set TPM1_C1SC    , (TPM1_BASE + TPM_C1SC_OFFSET  )
+ 2279              	.set TPM1_C1V     , (TPM1_BASE + TPM_C1V_OFFSET   )
+ 2280              	.set TPM1_C2SC    , (TPM1_BASE + TPM_C2SC_OFFSET  )
+ 2281              	.set TPM1_C2V     , (TPM1_BASE + TPM_C2V_OFFSET   )
+ 2282              	.set TPM1_C3SC    , (TPM1_BASE + TPM_C3SC_OFFSET  )
+ 2283              	.set TPM1_C3V     , (TPM1_BASE + TPM_C3V_OFFSET   )
+ 2284              	.set TPM1_C4SC    , (TPM1_BASE + TPM_C4SC_OFFSET  )
+ 2285              	.set TPM1_C4V     , (TPM1_BASE + TPM_C4V_OFFSET   )
+ 2286              	.set TPM1_C5SC    , (TPM1_BASE + TPM_C5SC_OFFSET  )
+ 2287              	.set TPM1_C5V     , (TPM1_BASE + TPM_C5V_OFFSET   )
+ 2288              	// TPM1_CONTROLS  EQU  (TPM0_BASE + TPM_CONTROLS_OFFSET)
+ 2289              	// TPM1_RESERVED_0  EQU (TPM0_BASE + TPM_RESERVED_0_OFFSET)
+ 2290              	.set TPM1_STATUS  , (TPM1_BASE + TPM_STATUS_OFFSET)
+ 2291              	// TPM1_RESERVED_1  EQU (TPM0_BASE + TPM_RESERVED_1_OFFSET)
+ 2292              	.set TPM1_CONF    , (TPM1_BASE + TPM_CONF_OFFSET  )
+ 2293              	// ---------------------------------------------------------------
+ 2294              	// TPMx_CnSC:  Channel n Status and Control
+ 2295              	// 31-8:(reserved):read-only:0
+ 2296              	//    7:CHF=channel flag (0)
+ 2297              	//          set on channel event
+ 2298              	//          write 1 to clear
+ 2299              	//    6:CHIE=channel interrupt enable (0)
+ 2300              	//    5:MSB=channel mode select B (0) (see selection table below)
+ 2301              	//    4:MSA=channel mode select A (0) (see selection table below)
+ 2302              	//    3:ELSB=edge or level select B (0) (see selection table below)
+ 2303              	//    2:ELSA=edge or level select A (0) (see selection table below)
+ 2304              	//    1:(reserved):read-only:0
+ 2305              	//    0:DMA=DMA enable (0)
+ 2306              	// Mode, Edge, and Level Selection
+ 2307              	// MSB:MSA | ELSB:ELSA | Mode           | Configuration
+ 2308              	//   0 0   |    0 0    | (none)         | channel disabled
+ 2309              	//   0 1   |    0 0    | SW compare     | pin not used
+ 2310              	//   1 X   |    0 0    | SW compare     | pin not used
+ 2311              	//   0 0   |    0 1    | input capture  | rising edge
+ 2312              	//   0 0   |    1 0    | input capture  | falling edge
+ 2313              	//   0 0   |    1 1    | input capture  | either edge
+ 2314              	//   0 1   |    0 1    | output compare | toggle on match
+ 2315              	//   0 1   |    1 0    | output compare | clear on match
+ 2316              	//   0 1   |    1 1    | output compare | set on match
+ 2317              	//   1 0   |    X 1    | PWM            | low pulse
+ 2318              	//   1 0   |    1 0    | PWM            | high pulse
+ 2319              	//   1 1   |    X 1    | output compare | pulse high on match
+ 2320              	//   1 1   |    1 0    | output compare | pulse low on match
+ 2321              	.set TPM_CnSC_CHF_MASK    ,  0x80
+ 2322              	.set TPM_CnSC_CHF_SHIFT   ,  7
+ 2323              	.set TPM_CnSC_CHIE_MASK   ,  0x40
+ 2324              	.set TPM_CnSC_CHIE_SHIFT  ,  6
+ 2325              	.set TPM_CnSC_MSB_MASK    ,  0x20
+ 2326              	.set TPM_CnSC_MSB_SHIFT   ,  5
+ 2327              	.set TPM_CnSC_MSA_MASK    ,  0x10
+ 2328              	.set TPM_CnSC_MSA_SHIFT   ,  4
+ 2329              	.set TPM_CnSC_ELSB_MASK   ,  0x08
+ 2330              	.set TPM_CnSC_ELSB_SHIFT  ,  3
+ 2331              	.set TPM_CnSC_ELSA_MASK   ,  0x04
+ 2332              	.set TPM_CnSC_ELSA_SHIFT  ,  2
+ 2333              	.set TPM_CnSC_CDMA_MASK   ,  0x01
+ 2334              	.set TPM_CnSC_CDMA_SHIFT  ,  0
+ 2335              	// ---------------------------------------------------------------
+ 2336              	// TPMx_CnV:  Channel n Value
+ 2337              	// 31-16:(reserved):read-only:0
+ 2338              	// 16- 0:VAL (0x0000) (all bytes must be written at the same time)
+ 2339              	.set TPM_CnV_VAL_MASK   , 0xFFFF
+ 2340              	.set TPM_CnV_VAL_SHIFT  , 0
+ 2341              	// ---------------------------------------------------------------
+ 2342              	// TPMx_CONF:  Configuration
+ 2343              	// 31-28:(reserved):read-only:0
+ 2344              	// 27-24:TRGSEL=trigger select (0000)
+ 2345              	//              should be changed only when counter disabled
+ 2346              	//              0000:EXTRG_IN (external trigger pin input)
+ 2347              	//              0001:CMP0 output
+ 2348              	//              0010:(reserved)
+ 2349              	//              0011:(reserved)
+ 2350              	//              0100:PIT trigger 0
+ 2351              	//              0101:PIT trigger 1
+ 2352              	//              0110:(reserved)
+ 2353              	//              0111:(reserved)
+ 2354              	//              1000:TPM0 overflow
+ 2355              	//              1001:TPM1 overflow
+ 2356              	//              1010:TPM2 overflow
+ 2357              	//              1011:(reserved)
+ 2358              	//              1100:RTC alarm
+ 2359              	//              1101:RTC seconds
+ 2360              	//              1110:LPTMR trigger
+ 2361              	//              1111:(reserved)
+ 2362              	// 23-19:(reserved):read-only:0
+ 2363              	//    18:CROT=counter reload on trigger (0)
+ 2364              	//            should be changed only when counter disabled
+ 2365              	//    17:CSOO=counter stop on overflow (0)
+ 2366              	//            should be changed only when counter disabled
+ 2367              	//    16:CSOT=counter start on trigger (0)
+ 2368              	//            should be changed only when counter disabled
+ 2369              	// 15-10:(reserved):read-only:000000
+ 2370              	//     9:GTBEEN=global time base enable (0)
+ 2371              	//     8:(reserved):read-only:0
+ 2372              	//  7- 6:DBGMODE=debug mode (00)
+ 2373              	//               00:paused during debug, and during debug
+ 2374              	//                  trigger and input capture events ignored
+ 2375              	//               01:(reserved)
+ 2376              	//               10:(reserved)
+ 2377              	//               11:counter continues during debug
+ 2378              	//     5:DOZEEN=doze enable (0)
+ 2379              	//              0:counter continues during debug
+ 2380              	//              1:paused during debug, and during debug
+ 2381              	//                trigger and input capture events ignored
+ 2382              	//  4- 0:(reserved):read-only:0000
+ 2383              	.set TPM_CONF_TRGSEL_MASK    ,  0x0F000000
+ 2384              	.set TPM_CONF_TRGSEL_SHIFT   ,  24
+ 2385              	.set TPM_CONF_CROT_MASK      ,  0x00040000
+ 2386              	.set TPM_CONF_CROT_SHIFT     ,  18
+ 2387              	.set TPM_CONF_CSOO_MASK      ,  0x00020000
+ 2388              	.set TPM_CONF_CSOO_SHIFT     ,  17
+ 2389              	.set TPM_CONF_CSOT_MASK      ,  0x00010000
+ 2390              	.set TPM_CONF_CSOT_SHIFT     ,  16
+ 2391              	.set TPM_CONF_GTBEEN_MASK    ,  0x200
+ 2392              	.set TPM_CONF_GTBEEN_SHIFT   ,  9
+ 2393              	.set TPM_CONF_DBGMODE_MASK   ,  0xC0
+ 2394              	.set TPM_CONF_DBGMODE_SHIFT  ,  6
+ 2395              	.set TPM_CONF_DOZEEN_MASK    ,  0x20
+ 2396              	.set TPM_CONF_DOZEEN_SHIFT   ,  5
+ 2397              	// ---------------------------------------------------------------
+ 2398              	// TPMx_MOD:  Modulo
+ 2399              	// 31-16:(reserved):read-only:0
+ 2400              	// 16- 0:MOD (0xFFFF) (all bytes must be written at the same time)
+ 2401              	.set TPM_MOD_MOD_MASK   , 0xFFFF
+ 2402              	.set TPM_MOD_MOD_SHIFT  , 0
+ 2403              	// ---------------------------------------------------------------
+ 2404              	// TPMx_SC:  Status and Control
+ 2405              	// 31-9:(reserved):read-only:0
+ 2406              	//    8:DMA=DMA enable (0)
+ 2407              	//    7:TOF=timer overflow flag (0)
+ 2408              	//          set on count after TPMx_CNT = TPMx_MOD
+ 2409              	//          write 1 to clear
+ 2410              	//    6:TOIE=timer overflow interrupt enable (0)
+ 2411              	//    5:CPWMS=center-aligned PWM select
+ 2412              	//            0:edge align (up count)
+ 2413              	//            1:center align (up-down count)
+ 2414              	//  4-3:CMOD=clock mode selection (00)
+ 2415              	//           00:counter disabled
+ 2416              	//           01:TPMx_CNT increments on every TPMx clock
+ 2417              	//           10:TPMx_CNT increments on rising edge of TPMx_EXTCLK
+ 2418              	//           11:(reserved)
+ 2419              	//  2-0:PS=prescale factor selection (000)
+ 2420              	//         can be written only when counter is disabled
+ 2421              	//         count clock = CMOD selected clock / 2^PS
+ 2422              	.set TPM_SC_DMA_MASK     , 0x100
+ 2423              	.set TPM_SC_DMA_SHIFT    , 8
+ 2424              	.set TPM_SC_TOF_MASK     , 0x80
+ 2425              	.set TPM_SC_TOF_SHIFT    , 7
+ 2426              	.set TPM_SC_TOIE_MASK    , 0x40
+ 2427              	.set TPM_SC_TOIE_SHIFT   , 6
+ 2428              	.set TPM_SC_CPWMS_MASK   , 0x20
+ 2429              	.set TPM_SC_CPWMS_SHIFT  , 5
+ 2430              	.set TPM_SC_CMOD_MASK    , 0x18
+ 2431              	.set TPM_SC_CMOD_SHIFT   , 3
+ 2432              	.set TPM_SC_PS_MASK      , 0x07
+ 2433              	.set TPM_SC_PS_SHIFT     , 0
+ 2434              	// ---------------------------------------------------------------
+ 2435              	// TPMx_STATUS:  Capture and Compare Status
+ 2436              	// 31-9:(reserved):read-only:0
+ 2437              	//    8:TOF=timer overflow flag=TPMx_SC.TOF: w1c (0)
+ 2438              	//  7-6:(reserved):read-only:0
+ 2439              	//    5:CH5F=channel 5 flag=TPMx_C5SC.CHF: w1c (0)
+ 2440              	//    4:CH4F=channel 4 flag=TPMx_C4SC.CHF: w1c (0)
+ 2441              	//    3:CH3F=channel 3 flag=TPMx_C3SC.CHF: w1c (0)
+ 2442              	//    2:CH2F=channel 2 flag=TPMx_C2SC.CHF: w1c (0)
+ 2443              	//    1:CH1F=channel 1 flag=TPMx_C1SC.CHF: w1c (0)
+ 2444              	//    0:CH0F=channel 0 flag=TPMx_C0SC.CHF: w1c (0)
+ 2445              	.set TPM_STATUS_TOF_MASK    , 0x100
+ 2446              	.set TPM_STATUS_TOF_SHIFT   , 8
+ 2447              	.set TPM_STATUS_CH5F_MASK   , 0x20
+ 2448              	.set TPM_STATUS_CH5F_SHIFT  , 5
+ 2449              	.set TPM_STATUS_CH4F_MASK   , 0x10
+ 2450              	.set TPM_STATUS_CH4F_SHIFT  , 4
+ 2451              	.set TPM_STATUS_CH3F_MASK   , 0x08
+ 2452              	.set TPM_STATUS_CH3F_SHIFT  , 3
+ 2453              	.set TPM_STATUS_CH2F_MASK   , 0x04
+ 2454              	.set TPM_STATUS_CH2F_SHIFT  , 2
+ 2455              	.set TPM_STATUS_CH1F_MASK   , 0x02
+ 2456              	.set TPM_STATUS_CH1F_SHIFT  , 1
+ 2457              	.set TPM_STATUS_CH0F_MASK   , 0x01
+ 2458              	.set TPM_STATUS_CH0F_SHIFT  , 0
+ 2459              	// ---------------------------------------------------------------
+ 2460              	// UART 0
+ 2461              	.set UART0_BASE  ,  0x4006A000
+ 2462              	// UART_BASES  EQU  UART0_BASE
+ 2463              	.set UART0_BDH_OFFSET  ,  0x00
+ 2464              	.set UART0_BDL_OFFSET  ,  0x01
+ 2465              	.set UART0_C1_OFFSET   ,  0x02
+ 2466              	.set UART0_C2_OFFSET   ,  0x03
+ 2467              	.set UART0_S1_OFFSET   ,  0x04
+ 2468              	.set UART0_S2_OFFSET   ,  0x05
+ 2469              	.set UART0_C3_OFFSET   ,  0x06
+ 2470              	.set UART0_D_OFFSET    ,  0x07
+ 2471              	.set UART0_MA1_OFFSET  ,  0x08
+ 2472              	.set UART0_MA2_OFFSET  ,  0x09
+ 2473              	.set UART0_C4_OFFSET   ,  0x0A
+ 2474              	.set UART0_C5_OFFSET   ,  0x0B
+ 2475              	.set UART0_BDH        ,  (UART0_BASE + UART0_BDH_OFFSET)
+ 2476              	.set UART0_BDL        ,  (UART0_BASE + UART0_BDL_OFFSET)
+ 2477              	.set UART0_C1         ,  (UART0_BASE + UART0_C1_OFFSET)
+ 2478              	.set UART0_C2         ,  (UART0_BASE + UART0_C2_OFFSET)
+ 2479              	.set UART0_S1         ,  (UART0_BASE + UART0_S1_OFFSET)
+ 2480              	.set UART0_S2         ,  (UART0_BASE + UART0_S2_OFFSET)
+ 2481              	.set UART0_C3         ,  (UART0_BASE + UART0_C3_OFFSET)
+ 2482              	.set UART0_D          ,  (UART0_BASE + UART0_D_OFFSET)
+ 2483              	.set UART0_MA1        ,  (UART0_BASE + UART0_MA1_OFFSET)
+ 2484              	.set UART0_MA2        ,  (UART0_BASE + UART0_MA2_OFFSET)
+ 2485              	.set UART0_C4         ,  (UART0_BASE + UART0_C4_OFFSET)
+ 2486              	.set UART0_C5         ,  (UART0_BASE + UART0_C5_OFFSET)
+ 2487              	// ---------------------------------------------------------------
+ 2488              	// UART0_BDH
+ 2489              	//   7:LBKDIE=LIN break detect IE
+ 2490              	//   6:RXEDGIE=RxD input active edge IE
+ 2491              	//   5:SBNS=Stop bit number select
+ 2492              	// 4-0:SBR[12:0] (BUSCLK / (16 x 9600))
+ 2493              	.set UART0_BDH_LBKDIE_MASK    ,  0x80
+ 2494              	.set UART0_BDH_LBKDIE_SHIFT   ,  7
+ 2495              	.set UART0_BDH_RXEDGIE_MASK   ,  0x40
+ 2496              	.set UART0_BDH_RXEDGIE_SHIFT  ,  6
+ 2497              	.set UART0_BDH_SBNS_MASK      ,  0x20
+ 2498              	.set UART0_BDH_SBNS_SHIFT     ,  5
+ 2499              	.set UART0_BDH_SBR_MASK       ,  0x1F
+ 2500              	.set UART0_BDH_SBR_SHIFT      ,  0
+ 2501              	// ---------------------------------------------------------------
+ 2502              	// UART0_BDL
+ 2503              	// 7-0:SBR[7:0] (BUSCLK / 16 x 9600))
+ 2504              	.set UART0_BDL_SBR_MASK   ,  0xFF
+ 2505              	.set UART0_BDL_SBR_SHIFT  ,  0
+ 2506              	// ---------------------------------------------------------------
+ 2507              	// UART0_C1
+ 2508              	// 7:LOOPS=loop mode select (normal)
+ 2509              	// 6:DOZEEN=UART disabled in wait mode (enabled)
+ 2510              	// 5:RSRC=receiver source select (internal--no effect LOOPS=0)
+ 2511              	// 4:M=9- or 8-bit mode select (1 start, 8 data [lsb first], 1 stop)
+ 2512              	// 3:WAKE=receiver wakeup method select (idle)
+ 2513              	// 2:IDLE=idle line type select (idle begins after start bit)
+ 2514              	// 1:PE=parity enable (disabled)
+ 2515              	// 0:PT=parity type (even parity--no effect PE=0)
+ 2516              	.set UART0_C1_LOOPS_MASK      ,  0x80
+ 2517              	.set UART0_C1_LOOPS_SHIFT     ,  7
+ 2518              	.set UART0_C1_DOZEEN_MASK     ,  0x40
+ 2519              	.set UART0_C1_DOZEEN_SHIFT    ,  6
+ 2520              	.set UART0_C1_RSRC_MASK       ,  0x20
+ 2521              	.set UART0_C1_RSRC_SHIFT      ,  5
+ 2522              	.set UART0_C1_M_MASK          ,  0x10
+ 2523              	.set UART0_C1_M_SHIFT         ,  4
+ 2524              	.set UART0_C1_WAKE_MASK       ,  0x08
+ 2525              	.set UART0_C1_WAKE_SHIFT      ,  3
+ 2526              	.set UART0_C1_ILT_MASK        ,  0x04
+ 2527              	.set UART0_C1_ILT_SHIFT       ,  2
+ 2528              	.set UART0_C1_PE_MASK         ,  0x02
+ 2529              	.set UART0_C1_PE_SHIFT        ,  1
+ 2530              	.set UART0_C1_PT_MASK         ,  0x01
+ 2531              	.set UART0_C1_PT_SHIFT        ,  0
+ 2532              	// ---------------------------------------------------------------
+ 2533              	// UART0_C2
+ 2534              	// 7:TIE=transmitter IE for TDRE (disabled)
+ 2535              	// 6:TCIE=trasmission complete IE for TC (disabled)
+ 2536              	// 5:RIE=receiver IE for RDRF (disabled)
+ 2537              	// 4:ILIE=idle line IE for IDLE (disabled)
+ 2538              	// 3:TE=transmitter enable (disabled)
+ 2539              	// 2:RE=receiver enable (disabled)
+ 2540              	// 1:RWU=receiver wakeup control (normal)
+ 2541              	// 0:SBK=send break (disabled, normal)
+ 2542              	.set UART0_C2_TIE_MASK    ,  0x80
+ 2543              	.set UART0_C2_TIE_SHIFT   ,  7
+ 2544              	.set UART0_C2_TCIE_MASK   ,  0x40
+ 2545              	.set UART0_C2_TCIE_SHIFT  ,  6
+ 2546              	.set UART0_C2_RIE_MASK    ,  0x20
+ 2547              	.set UART0_C2_RIE_SHIFT   ,  5
+ 2548              	.set UART0_C2_ILIE_MASK   ,  0x10
+ 2549              	.set UART0_C2_ILIE_SHIFT  ,  4
+ 2550              	.set UART0_C2_TE_MASK     ,  0x08
+ 2551              	.set UART0_C2_TE_SHIFT    ,  3
+ 2552              	.set UART0_C2_RE_MASK     ,  0x04
+ 2553              	.set UART0_C2_RE_SHIFT    ,  2
+ 2554              	.set UART0_C2_RWU_MASK    ,  0x02
+ 2555              	.set UART0_C2_RWU_SHIFT   ,  1
+ 2556              	.set UART0_C2_SBK_MASK    ,  0x01
+ 2557              	.set UART0_C2_SBK_SHIFT   ,  0
+ 2558              	// ---------------------------------------------------------------
+ 2559              	// UART0_C3
+ 2560              	// 7:R8T9=Receive bit 8; transmit bit 9 (not used M=0)
+ 2561              	// 6:R9T8=Receive bit 9; transmit bit 8 (not used M=0)
+ 2562              	// 5:TXDIR=TxD pin direction in single-wire mode 
+ 2563              	//                         (input--no effect LOOPS=0)
+ 2564              	// 4:TXINV=transmit data inversion (not invereted)
+ 2565              	// 3:ORIE=overrun IE for OR (disabled)
+ 2566              	// 2:NEIE=noise error IE for NF (disabled)
+ 2567              	// 1:FEIE=framing error IE for FE (disabled)
+ 2568              	// 0:PEIE=parity error IE for PF (disabled)
+ 2569              	.set UART0_C3_R8T9_MASK    ,  0x80
+ 2570              	.set UART0_C3_R8T9_SHIFT   ,  7
+ 2571              	.set UART0_C3_R9T8_MASK    ,  0x40
+ 2572              	.set UART0_C3_R9T8_SHIFT   ,  6
+ 2573              	.set UART0_C3_TXDIR_MASK   ,  0x20
+ 2574              	.set UART0_C3_TXDIR_SHIFT  ,  5
+ 2575              	.set UART0_C3_TXINV_MASK   ,  0x10
+ 2576              	.set UART0_C3_TXINV_SHIFT  ,  4
+ 2577              	.set UART0_C3_ORIE_MASK    ,  0x08
+ 2578              	.set UART0_C3_ORIE_SHIFT   ,  3
+ 2579              	.set UART0_C3_NEIE_MASK    ,  0x04
+ 2580              	.set UART0_C3_NEIE_SHIFT   ,  2
+ 2581              	.set UART0_C3_FEIE_MASK    ,  0x02
+ 2582              	.set UART0_C3_FEIE_SHIFT   ,  1
+ 2583              	.set UART0_C3_PEIE_MASK    ,  0x01
+ 2584              	.set UART0_C3_PEIE_SHIFT   ,  0
+ 2585              	// ---------------------------------------------------------------
+ 2586              	// UART0_C4
+ 2587              	//   7:MAEN1=Match address mode enable 1 (disabled)
+ 2588              	//   6:MAEN2=Match address mode enable 2 (disabled)
+ 2589              	//   5:M10=10-bit mode select (not selected)
+ 2590              	// 4-0:OSR=Over sampling ratio (01111)
+ 2591              	//         00000 <= OSR <= 00010:  (invalid; defaults to ratio = 16)        
+ 2592              	//         00011 <= OSR <= 11111:  ratio = OSR + 1
+ 2593              	.set UART0_C4_MAEN1_MASK   ,  0x80
+ 2594              	.set UART0_C4_MAEN1_SHIFT  ,  7
+ 2595              	.set UART0_C4_MAEN2_MASK   ,  0x40
+ 2596              	.set UART0_C4_MAEN2_SHIFT  ,  6
+ 2597              	.set UART0_C4_M10_MASK     ,  0x20
+ 2598              	.set UART0_C4_M10_SHIFT    ,  5
+ 2599              	.set UART0_C4_OSR_MASK     ,  0x1F
+ 2600              	.set UART0_C4_OSR_SHIFT    ,  0
+ 2601              	// ---------------------------------------------------------------
+ 2602              	// UART0_C5
+ 2603              	//   7:TDMAE=Transmitter DMA enable (disabled)
+ 2604              	//   6:(reserved):  read-only:  0
+ 2605              	//   5:RDMAE=Receiver full DMA enable (disabled)
+ 2606              	// 4-2:(reserved):  read-only:  000
+ 2607              	//   1:BOTHEDGE=Both edge sampling (only rising edge)
+ 2608              	//   0:RESYNCDIS=Resynchronization disable (enabled)
+ 2609              	.set UART0_C5_TDMAE_MASK       ,  0x80
+ 2610              	.set UART0_C5_TDMAE_SHIFT      ,  7
+ 2611              	.set UART0_C5_RDMAE_MASK       ,  0x20
+ 2612              	.set UART0_C5_RDMAE_SHIFT      ,  5
+ 2613              	.set UART0_C5_BOTHEDGE_MASK    ,  0x02
+ 2614              	.set UART0_C5_BOTHEDGE_SHIFT   ,  1
+ 2615              	.set UART0_C5_RESYNCDIS_MASK   ,  0x01
+ 2616              	.set UART0_C5_RESYNCDIS_SHIFT  ,  0
+ 2617              	// ---------------------------------------------------------------
+ 2618              	// UART0_D
+ 2619              	// 7:R7T7=Receive data buffer bit 7; 
+ 2620              	//        transmit data buffer bit 7
+ 2621              	// 6:R6T6=Receive data buffer bit 6; 
+ 2622              	//        transmit data buffer bit 6
+ 2623              	// 5:R5T5=Receive data buffer bit 5; 
+ 2624              	//        transmit data buffer bit 5
+ 2625              	// 4:R4T4=Receive data buffer bit 4; 
+ 2626              	//        transmit data buffer bit 4
+ 2627              	// 3:R3T3=Receive data buffer bit 3; 
+ 2628              	//        transmit data buffer bit 3
+ 2629              	// 2:R2T2=Receive data buffer bit 2; 
+ 2630              	//        transmit data buffer bit 2
+ 2631              	// 1:R1T1=Receive data buffer bit 1; 
+ 2632              	//        transmit data buffer bit 1
+ 2633              	// 0:R0T0=Receive data buffer bit 0; 
+ 2634              	//        transmit data buffer bit 0
+ 2635              	.set UART0_D_R7T7_MASK   ,  0x80
+ 2636              	.set UART0_D_R7T7_SHIFT  ,  7
+ 2637              	.set UART0_D_R6T6_MASK   ,  0x40
+ 2638              	.set UART0_D_R6T6_SHIFT  ,  6
+ 2639              	.set UART0_D_R5T5_MASK   ,  0x20
+ 2640              	.set UART0_D_R5T5_SHIFT  ,  5
+ 2641              	.set UART0_D_R4T4_MASK   ,  0x10
+ 2642              	.set UART0_D_R4T4_SHIFT  ,  4
+ 2643              	.set UART0_D_R3T3_MASK   ,  0x08
+ 2644              	.set UART0_D_R3T3_SHIFT  ,  3
+ 2645              	.set UART0_D_R2T2_MASK   ,  0x04
+ 2646              	.set UART0_D_R2T2_SHIFT  ,  2
+ 2647              	.set UART0_D_R1T1_MASK   ,  0x02
+ 2648              	.set UART0_D_R1T1_SHIFT  ,  1
+ 2649              	.set UART0_D_R0T0_MASK   ,  0x01
+ 2650              	.set UART0_D_R0T0_SHIFT  ,  0
+ 2651              	// ---------------------------------------------------------------
+ 2652              	// UART0_MA1
+ 2653              	// 7-0:MA=Match address
+ 2654              	.set UART0_MA1_MA_MASK   ,  0xFF
+ 2655              	.set UART0_MA1_MA_SHIFT  ,  0
+ 2656              	// ---------------------------------------------------------------
+ 2657              	// UART0_MA2
+ 2658              	// 7-0:MA=Match address
+ 2659              	.set UART0_MA2_MA_MASK   ,  0xFF
+ 2660              	.set UART0_MA2_MA_SHIFT  ,  0
+ 2661              	// ---------------------------------------------------------------
+ 2662              	// UART0_S1
+ 2663              	// 7:TDRE=transmit data register empty flag
+ 2664              	// 6:TC=transmission complete flag
+ 2665              	// 5:RDRF=receive data register full flag
+ 2666              	// 4:IDLE=idle line flag
+ 2667              	// 3:OR=receiver overrun flag
+ 2668              	// 2:NF=noise flag
+ 2669              	// 1:FE=framing error flag
+ 2670              	// 0:PF=parity error flag
+ 2671              	.set UART0_S1_TDRE_MASK   , 0x80
+ 2672              	.set UART0_S1_TDRE_SHIFT  , 7
+ 2673              	.set UART0_S1_TC_MASK     , 0x40
+ 2674              	.set UART0_S1_TC_SHIFT    , 6
+ 2675              	.set UART0_S1_RDRF_MASK   , 0x20
+ 2676              	.set UART0_S1_RDRF_SHIFT  , 5
+ 2677              	.set UART0_S1_IDLE_MASK   , 0x10
+ 2678              	.set UART0_S1_IDLE_SHIFT  , 4
+ 2679              	.set UART0_S1_OR_MASK     , 0x08
+ 2680              	.set UART0_S1_OR_SHIFT    , 3
+ 2681              	.set UART0_S1_NF_MASK     , 0x04
+ 2682              	.set UART0_S1_NF_SHIFT    , 2
+ 2683              	.set UART0_S1_FE_MASK     , 0x02
+ 2684              	.set UART0_S1_FE_SHIFT    , 1
+ 2685              	.set UART0_S1_PF_MASK     , 0x01
+ 2686              	.set UART0_S1_PF_SHIFT    , 0
+ 2687              	// ---------------------------------------------------------------
+ 2688              	// UART0_S2
+ 2689              	// 7:LBKDIF=LIN break detect interrupt flag
+ 2690              	// 6:RXEDGIF=RxD pin active edge interrupt flag
+ 2691              	// 5:MSBF=MSB first (LSB first)
+ 2692              	// 4:RXINV=receive data inversion (not inverted)
+ 2693              	// 3:RWUID=receive wake-up idle detect (not detected)
+ 2694              	// 2:BRK13=break character generation length (10 bit times)
+ 2695              	// 1:LBKDE=LIN break detect enable (10 bit times)
+ 2696              	// 0:RAF=receiver active flag
+ 2697              	.set UART0_S2_LBKDIF_MASK   , 0x80
+ 2698              	.set UART0_S2_LBKDIF_SHIFT  , 7
+ 2699              	.set UART0_S2_RXEDGIF_MASK  , 0x40
+ 2700              	.set UART0_S2_RXEDGIF_SHIFT , 6
+ 2701              	.set UART0_S2_MSBF_MASK     , 0x20
+ 2702              	.set UART0_S2_MSBF_SHIFT    , 5
+ 2703              	.set UART0_S2_RXINV_MASK    , 0x10
+ 2704              	.set UART0_S2_RXINV_SHIFT   , 4
+ 2705              	.set UART0_S2_RWUID_MASK    , 0x08
+ 2706              	.set UART0_S2_RWUID_SHIFT   , 3
+ 2707              	.set UART0_S2_BRK13_MASK    , 0x04
+ 2708              	.set UART0_S2_BRK13_SHIFT   , 2
+ 2709              	.set UART0_S2_LBKDE_MASK    , 0x02
+ 2710              	.set UART0_S2_LBKDE_SHIFT   , 1
+ 2711              	.set UART0_S2_RAF_MASK      , 0x01
+ 2712              	.set UART0_S2_RAF_SHIFT     , 0
+ 2713              	// ---------------------------------------------------------------

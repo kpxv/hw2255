@@ -1,0 +1,25 @@
+# Prelab
+
+## PRNG
+
+```c
+/**
+  * Get PRNG
+  *
+  * @param seed the input seed to generate off of
+  * @return the output seed to feed to the next cycle. The last 3 bits can be
+  *         used to determine the random number.
+  */
+uint32_t prng(uint32_t seed) {
+    int l = 0;
+    int n = 1;
+    int m = 2;
+    int o = 3;
+    lfsr = (lfsr >> 1) | ((((lfsr >> l) ^ (lfsr >> m) ^ (lfsr >> n) ^ (lfsr >> o)) & 1u) << 31);
+}
+```
+
+## isKeyPressed()
+
+UART as interrupt. For this process, get the receive queue record, get the
+NUM_ENQD, and compare to 0. If not, user has pressed something.

@@ -1,0 +1,1358 @@
+
+build/out.elf:     file format elf32-littlearm
+
+
+Disassembly of section start:
+
+00000100 <Startup>:
+// Input:  None
+// Output:  None
+// Modifies:  R0-R15;APSR
+// ****************************************************************
+// Save return address
+            PUSH    {LR}
+ 100:	b500      	push	{lr}
+// Initialize system
+            BL      SystemInit
+ 102:	f000 f804 	bl	10e <SystemInit>
+// Mask interrupts
+            CPSID   I
+ 106:	b672      	cpsid	i
+// Configure 48-MHz system clock
+            BL      SetClock48MHz
+ 108:	f000 f820 	bl	14c <SetClock48MHz>
+// Return
+            POP     {PC}
+ 10c:	bd00      	pop	{pc}
+
+0000010e <SystemInit>:
+// Input:  None
+// Output:  None
+// Modifies:  R0-R15;APSR
+// ****************************************************************
+// Mask interrupts
+            CPSID   I
+ 10e:	b672      	cpsid	i
+// Disable COP watchdog timer
+            LDR     R0,=SIM_COPC
+ 110:	4825      	ldr	r0, [pc, #148]	@ (1a8 <HardFault_Handler+0x2>)
+            MOVS    R1,#SIM_COPC_COP_DISABLED
+ 112:	2100      	movs	r1, #0
+            STR     R1,[R0,#0]
+ 114:	6001      	str	r1, [r0, #0]
+// Put return address on stack
+            PUSH    {LR}
+ 116:	b500      	push	{lr}
+// Initialize registers
+            LDR     R1,=0x11111111
+ 118:	f04f 3111 	mov.w	r1, #286331153	@ 0x11111111
+            ADDS    R2,R1,R1
+ 11c:	184a      	adds	r2, r1, r1
+            ADDS    R3,R2,R1
+ 11e:	1853      	adds	r3, r2, r1
+            ADDS    R4,R3,R1
+ 120:	185c      	adds	r4, r3, r1
+            ADDS    R5,R4,R1
+ 122:	1865      	adds	r5, r4, r1
+            ADDS    R6,R5,R1
+ 124:	186e      	adds	r6, r5, r1
+            ADDS    R7,R6,R1
+ 126:	1877      	adds	r7, r6, r1
+            MOV     R8,R1
+ 128:	4688      	mov	r8, r1
+            ADD     R8,R8,R7
+ 12a:	44b8      	add	r8, r7
+            MOV     R9,R1
+ 12c:	4689      	mov	r9, r1
+            ADD     R9,R9,R8
+ 12e:	44c1      	add	r9, r8
+            MOV     R10,R1
+ 130:	468a      	mov	sl, r1
+            ADD     R10,R10,R9
+ 132:	44ca      	add	sl, r9
+            MOV     R11,R1
+ 134:	468b      	mov	fp, r1
+            ADD     R11,R11,R10
+ 136:	44d3      	add	fp, sl
+            MOV     R12,R1
+ 138:	468c      	mov	ip, r1
+            ADD     R12,R12,R11
+ 13a:	44dc      	add	ip, fp
+            MOV     R14,R2
+ 13c:	4696      	mov	lr, r2
+            ADD     R14,R14,R12
+ 13e:	44e6      	add	lr, ip
+            MOV     R0,R1
+ 140:	4608      	mov	r0, r1
+            ADD     R0,R0,R14
+ 142:	4470      	add	r0, lr
+            MSR     APSR,R0
+ 144:	f380 8800 	msr	CPSR_f, r0
+            LDR     R0,=0x05250113
+ 148:	4818      	ldr	r0, [pc, #96]	@ (1ac <HardFault_Handler+0x6>)
+            POP     {PC}
+ 14a:	bd00      	pop	{pc}
+
+0000014c <SetClock48MHz>:
+//     rev. 1.6, 4/11/2013
+// Input:  None
+// Output:  None
+// Modifies:  APSR
+// ****************************************************************
+            PUSH    {R0-R3}
+ 14c:	b40f      	push	{r0, r1, r2, r3}
+// Configure for external clock from external 32-kHz oscillator
+//   EXTAL0 on PTA3
+//   XTAL0 on PTA4
+            // Enable PORT A
+            LDR      R0,=SIM_SCGC5
+ 14e:	4818      	ldr	r0, [pc, #96]	@ (1b0 <HardFault_Handler+0xa>)
+            LDR      R1,=SIM_SCGC5_PORTA_MASK
+ 150:	f44f 7100 	mov.w	r1, #512	@ 0x200
+            LDR      R2,[R0,#0]
+ 154:	6802      	ldr	r2, [r0, #0]
+            ORRS     R2,R2,R1
+ 156:	430a      	orrs	r2, r1
+            STR      R2,[R0,#0]
+ 158:	6002      	str	r2, [r0, #0]
+            // Set PORT A Pin 3 for EXTAL0
+            LDR      R0,=PORTA_BASE
+ 15a:	4816      	ldr	r0, [pc, #88]	@ (1b4 <HardFault_Handler+0xe>)
+            LDR      R1,=PORT_PCR_SET_PTA3_EXTAL
+ 15c:	f04f 7180 	mov.w	r1, #16777216	@ 0x1000000
+            STR      R1,[R0,#PORTA_PCR3_OFFSET]
+ 160:	60c1      	str	r1, [r0, #12]
+            // Set PORT A Pin 4 for XTAL0
+            // PORT_PCR_SET same as PTA3 already in R1
+            // LDR     R1,=PORT_PCR_SET_PTA4_EXTAL
+            STR      R1,[R0,#PORTA_PCR4_OFFSET]
+ 162:	6101      	str	r1, [r0, #16]
+// Update clock dividers:  system/core = 1; bus/flash = 2
+// [1] defers this step until first part of switching to FEE mode
+            LDR      R0,=SIM_CLKDIV1
+ 164:	4814      	ldr	r0, [pc, #80]	@ (1b8 <HardFault_Handler+0x12>)
+            LDR      R1,=SIM_CLKDIV1_COREDIV1_BUSDIV2
+ 166:	f44f 3180 	mov.w	r1, #65536	@ 0x10000
+            STR      R1,[R0,#0]
+ 16a:	6001      	str	r1, [r0, #0]
+//   RANGE is determined from external frequency
+//   Since RANGE affects FRDIV, it must be set
+//   correctly even with an external clock
+//   * Low frequency range
+//   * External reference oscillator
+            LDR     R0,=MCG_BASE
+ 16c:	4813      	ldr	r0, [pc, #76]	@ (1bc <HardFault_Handler+0x16>)
+            MOVS    R1,#MCG_C2_LF_EREFOSC
+ 16e:	2104      	movs	r1, #4
+            STRB    R1,[R0,#MCG_C2_OFFSET]
+ 170:	7041      	strb	r1, [r0, #1]
+// Enable external reference clock OSCERCLK,
+// without additional oscillator load
+            LDR     R2,=OSC0_CR
+ 172:	4a13      	ldr	r2, [pc, #76]	@ (1c0 <HardFault_Handler+0x1a>)
+            MOVS    R1,#OSC0_CR_ERCLK_STOP_NOLOAD
+ 174:	2180      	movs	r1, #128	@ 0x80
+            STRB    R1,[R2,#0]
+ 176:	7011      	strb	r1, [r2, #0]
+//     external oscillator
+//   [3] sets IRCLKEN for internal reference clock as MCGIRCLK
+//   [2] states this is optional:  convenient to allow
+//       switching between internal and external but
+//       consumes more power
+            MOVS    R1,#MCG_C1_FLL_DIV1_IRCLKEXTSTOP
+ 178:	2102      	movs	r1, #2
+            STRB    R1,[R0,#MCG_C1_OFFSET]
+ 17a:	7001      	strb	r1, [r0, #0]
+// Wait for oscillator initialization cycles
+// to complete and become stable
+// [2] suggests doing this step here
+// [3] omits this step
+            MOVS    R1,#MCG_S_OSCINIT0_MASK
+ 17c:	2102      	movs	r1, #2
+
+0000017e <SetClock48MHz_Wait_MCG_S_OSCINIT0>:
+SetClock48MHz_Wait_MCG_S_OSCINIT0:                      // repeat {
+            LDRB    R2,[R0,#MCG_S_OFFSET]
+ 17e:	7982      	ldrb	r2, [r0, #6]
+            TST     R1,R2
+ 180:	4211      	tst	r1, r2
+            BEQ     SetClock48MHz_Wait_MCG_S_OSCINIT0  // } until OSCINIT0
+ 182:	d0fc      	beq.n	17e <SetClock48MHz_Wait_MCG_S_OSCINIT0>
+// Wait for source of the FLL reference clock 
+// to be the external reference clock.
+// [2] suggests doing this step here
+// [3] defers until after MCG_C4 initialization
+// (MCG_S:  IREFST becomes 0)
+            MOVS    R1,#MCG_S_IREFST_MASK
+ 184:	2110      	movs	r1, #16
+
+00000186 <SetClock48MHz_Wait_MCG_S_IREFST_Clear>:
+SetClock48MHz_Wait_MCG_S_IREFST_Clear:                      // do {
+            LDRB    R2,[R0,#MCG_S_OFFSET]
+ 186:	7982      	ldrb	r2, [r0, #6]
+            TST     R1,R2
+ 188:	4211      	tst	r1, r2
+            BNE     SetClock48MHz_Wait_MCG_S_IREFST_Clear  // } while IREFST
+ 18a:	d1fc      	bne.n	186 <SetClock48MHz_Wait_MCG_S_IREFST_Clear>
+// [1] omits this step
+// Reference range:  31.25–39.0625 kHz
+// FLL factor:  1280
+// DCO range:  40–50 MHz
+// Preserve FCTRIM and SCFTRIM
+            LDRB    R2,[R0,#MCG_C4_OFFSET]
+ 18c:	78c2      	ldrb	r2, [r0, #3]
+            MOVS    R1,#MCG_C4_DRST_DRS_MASK
+ 18e:	2160      	movs	r1, #96	@ 0x60
+            MOVS    R3,#MCG_C4_DCO_25PMAX_MID
+ 190:	23a0      	movs	r3, #160	@ 0xa0
+            BICS    R2,R2,R1
+ 192:	438a      	bics	r2, r1
+            ORRS    R2,R2,R3
+ 194:	431a      	orrs	r2, r3
+            STRB    R2,[R0,#MCG_C4_OFFSET]
+ 196:	70c2      	strb	r2, [r0, #3]
+// Wait until output of FLL is selected [3]
+            MOVS    R1,#MCG_S_CLKST_MASK
+ 198:	210c      	movs	r1, #12
+
+0000019a <SetClock48MHz_Wait_MCG_FLL_Selected>:
+SetClock48MHz_Wait_MCG_FLL_Selected:                      // do {
+            LDRB    R2,[R0,#MCG_S_OFFSET]
+ 19a:	7982      	ldrb	r2, [r0, #6]
+            TST     R1,R2
+ 19c:	4211      	tst	r1, r2
+            BNE     SetClock48MHz_Wait_MCG_FLL_Selected  // } while CLKST
+ 19e:	d1fc      	bne.n	19a <SetClock48MHz_Wait_MCG_FLL_Selected>
+// Now have 48-MHz FLL clock,
+// 48-MHz core clock, and 24-MHz bus clock
+            POP     {R0-R3}
+ 1a0:	bc0f      	pop	{r0, r1, r2, r3}
+            BX      LR
+ 1a2:	4770      	bx	lr
+
+000001a4 <Dummy_Handler>:
+//            BX      R0
+.global Dummy_Handler
+.weak HardFault_Handler
+.global HardFault_Handler
+Dummy_Handler:  
+b .
+ 1a4:	e7fe      	b.n	1a4 <Dummy_Handler>
+
+000001a6 <HardFault_Handler>:
+HardFault_Handler:
+// ****************************************************************
+// Dummy exception handler (infinite loop)
+// ****************************************************************
+            B       .
+ 1a6:	e7fe      	b.n	1a6 <HardFault_Handler>
+            LDR     R0,=SIM_COPC
+ 1a8:	40048100 	.word	0x40048100
+            LDR     R0,=0x05250113
+ 1ac:	05250113 	.word	0x05250113
+            LDR      R0,=SIM_SCGC5
+ 1b0:	40048038 	.word	0x40048038
+            LDR      R0,=PORTA_BASE
+ 1b4:	40049000 	.word	0x40049000
+            LDR      R0,=SIM_CLKDIV1
+ 1b8:	40048044 	.word	0x40048044
+            LDR     R0,=MCG_BASE
+ 1bc:	40064000 	.word	0x40064000
+            LDR     R2,=OSC0_CR
+ 1c0:	40065000 	.word	0x40065000
+
+Disassembly of section keys:
+
+00000400 <keys>:
+ 400:	ffffffff 	.word	0xffffffff
+ 404:	ffffffff 	.word	0xffffffff
+ 408:	ffffffff 	.word	0xffffffff
+ 40c:	ffffff7e 	.word	0xffffff7e
+
+Disassembly of section code:
+
+00000410 <Reset_Handler>:
+.thumb
+
+.section code, "ax"
+.global Reset_Handler
+Reset_Handler:
+            cpsid I
+ 410:	b672      	cpsid	i
+            bl Startup
+ 412:	f7ff fe75 	bl	100 <Startup>
+            bl Init_UART0_IRQ
+ 416:	f000 f8c5 	bl	5a4 <Init_UART0_IRQ>
+            bl Init_PIT_IRQ
+ 41a:	f000 f914 	bl	646 <Init_PIT_IRQ>
+            cpsie I
+ 41e:	b662      	cpsie	i
+
+00000420 <Main_loop>:
+Main_loop:
+            // Print command string
+            ldr r0, =prompt1_s
+ 420:	4857      	ldr	r0, [pc, #348]	@ (580 <Divu_end+0x2>)
+            movs r1, #max_string
+ 422:	2180      	movs	r1, #128	@ 0x80
+            bl PutStringSB 
+ 424:	f000 f84b 	bl	4be <PutStringSB>
+            ldr r0, =response
+ 428:	4856      	ldr	r0, [pc, #344]	@ (584 <Divu_end+0x6>)
+            // Start timing the user
+            movs r3, #0
+ 42a:	2300      	movs	r3, #0
+            movs r4, #1
+ 42c:	2401      	movs	r4, #1
+            ldr r2, =pit_count
+ 42e:	4a56      	ldr	r2, [pc, #344]	@ (588 <Divu_end+0xa>)
+            str r3, [r2]
+ 430:	6013      	str	r3, [r2, #0]
+            ldrb r2, =run_stop_watch
+ 432:	f89f 2158 	ldrb.w	r2, [pc, #344]	@ 58c <Divu_end+0xe>
+            strb r4, [r2]
+ 436:	7014      	strb	r4, [r2, #0]
+            // Get response and stop timer
+            bl GetStringSB
+ 438:	f000 f84e 	bl	4d8 <GetStringSB>
+            strb r3, [r2]
+ 43c:	7013      	strb	r3, [r2, #0]
+            // Print time
+            movs r0, #'<'
+ 43e:	203c      	movs	r0, #60	@ 0x3c
+            bl PutChar
+ 440:	f000 f967 	bl	712 <PutChar>
+            ldr r1, =pit_count
+ 444:	4950      	ldr	r1, [pc, #320]	@ (588 <Divu_end+0xa>)
+            ldrb r0, [r1]
+ 446:	7808      	ldrb	r0, [r1, #0]
+            bl PutNumU
+ 448:	f000 f870 	bl	52c <PutNumU>
+            movs r1, #max_string
+ 44c:	2180      	movs	r1, #128	@ 0x80
+            ldr r0, =time_factor_s
+ 44e:	4850      	ldr	r0, [pc, #320]	@ (590 <Divu_end+0x12>)
+            bl PutStringSB
+ 450:	f000 f835 	bl	4be <PutStringSB>
+
+            // Print command string
+            ldr r0, =prompt2_s
+ 454:	484f      	ldr	r0, [pc, #316]	@ (594 <Divu_end+0x16>)
+            bl PutStringSB 
+ 456:	f000 f832 	bl	4be <PutStringSB>
+            ldr r0, =response
+ 45a:	484a      	ldr	r0, [pc, #296]	@ (584 <Divu_end+0x6>)
+            // Start timing the user
+            movs r3, #0
+ 45c:	2300      	movs	r3, #0
+            movs r4, #1
+ 45e:	2401      	movs	r4, #1
+            ldr r2, =pit_count
+ 460:	4a49      	ldr	r2, [pc, #292]	@ (588 <Divu_end+0xa>)
+            str r3, [r2]
+ 462:	6013      	str	r3, [r2, #0]
+            ldrb r2, =run_stop_watch
+ 464:	f89f 2124 	ldrb.w	r2, [pc, #292]	@ 58c <Divu_end+0xe>
+            strb r4, [r2]
+ 468:	7014      	strb	r4, [r2, #0]
+            // Get response and stop timer
+            bl GetStringSB
+ 46a:	f000 f835 	bl	4d8 <GetStringSB>
+            strb r3, [r2]
+ 46e:	7013      	strb	r3, [r2, #0]
+            // Print time
+            movs r0, #'<'
+ 470:	203c      	movs	r0, #60	@ 0x3c
+            bl PutChar
+ 472:	f000 f94e 	bl	712 <PutChar>
+            ldr r1, =pit_count
+ 476:	4944      	ldr	r1, [pc, #272]	@ (588 <Divu_end+0xa>)
+            ldrb r0, [r1]
+ 478:	7808      	ldrb	r0, [r1, #0]
+            bl PutNumU
+ 47a:	f000 f857 	bl	52c <PutNumU>
+            movs r1, #max_string
+ 47e:	2180      	movs	r1, #128	@ 0x80
+            ldr r0, =time_factor_s
+ 480:	4843      	ldr	r0, [pc, #268]	@ (590 <Divu_end+0x12>)
+            bl PutStringSB
+ 482:	f000 f81c 	bl	4be <PutStringSB>
+
+            // Print command string
+            ldr r0, =prompt3_s
+ 486:	4844      	ldr	r0, [pc, #272]	@ (598 <Divu_end+0x1a>)
+            bl PutStringSB 
+ 488:	f000 f819 	bl	4be <PutStringSB>
+            ldr r0, =response
+ 48c:	483d      	ldr	r0, [pc, #244]	@ (584 <Divu_end+0x6>)
+            // Start timing the user
+            movs r3, #0
+ 48e:	2300      	movs	r3, #0
+            movs r4, #1
+ 490:	2401      	movs	r4, #1
+            ldr r2, =pit_count
+ 492:	4a3d      	ldr	r2, [pc, #244]	@ (588 <Divu_end+0xa>)
+            str r3, [r2]
+ 494:	6013      	str	r3, [r2, #0]
+            ldrb r2, =run_stop_watch
+ 496:	f89f 20f4 	ldrb.w	r2, [pc, #244]	@ 58c <Divu_end+0xe>
+            strb r4, [r2]
+ 49a:	7014      	strb	r4, [r2, #0]
+            // Get response and stop timer
+            bl GetStringSB
+ 49c:	f000 f81c 	bl	4d8 <GetStringSB>
+            strb r3, [r2]
+ 4a0:	7013      	strb	r3, [r2, #0]
+            // Print time
+            movs r0, #'<'
+ 4a2:	203c      	movs	r0, #60	@ 0x3c
+            bl PutChar
+ 4a4:	f000 f935 	bl	712 <PutChar>
+            ldr r1, =pit_count
+ 4a8:	4937      	ldr	r1, [pc, #220]	@ (588 <Divu_end+0xa>)
+            ldrb r0, [r1]
+ 4aa:	7808      	ldrb	r0, [r1, #0]
+            bl PutNumU
+ 4ac:	f000 f83e 	bl	52c <PutNumU>
+            movs r1, #max_string
+ 4b0:	2180      	movs	r1, #128	@ 0x80
+            ldr r0, =time_factor_s
+ 4b2:	4837      	ldr	r0, [pc, #220]	@ (590 <Divu_end+0x12>)
+            bl PutStringSB
+ 4b4:	f000 f803 	bl	4be <PutStringSB>
+
+            ldr r0, =goodbye_s
+ 4b8:	4838      	ldr	r0, [pc, #224]	@ (59c <Divu_end+0x1e>)
+            bl PutStringSB
+ 4ba:	f000 f800 	bl	4be <PutStringSB>
+
+000004be <PutStringSB>:
+  *     None
+  * Modifies:
+  *     lr, psr
+  */
+PutStringSB:
+            push {r0-r3, lr}
+ 4be:	b50f      	push	{r0, r1, r2, r3, lr}
+            movs r2, r0
+ 4c0:	0002      	movs	r2, r0
+            movs r3, #0
+ 4c2:	2300      	movs	r3, #0
+
+000004c4 <PutStringSBLoop>:
+PutStringSBLoop:
+            cmp r3, r1
+ 4c4:	428b      	cmp	r3, r1
+            beq PutStringSBTerminate    // Exit if buffer size exceeded
+ 4c6:	d006      	beq.n	4d6 <PutStringSBTerminate>
+            ldrb r0, [r2, r3]
+ 4c8:	5cd0      	ldrb	r0, [r2, r3]
+            cmp r0, #0
+ 4ca:	2800      	cmp	r0, #0
+            beq PutStringSBTerminate    // Exit if NUL
+ 4cc:	d003      	beq.n	4d6 <PutStringSBTerminate>
+            
+            bl PutChar                  // Print
+ 4ce:	f000 f920 	bl	712 <PutChar>
+            adds r3, r3, #1             // Increment string pointer
+ 4d2:	3301      	adds	r3, #1
+            b PutStringSBLoop
+ 4d4:	e7f6      	b.n	4c4 <PutStringSBLoop>
+
+000004d6 <PutStringSBTerminate>:
+PutStringSBTerminate:
+            pop {r0-r3, pc}
+ 4d6:	bd0f      	pop	{r0, r1, r2, r3, pc}
+
+000004d8 <GetStringSB>:
+  *     a string at the memory location contained in r0
+  * Modifies:
+  *     psr
+  */
+GetStringSB:
+            push {r0-r4, lr}
+ 4d8:	b51f      	push	{r0, r1, r2, r3, r4, lr}
+            cmp r1, #0
+ 4da:	2900      	cmp	r1, #0
+            beq GetStringSBTerminate   // String must have at least one character
+ 4dc:	d025      	beq.n	52a <GetStringSBTerminate>
+            subs r1, r1, #1
+ 4de:	3901      	subs	r1, #1
+            movs r2, r0
+ 4e0:	0002      	movs	r2, r0
+            movs r3, #0
+ 4e2:	2300      	movs	r3, #0
+
+000004e4 <GetStringSBLoop>:
+GetStringSBLoop:
+            bl GetChar
+ 4e4:	f000 f90b 	bl	6fe <GetChar>
+            cmp r0, #0x0D
+ 4e8:	280d      	cmp	r0, #13
+            beq GetStringSBCleanup      // End on return
+ 4ea:	d018      	beq.n	51e <GetStringSBCleanup>
+            cmp r0, #0x08
+ 4ec:	2808      	cmp	r0, #8
+            beq GetStringSBBackspace    // Allow backspace
+ 4ee:	d00a      	beq.n	506 <GetStringSBBackspace>
+            cmp r0, #0x7F
+ 4f0:	287f      	cmp	r0, #127	@ 0x7f
+            beq GetStringSBLoop         // Get new character if control character
+ 4f2:	d0f7      	beq.n	4e4 <GetStringSBLoop>
+            cmp r0, #0x1F
+ 4f4:	281f      	cmp	r0, #31
+            bls GetStringSBLoop
+ 4f6:	d9f5      	bls.n	4e4 <GetStringSBLoop>
+            cmp r3, r1
+ 4f8:	428b      	cmp	r3, r1
+            bhs GetStringSBLoop         // If buffer size reached, wait for return or backspace
+ 4fa:	d2f3      	bcs.n	4e4 <GetStringSBLoop>
+            strb r0, [r2, r3]           // Store
+ 4fc:	54d0      	strb	r0, [r2, r3]
+            adds r3, r3, #1             // Increment string pointer
+ 4fe:	3301      	adds	r3, #1
+            bl PutChar
+ 500:	f000 f907 	bl	712 <PutChar>
+            b GetStringSBLoop
+ 504:	e7ee      	b.n	4e4 <GetStringSBLoop>
+
+00000506 <GetStringSBBackspace>:
+GetStringSBBackspace:
+            cmp r3, #0
+ 506:	2b00      	cmp	r3, #0
+            beq GetStringSBLoop         // Only backspace if there are characters in the string
+ 508:	d0ec      	beq.n	4e4 <GetStringSBLoop>
+            bl PutChar                  // Remove character from the screen
+ 50a:	f000 f902 	bl	712 <PutChar>
+            movs r0, #0x20
+ 50e:	2020      	movs	r0, #32
+            bl PutChar
+ 510:	f000 f8ff 	bl	712 <PutChar>
+            movs r0, #0x08
+ 514:	2008      	movs	r0, #8
+            bl PutChar
+ 516:	f000 f8fc 	bl	712 <PutChar>
+            subs r3, r3, #1             // Decrement string poniter
+ 51a:	3b01      	subs	r3, #1
+            b GetStringSBLoop
+ 51c:	e7e2      	b.n	4e4 <GetStringSBLoop>
+
+0000051e <GetStringSBCleanup>:
+GetStringSBCleanup:
+            movs r4, #0
+ 51e:	2400      	movs	r4, #0
+            strb r4, [r2, r3]           // Store NUL terminator
+ 520:	54d4      	strb	r4, [r2, r3]
+			ldr r0, =crlf_s
+ 522:	481f      	ldr	r0, [pc, #124]	@ (5a0 <Divu_end+0x22>)
+            movs r1, #max_string
+ 524:	2180      	movs	r1, #128	@ 0x80
+            bl PutStringSB              // Print newline
+ 526:	f7ff ffca 	bl	4be <PutStringSB>
+
+0000052a <GetStringSBTerminate>:
+GetStringSBTerminate:
+            pop {r0-r4, pc}
+ 52a:	bd1f      	pop	{r0, r1, r2, r3, r4, pc}
+
+0000052c <PutNumU>:
+  *     none
+  * Modifies:
+  *     psr
+  */
+PutNumU:
+            push {r0-r2, r4, lr}
+ 52c:	b517      	push	{r0, r1, r2, r4, lr}
+            cmp r0, #0
+ 52e:	2800      	cmp	r0, #0
+            beq PutNumUPrintZero        // Handle 0
+ 530:	d013      	beq.n	55a <PutNumUPrintZero>
+            movs r2, r0
+ 532:	0002      	movs	r2, r0
+            movs r4, #0
+ 534:	2400      	movs	r4, #0
+			movs r1, r0
+ 536:	0001      	movs	r1, r0
+
+00000538 <PutNumULoop>:
+PutNumULoop:
+            movs r0, #10
+ 538:	200a      	movs	r0, #10
+            bl Divu                     // Divide by 10
+ 53a:	f000 f813 	bl	564 <Divu>
+            push {r1}                   // Push remainder
+ 53e:	b402      	push	{r1}
+            adds r4, r4, #1             // Increment digit counter
+ 540:	3401      	adds	r4, #1
+            cmp r0, #0
+ 542:	2800      	cmp	r0, #0
+            beq PutNumUPop              // If quotient is 0, exit
+ 544:	d001      	beq.n	54a <PutNumUPop>
+			movs r1, r0
+ 546:	0001      	movs	r1, r0
+            b PutNumULoop               // Divide quotient by 10
+ 548:	e7f6      	b.n	538 <PutNumULoop>
+
+0000054a <PutNumUPop>:
+PutNumUPop:
+            cmp r4, #0
+ 54a:	2c00      	cmp	r4, #0
+            beq PutNumUTerminate        // If 0 left to print, exit
+ 54c:	d009      	beq.n	562 <PutNumUTerminate>
+            pop {r0}
+ 54e:	bc01      	pop	{r0}
+			adds r0, r0, #'0'           // Convert from uint to char
+ 550:	3030      	adds	r0, #48	@ 0x30
+            bl PutChar
+ 552:	f000 f8de 	bl	712 <PutChar>
+            subs r4, r4, #1             // Decrement digit counter
+ 556:	3c01      	subs	r4, #1
+            b PutNumUPop
+ 558:	e7f7      	b.n	54a <PutNumUPop>
+
+0000055a <PutNumUPrintZero>:
+PutNumUPrintZero:
+            movs r0, #0x30
+ 55a:	2030      	movs	r0, #48	@ 0x30
+            bl PutChar                  // Print ascii 0
+ 55c:	f000 f8d9 	bl	712 <PutChar>
+            b PutNumUTerminate          // Leave
+ 560:	e7ff      	b.n	562 <PutNumUTerminate>
+
+00000562 <PutNumUTerminate>:
+PutNumUTerminate:
+            pop {r0-r2, r4, pc}
+ 562:	bd17      	pop	{r0, r1, r2, r4, pc}
+
+00000564 <Divu>:
+  *     R1 : The remainder
+  * Modifies:
+  *     LR, PSR
+  */
+Divu:
+            cmp r0, #0      // sets carry flag if equal
+ 564:	2800      	cmp	r0, #0
+            beq Divu_end
+ 566:	d00a      	beq.n	57e <Divu_end>
+            push {r2}
+ 568:	b404      	push	{r2}
+            movs r2, #0
+ 56a:	2200      	movs	r2, #0
+
+0000056c <Divu_loop>:
+Divu_loop:
+            cmp r1, r0
+ 56c:	4281      	cmp	r1, r0
+            blo Divu_cleanup
+ 56e:	d302      	bcc.n	576 <Divu_cleanup>
+            subs r1, r1, r0
+ 570:	1a09      	subs	r1, r1, r0
+            adds r2, r2, #1
+ 572:	3201      	adds	r2, #1
+            b Divu_loop
+ 574:	e7fa      	b.n	56c <Divu_loop>
+
+00000576 <Divu_cleanup>:
+Divu_cleanup:
+            movs r0, r2
+ 576:	0010      	movs	r0, r2
+            // Clear apsr flags
+            movs r2, #1
+ 578:	2201      	movs	r2, #1
+            adds r2, #1
+ 57a:	3201      	adds	r2, #1
+            pop {r2}
+ 57c:	bc04      	pop	{r2}
+
+0000057e <Divu_end>:
+Divu_end:
+            bx lr
+ 57e:	4770      	bx	lr
+            ldr r0, =prompt1_s
+ 580:	000001c7 	.word	0x000001c7
+            ldr r0, =response
+ 584:	1ffffd00 	.word	0x1ffffd00
+            ldr r2, =pit_count
+ 588:	1ffffe48 	.word	0x1ffffe48
+            ldrb r2, =run_stop_watch
+ 58c:	1ffffe4c 	.word	0x1ffffe4c
+            ldr r0, =time_factor_s
+ 590:	00000219 	.word	0x00000219
+            ldr r0, =prompt2_s
+ 594:	000001dc 	.word	0x000001dc
+            ldr r0, =prompt3_s
+ 598:	000001f0 	.word	0x000001f0
+            ldr r0, =goodbye_s
+ 59c:	00000225 	.word	0x00000225
+			ldr r0, =crlf_s
+ 5a0:	000001c4 	.word	0x000001c4
+
+000005a4 <Init_UART0_IRQ>:
+  * Modifies:
+  *     psr
+  */
+.global Init_UART0_IRQ
+Init_UART0_IRQ:
+            push {r0, r1, r2, lr}
+ 5a4:	b507      	push	{r0, r1, r2, lr}
+            // Initialize queues
+            ldr r0, =rx_buffer
+ 5a6:	487e      	ldr	r0, [pc, #504]	@ (7a0 <Enqueue_exit+0x4>)
+            ldr r1, =rx_record
+ 5a8:	497e      	ldr	r1, [pc, #504]	@ (7a4 <Enqueue_exit+0x8>)
+            movs r2, #rx_qbuf_sz
+ 5aa:	2250      	movs	r2, #80	@ 0x50
+            bl init_queue
+ 5ac:	f000 f8bd 	bl	72a <init_queue>
+            ldr r0, =tx_buffer
+ 5b0:	487d      	ldr	r0, [pc, #500]	@ (7a8 <Enqueue_exit+0xc>)
+            ldr r1, =tx_record
+ 5b2:	497e      	ldr	r1, [pc, #504]	@ (7ac <Enqueue_exit+0x10>)
+            bl init_queue
+ 5b4:	f000 f8b9 	bl	72a <init_queue>
+            // Select MCGFLLCLK as UART0 clock source 
+            ldr   r0,=SIM_SOPT2 
+ 5b8:	487d      	ldr	r0, [pc, #500]	@ (7b0 <Enqueue_exit+0x14>)
+            ldr   r1,=SIM_SOPT2_UART0SRC_MASK 
+ 5ba:	f04f 6140 	mov.w	r1, #201326592	@ 0xc000000
+            ldr   r2,[r0,#0] 
+ 5be:	6802      	ldr	r2, [r0, #0]
+            bics  r2,r2,r1 
+ 5c0:	438a      	bics	r2, r1
+            ldr   r1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+ 5c2:	f04f 6180 	mov.w	r1, #67108864	@ 0x4000000
+            orrs  r2,r2,r1 
+ 5c6:	430a      	orrs	r2, r1
+            str   r2,[r0,#0] 
+ 5c8:	6002      	str	r2, [r0, #0]
+            // Set UART0 for external connection 
+            ldr   r0,=SIM_SOPT5 
+ 5ca:	487a      	ldr	r0, [pc, #488]	@ (7b4 <Enqueue_exit+0x18>)
+            ldr   r1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+ 5cc:	497a      	ldr	r1, [pc, #488]	@ (7b8 <Enqueue_exit+0x1c>)
+            ldr   r2,[r0,#0] 
+ 5ce:	6802      	ldr	r2, [r0, #0]
+            bics  r2,r2,r1 
+ 5d0:	438a      	bics	r2, r1
+            str   r2,[r0,#0] 
+ 5d2:	6002      	str	r2, [r0, #0]
+            // Enable UART0 module clock 
+            ldr   r0,=SIM_SCGC4 
+ 5d4:	4879      	ldr	r0, [pc, #484]	@ (7bc <Enqueue_exit+0x20>)
+            ldr   r1,=SIM_SCGC4_UART0_MASK 
+ 5d6:	f44f 6180 	mov.w	r1, #1024	@ 0x400
+            ldr   r2,[r0,#0] 
+ 5da:	6802      	ldr	r2, [r0, #0]
+            orrs  r2,r2,r1 
+ 5dc:	430a      	orrs	r2, r1
+            str   r2,[r0,#0] 
+ 5de:	6002      	str	r2, [r0, #0]
+            // Enable PORT B module clock 
+            ldr   r0,=SIM_SCGC5 
+ 5e0:	4877      	ldr	r0, [pc, #476]	@ (7c0 <Enqueue_exit+0x24>)
+            ldr   r1,=SIM_SCGC5_PORTB_MASK 
+ 5e2:	f44f 6180 	mov.w	r1, #1024	@ 0x400
+            ldr   r2,[r0,#0] 
+ 5e6:	6802      	ldr	r2, [r0, #0]
+            orrs  r2,r2,r1 
+ 5e8:	430a      	orrs	r2, r1
+            str   r2,[r0,#0] 
+ 5ea:	6002      	str	r2, [r0, #0]
+            // Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
+            ldr     r0,=PORTB_PCR2 
+ 5ec:	4875      	ldr	r0, [pc, #468]	@ (7c4 <Enqueue_exit+0x28>)
+            ldr     r1,=PORT_PCR_SET_PTB2_UART0_RX 
+ 5ee:	4976      	ldr	r1, [pc, #472]	@ (7c8 <Enqueue_exit+0x2c>)
+            str     r1,[r0,#0] 
+ 5f0:	6001      	str	r1, [r0, #0]
+            //  Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
+            ldr     r0,=PORTB_PCR1 
+ 5f2:	4876      	ldr	r0, [pc, #472]	@ (7cc <Enqueue_exit+0x30>)
+            ldr     r1,=PORT_PCR_SET_PTB1_UART0_TX 
+ 5f4:	4974      	ldr	r1, [pc, #464]	@ (7c8 <Enqueue_exit+0x2c>)
+            str     r1,[r0,#0] 
+ 5f6:	6001      	str	r1, [r0, #0]
+            // Disable UART0 receiver and transmitter 
+            ldr   r0,=UART0_BASE 
+ 5f8:	4875      	ldr	r0, [pc, #468]	@ (7d0 <Enqueue_exit+0x34>)
+            movs  r1,#UART0_C2_T_R 
+ 5fa:	210c      	movs	r1, #12
+            ldrb  r2,[r0,#UART0_C2_OFFSET] 
+ 5fc:	78c2      	ldrb	r2, [r0, #3]
+            bics  r2,r2,r1 
+ 5fe:	438a      	bics	r2, r1
+            strb  r2,[r0,#UART0_C2_OFFSET] 
+ 600:	70c2      	strb	r2, [r0, #3]
+            // Init NVIC
+            // Set UART0 IRQ priority
+            ldr r0, =UART0_IPR
+ 602:	4874      	ldr	r0, [pc, #464]	@ (7d4 <Enqueue_exit+0x38>)
+            ldr r2, =NVIC_IPR_UART0_PRI_3
+ 604:	f04f 02c0 	mov.w	r2, #192	@ 0xc0
+            ldr r3, [r0]
+ 608:	6803      	ldr	r3, [r0, #0]
+            orrs r3, r2
+ 60a:	4313      	orrs	r3, r2
+            str r3, [r0]
+ 60c:	6003      	str	r3, [r0, #0]
+            // Clear pending interrupts
+            ldr r0, =NVIC_ICPR
+ 60e:	4872      	ldr	r0, [pc, #456]	@ (7d8 <Enqueue_exit+0x3c>)
+            ldr r1, =NVIC_IPR_UART0_MASK
+ 610:	f04f 01c0 	mov.w	r1, #192	@ 0xc0
+            str r1, [r0]
+ 614:	6001      	str	r1, [r0, #0]
+            // Unmask interrupts
+            ldr r0, =NVIC_ISER
+ 616:	4871      	ldr	r0, [pc, #452]	@ (7dc <Enqueue_exit+0x40>)
+            ldr r1, =NVIC_ISER_UART0_MASK
+ 618:	f44f 5180 	mov.w	r1, #4096	@ 0x1000
+            str r1, [r0]
+ 61c:	6001      	str	r1, [r0, #0]
+            // Set UART0 for 9600 baud, 8N1 protocol 
+            ldr   r0, =UART0_BASE
+ 61e:	486c      	ldr	r0, [pc, #432]	@ (7d0 <Enqueue_exit+0x34>)
+            movs  r1,#UART0_BDH_9600 
+ 620:	2101      	movs	r1, #1
+            strb  r1,[r0,#UART0_BDH_OFFSET] 
+ 622:	7001      	strb	r1, [r0, #0]
+            movs  r1,#UART0_BDL_9600 
+ 624:	2138      	movs	r1, #56	@ 0x38
+            strb  r1,[r0,#UART0_BDL_OFFSET] 
+ 626:	7041      	strb	r1, [r0, #1]
+            movs  r1,#UART0_C1_8N1 
+ 628:	2100      	movs	r1, #0
+            strb  r1,[r0,#UART0_C1_OFFSET] 
+ 62a:	7081      	strb	r1, [r0, #2]
+            movs  r1,#UART0_C3_NO_TXINV 
+ 62c:	2100      	movs	r1, #0
+            strb  r1,[r0,#UART0_C3_OFFSET] 
+ 62e:	7181      	strb	r1, [r0, #6]
+            movs  r1,#UART0_C4_NO_MATCH_OSR_16 
+ 630:	210f      	movs	r1, #15
+            strb  r1,[r0,#UART0_C4_OFFSET] 
+ 632:	7281      	strb	r1, [r0, #10]
+            movs  r1,#UART0_C5_NO_DMA_SSR_SYNC 
+ 634:	2100      	movs	r1, #0
+            strb  r1,[r0,#UART0_C5_OFFSET] 
+ 636:	72c1      	strb	r1, [r0, #11]
+            movs  r1,#UART0_S1_CLEAR_FLAGS 
+ 638:	211f      	movs	r1, #31
+            strb  r1,[r0,#UART0_S1_OFFSET] 
+ 63a:	7101      	strb	r1, [r0, #4]
+            movs  r1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
+ 63c:	21c0      	movs	r1, #192	@ 0xc0
+            strb  r1,[r0,#UART0_S2_OFFSET] 
+ 63e:	7141      	strb	r1, [r0, #5]
+            // Enable UART0 receiver and transmitter 
+            movs  r1,#UART0_C2_T_RI
+ 640:	212c      	movs	r1, #44	@ 0x2c
+            strb  r1,[r0,#UART0_C2_OFFSET] 
+ 642:	70c1      	strb	r1, [r0, #3]
+            pop {r0, r1, r2, pc}
+ 644:	bd07      	pop	{r0, r1, r2, pc}
+
+00000646 <Init_PIT_IRQ>:
+  * Modifies:
+  *     psr
+  */
+.global Init_PIT_IRQ
+Init_PIT_IRQ:
+            push {r0-r3}
+ 646:	b40f      	push	{r0, r1, r2, r3}
+            // Disable PIT for setup and disable timer in debug
+            ldr r0, =PIT_BASE
+ 648:	4865      	ldr	r0, [pc, #404]	@ (7e0 <Enqueue_exit+0x44>)
+            ldr r1, [r0, #PIT_MCR_OFFSET]
+ 64a:	6801      	ldr	r1, [r0, #0]
+            movs r2, #PIT_MCR_MF
+ 64c:	2203      	movs	r2, #3
+            ands r1, r2
+ 64e:	4011      	ands	r1, r2
+            str r1, [r0, #PIT_MCR_OFFSET]
+ 650:	6001      	str	r1, [r0, #0]
+            // Allow PIT clock
+            ldr r0, =SIM_BASE
+ 652:	4864      	ldr	r0, [pc, #400]	@ (7e4 <Enqueue_exit+0x48>)
+            ldr r1, =SIM_SCGC6_OFFSET
+ 654:	f241 013c 	movw	r1, #4156	@ 0x103c
+            ldr r2, [r0, r1]
+ 658:	5842      	ldr	r2, [r0, r1]
+            movs r3, #1
+ 65a:	2301      	movs	r3, #1
+            lsls r3, #SIM_SCGC6_PIT_SHIFT
+ 65c:	05db      	lsls	r3, r3, #23
+            ands r2, r3
+ 65e:	401a      	ands	r2, r3
+            str r2, [r0, r1]
+ 660:	5042      	str	r2, [r0, r1]
+            // Disable timer and timer interrupt
+            ldr r1, =PIT_TCTRL0_OFFSET
+ 662:	f44f 7184 	mov.w	r1, #264	@ 0x108
+            movs r2, #0
+ 666:	2200      	movs	r2, #0
+            str r2, [r0, r1]
+ 668:	5042      	str	r2, [r0, r1]
+            // NVIC interrupts
+            // Does this order matter?
+            // Set PIT interrupt priority
+            ldr r0, =PIT_IPR
+ 66a:	485f      	ldr	r0, [pc, #380]	@ (7e8 <Enqueue_exit+0x4c>)
+            ldr r1, [r0]
+ 66c:	6801      	ldr	r1, [r0, #0]
+            ldr r2, =NVIC_IPR_PIT_PRI_0
+ 66e:	f04f 0200 	mov.w	r2, #0
+            orrs r1, r2
+ 672:	4311      	orrs	r1, r2
+            str r1, [r0]
+ 674:	6001      	str	r1, [r0, #0]
+            // Clear pending PIT interrupts
+            ldr r0, =NVIC_ICPR
+ 676:	4858      	ldr	r0, [pc, #352]	@ (7d8 <Enqueue_exit+0x3c>)
+            str r1, [r0]
+ 678:	6001      	str	r1, [r0, #0]
+            // Enable PIT interrupts
+            ldr r0, =NVIC_ISER
+ 67a:	4858      	ldr	r0, [pc, #352]	@ (7dc <Enqueue_exit+0x40>)
+            ldr r1, =PIT_IRQ_MASK
+ 67c:	f44f 0180 	mov.w	r1, #4194304	@ 0x400000
+            str r1, [r0]
+ 680:	6001      	str	r1, [r0, #0]
+            // Enable PIT module
+            // Why is this here? Shouldn't it be at the end?
+            ldr r0, =PIT_BASE
+ 682:	4857      	ldr	r0, [pc, #348]	@ (7e0 <Enqueue_exit+0x44>)
+            ldr r1, [r0, #PIT_MCR_OFFSET]
+ 684:	6801      	ldr	r1, [r0, #0]
+            movs r2, #PIT_MCR_MDIS_MASK
+ 686:	2202      	movs	r2, #2
+            bics r1, r2
+ 688:	4391      	bics	r1, r2
+            str r1, [r0, #PIT_MCR_OFFSET]
+ 68a:	6001      	str	r1, [r0, #0]
+            // Set PIT timer value
+            // Wtf? This seems like setup
+            ldr r0, =PIT_CH0_BASE
+ 68c:	4857      	ldr	r0, [pc, #348]	@ (7ec <Enqueue_exit+0x50>)
+            ldr r1, =PIT_LDVAL_10ms
+ 68e:	4958      	ldr	r1, [pc, #352]	@ (7f0 <Enqueue_exit+0x54>)
+            str r1, [r0, #PIT_LDVAL_OFFSET]
+ 690:	6001      	str	r1, [r0, #0]
+            // Enable timer and timer interrupt; disable chain mode
+            // Still seems like setup
+            ldr r1, =PIT_TCTRL0_OFFSET
+ 692:	f44f 7184 	mov.w	r1, #264	@ 0x108
+            movs r2, #PIT_TCTRL_TIE_TEN_MASK
+ 696:	2203      	movs	r2, #3
+            str r2, [r0, r1]
+ 698:	5042      	str	r2, [r0, r1]
+            pop {r0-r3}
+ 69a:	bc0f      	pop	{r0, r1, r2, r3}
+            bx lr
+ 69c:	4770      	bx	lr
+
+0000069e <PIT_ISR>:
+  *     psr
+  */
+.global PIT_ISR
+PIT_ISR:
+    // Increment only if run_stop_watch is set
+    ldr r0, =run_stop_watch
+ 69e:	4855      	ldr	r0, [pc, #340]	@ (7f4 <Enqueue_exit+0x58>)
+    cmp r0, #0
+ 6a0:	2800      	cmp	r0, #0
+    beq PIT_ISR_exit
+ 6a2:	d003      	beq.n	6ac <PIT_ISR_exit>
+    ldr r0, =pit_count
+ 6a4:	4854      	ldr	r0, [pc, #336]	@ (7f8 <Enqueue_exit+0x5c>)
+    ldr r1, [r0]
+ 6a6:	6801      	ldr	r1, [r0, #0]
+    adds r1, #1
+ 6a8:	3101      	adds	r1, #1
+    str r1, [r0]
+ 6aa:	6001      	str	r1, [r0, #0]
+
+000006ac <PIT_ISR_exit>:
+PIT_ISR_exit:
+    // Clear interrupt
+    ldr r0, =PIT_CH0_BASE
+ 6ac:	484f      	ldr	r0, [pc, #316]	@ (7ec <Enqueue_exit+0x50>)
+    ldr r1, =PIT_TFLG_TIF_MASK
+ 6ae:	f04f 0101 	mov.w	r1, #1
+    str r1, [r0, #PIT_TFLG_OFFSET]
+ 6b2:	60c1      	str	r1, [r0, #12]
+    bx lr
+ 6b4:	4770      	bx	lr
+
+000006b6 <UART0_ISR>:
+  * Modifies:
+  *     psr
+  */
+.global UART0_ISR
+UART0_ISR:
+            cpsid I
+ 6b6:	b672      	cpsid	i
+            push {lr}
+ 6b8:	b500      	push	{lr}
+            ldr r2, =UART0_BASE
+ 6ba:	4a45      	ldr	r2, [pc, #276]	@ (7d0 <Enqueue_exit+0x34>)
+            ldrb r1, [r2, #UART0_C2_OFFSET]
+ 6bc:	78d1      	ldrb	r1, [r2, #3]
+            ldr r3, =UART0_C2_TIE_MASK
+ 6be:	f04f 0380 	mov.w	r3, #128	@ 0x80
+            ands r1, r3
+ 6c2:	4019      	ands	r1, r3
+            // Check tx interrupt enabled
+            cmp r1, #0
+ 6c4:	2900      	cmp	r1, #0
+            // If disabled, jump to rx interrupt check
+            beq UART0_ISR_rxint
+ 6c6:	d00e      	beq.n	6e6 <UART0_ISR_rxint>
+            // Else, check tx interrupt
+            ldrb r1, [r2, #UART0_S1_OFFSET]
+ 6c8:	7911      	ldrb	r1, [r2, #4]
+            ldr r3, =UART0_S1_TDRE_MASK
+ 6ca:	f04f 0380 	mov.w	r3, #128	@ 0x80
+            ands r1, r3
+ 6ce:	4019      	ands	r1, r3
+            cmp r1, #0
+ 6d0:	2900      	cmp	r1, #0
+            // If disabled, jump to rx interrupt check
+            beq UART0_ISR_rxint
+ 6d2:	d008      	beq.n	6e6 <UART0_ISR_rxint>
+            // Else, dequeue
+            ldr r1, =tx_record
+ 6d4:	4935      	ldr	r1, [pc, #212]	@ (7ac <Enqueue_exit+0x10>)
+            bl Dequeue
+ 6d6:	f000 f83f 	bl	758 <Dequeue>
+            bcs UART0_ISR_disable_tx
+ 6da:	d201      	bcs.n	6e0 <UART0_ISR_disable_tx>
+            // If successful, store
+            strb r0, [r2, #UART0_D_OFFSET]
+ 6dc:	71d0      	strb	r0, [r2, #7]
+            b UART0_ISR_rxint
+ 6de:	e002      	b.n	6e6 <UART0_ISR_rxint>
+
+000006e0 <UART0_ISR_disable_tx>:
+            // Else, disable tx
+UART0_ISR_disable_tx:
+            ldr r1, =UART0_C2_T_RI
+ 6e0:	f04f 012c 	mov.w	r1, #44	@ 0x2c
+            strb r1, [r2, #UART0_C2_OFFSET]
+ 6e4:	70d1      	strb	r1, [r2, #3]
+
+000006e6 <UART0_ISR_rxint>:
+            // Check rx interrupt
+UART0_ISR_rxint:
+            ldrb r1, [r2, #UART0_S1_OFFSET]
+ 6e6:	7911      	ldrb	r1, [r2, #4]
+            ldr r3, =UART0_S1_RDRF_MASK
+ 6e8:	f04f 0320 	mov.w	r3, #32
+            ands r1, r3
+ 6ec:	4019      	ands	r1, r3
+            cmp r1, #0
+ 6ee:	2900      	cmp	r1, #0
+            // Exit if rx interrupt not set
+            beq UART0_ISR_exit
+ 6f0:	d003      	beq.n	6fa <UART0_ISR_exit>
+            // Otherwise, enqueue
+            ldrb r0, [r2, #UART0_D_OFFSET]
+ 6f2:	79d0      	ldrb	r0, [r2, #7]
+            ldr r1, =rx_record
+ 6f4:	492b      	ldr	r1, [pc, #172]	@ (7a4 <Enqueue_exit+0x8>)
+            bl Enqueue
+ 6f6:	f000 f841 	bl	77c <Enqueue>
+
+000006fa <UART0_ISR_exit>:
+UART0_ISR_exit:
+            cpsie I
+ 6fa:	b662      	cpsie	i
+            pop {pc}
+ 6fc:	bd00      	pop	{pc}
+
+000006fe <GetChar>:
+  *     r0
+  *     psr
+  */
+.global GetChar
+GetChar:
+            push {r1, lr}
+ 6fe:	b502      	push	{r1, lr}
+
+00000700 <GetChar_loop>:
+GetChar_loop:
+            cpsid I
+ 700:	b672      	cpsid	i
+            ldr r1, =rx_record
+ 702:	4928      	ldr	r1, [pc, #160]	@ (7a4 <Enqueue_exit+0x8>)
+            bl Dequeue
+ 704:	f000 f828 	bl	758 <Dequeue>
+            cpsie I
+ 708:	b662      	cpsie	i
+            bcs GetChar_loop
+ 70a:	d2f9      	bcs.n	700 <GetChar_loop>
+            bl Dequeue
+ 70c:	f000 f824 	bl	758 <Dequeue>
+            pop {r1, pc}
+ 710:	bd02      	pop	{r1, pc}
+
+00000712 <PutChar>:
+  * Modifies:
+  *     psr
+  */
+.global PutChar
+PutChar:
+            push {r1, r2, lr}
+ 712:	b506      	push	{r1, r2, lr}
+
+00000714 <PutChar_loop>:
+PutChar_loop:
+            // Put char
+            cpsid I
+ 714:	b672      	cpsid	i
+            ldr r1, =tx_record
+ 716:	4925      	ldr	r1, [pc, #148]	@ (7ac <Enqueue_exit+0x10>)
+            bl Enqueue
+ 718:	f000 f830 	bl	77c <Enqueue>
+            cpsie I
+ 71c:	b662      	cpsie	i
+            bcs PutChar_loop
+ 71e:	d2f9      	bcs.n	714 <PutChar_loop>
+            // Enable transmit interrupt
+            ldr r1, =UART0_BASE
+ 720:	492b      	ldr	r1, [pc, #172]	@ (7d0 <Enqueue_exit+0x34>)
+            ldr r2, =UART0_C2_TI_RI
+ 722:	f04f 02ac 	mov.w	r2, #172	@ 0xac
+            strb r2, [r1, #UART0_C2_OFFSET]
+ 726:	70ca      	strb	r2, [r1, #3]
+            pop {r1, r2, pc}
+ 728:	bd06      	pop	{r1, r2, pc}
+
+0000072a <init_queue>:
+  * Modifies:
+  *     psr
+  */
+.global init_queue
+init_queue:
+            push {r3}
+ 72a:	b408      	push	{r3}
+            // In pointer
+            str r0, [r1, #in_ptr]
+ 72c:	6008      	str	r0, [r1, #0]
+            // Out pointer
+            str r0, [r1, #out_ptr]
+ 72e:	6048      	str	r0, [r1, #4]
+            // Buffer start
+            str r0, [r1, #buf_start]
+ 730:	6088      	str	r0, [r1, #8]
+            // Buffer end
+            adds r3, r0, r2
+ 732:	1883      	adds	r3, r0, r2
+            subs r3, #1
+ 734:	3b01      	subs	r3, #1
+            str r3, [r1, #buf_past]
+ 736:	60cb      	str	r3, [r1, #12]
+            // Buffer size
+            strb r2, [r1, #buf_size]
+ 738:	740a      	strb	r2, [r1, #16]
+            // Number enqueued
+            movs r3, #0
+ 73a:	2300      	movs	r3, #0
+            strb r3, [r1, #num_enqd]
+ 73c:	744b      	strb	r3, [r1, #17]
+            pop {r3}
+ 73e:	bc08      	pop	{r3}
+            bx lr
+ 740:	4770      	bx	lr
+
+00000742 <Pointer_inc>:
+  *     R2
+  *     psr
+  */
+.global Pointer_inc
+Pointer_inc:
+            push {r0, r3}
+ 742:	b409      	push	{r0, r3}
+            // Load end of buffer
+            movs r0, r2
+ 744:	0010      	movs	r0, r2
+            ldr r3, [r1, #buf_past]
+ 746:	68cb      	ldr	r3, [r1, #12]
+            // If pointer is at the end of the buffer
+            cmp r0, r3
+ 748:	4298      	cmp	r0, r3
+            // Wrap
+            beq Pointer_inc_wrap
+ 74a:	d001      	beq.n	750 <Pointer_inc_wrap>
+            // Else increment
+            adds r0, r0, #1
+ 74c:	3001      	adds	r0, #1
+            b Pointer_inc_exit
+ 74e:	e000      	b.n	752 <Pointer_inc_exit>
+
+00000750 <Pointer_inc_wrap>:
+Pointer_inc_wrap:
+            // Wrap by setting pointer to start of buffer
+            ldr r0, [r1, #buf_start]
+ 750:	6888      	ldr	r0, [r1, #8]
+
+00000752 <Pointer_inc_exit>:
+Pointer_inc_exit:
+            // Return
+            movs r2, r0
+ 752:	0002      	movs	r2, r0
+            pop {r0, r3}
+ 754:	bc09      	pop	{r0, r3}
+            bx lr
+ 756:	4770      	bx	lr
+
+00000758 <Dequeue>:
+  *     R0, iff DEQUEUE successful
+  *     psr
+  */
+.global Dequeue
+Dequeue:
+            push {r2, lr}
+ 758:	b504      	push	{r2, lr}
+            // Check if empty
+            ldrb r2, [r1, #num_enqd]
+ 75a:	7c4a      	ldrb	r2, [r1, #17]
+            cmp r2, #0
+ 75c:	2a00      	cmp	r2, #0
+            BEQ Dequeue_empty
+ 75e:	d009      	beq.n	774 <Dequeue_empty>
+            // Get from queue
+            ldr r2, [r1, #out_ptr]
+ 760:	684a      	ldr	r2, [r1, #4]
+            ldrb r0, [r2]
+ 762:	7810      	ldrb	r0, [r2, #0]
+            // Increment pointer
+            bl Pointer_inc
+ 764:	f7ff ffed 	bl	742 <Pointer_inc>
+            str r2, [r1, #out_ptr]
+ 768:	604a      	str	r2, [r1, #4]
+            // Decrement num enqueued
+            ldrb r2, [r1, #num_enqd]
+ 76a:	7c4a      	ldrb	r2, [r1, #17]
+            subs r2, r2, #1
+ 76c:	3a01      	subs	r2, #1
+            strb r2, [r1, #num_enqd]
+ 76e:	744a      	strb	r2, [r1, #17]
+            // Clear C flag
+            adds r2, #0
+ 770:	3200      	adds	r2, #0
+            B Dequeue_exit
+ 772:	e002      	b.n	77a <Dequeue_exit>
+
+00000774 <Dequeue_empty>:
+Dequeue_empty:
+            // Set C flag
+            MOVS R2, #0
+ 774:	2200      	movs	r2, #0
+            MVNS R2, R2
+ 776:	43d2      	mvns	r2, r2
+            ADDS R2, R2, #1
+ 778:	3201      	adds	r2, #1
+
+0000077a <Dequeue_exit>:
+Dequeue_exit:
+            POP {R2, PC}
+ 77a:	bd04      	pop	{r2, pc}
+
+0000077c <Enqueue>:
+  * Modifies:
+  *     psr
+  */
+.global Enqueue
+Enqueue:
+            push {r2-r3, lr}
+ 77c:	b50c      	push	{r2, r3, lr}
+            // Check if full
+            ldrb r2, [r1, #buf_size]
+ 77e:	7c0a      	ldrb	r2, [r1, #16]
+            ldrb r3, [r1, #num_enqd]
+ 780:	7c4b      	ldrb	r3, [r1, #17]
+            cmp r2, r3
+ 782:	429a      	cmp	r2, r3
+            beq Enqueue_full
+ 784:	d008      	beq.n	798 <Enqueue_full>
+            // Store to queue
+            ldr r2, [r1, #in_ptr]
+ 786:	680a      	ldr	r2, [r1, #0]
+            strb r0, [r2]
+ 788:	7010      	strb	r0, [r2, #0]
+            // Increment in pointer
+            bl Pointer_inc
+ 78a:	f7ff ffda 	bl	742 <Pointer_inc>
+            str r2, [r1, #in_ptr]
+ 78e:	600a      	str	r2, [r1, #0]
+            // Increment num enqueued
+            adds r3, r3, #1
+ 790:	3301      	adds	r3, #1
+            strb r3, [r1, #num_enqd]
+ 792:	744b      	strb	r3, [r1, #17]
+            // Clear C flag
+            adds r2, #0
+ 794:	3200      	adds	r2, #0
+            b Enqueue_exit
+ 796:	e001      	b.n	79c <Enqueue_exit>
+
+00000798 <Enqueue_full>:
+Enqueue_full:
+            // Set C flag
+            movs r2, #0
+ 798:	2200      	movs	r2, #0
+            mvns r2, r2
+ 79a:	43d2      	mvns	r2, r2
+
+0000079c <Enqueue_exit>:
+Enqueue_exit:
+            pop {r2-r3, pc}
+ 79c:	bd0c      	pop	{r2, r3, pc}
+ 79e:	0000      	.short	0x0000
+            ldr r0, =rx_buffer
+ 7a0:	1ffffd80 	.word	0x1ffffd80
+            ldr r1, =rx_record
+ 7a4:	1ffffdd0 	.word	0x1ffffdd0
+            ldr r0, =tx_buffer
+ 7a8:	1ffffde4 	.word	0x1ffffde4
+            ldr r1, =tx_record
+ 7ac:	1ffffe34 	.word	0x1ffffe34
+            ldr   r0,=SIM_SOPT2 
+ 7b0:	40048004 	.word	0x40048004
+            ldr   r0,=SIM_SOPT5 
+ 7b4:	40048010 	.word	0x40048010
+            ldr   r1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+ 7b8:	00010005 	.word	0x00010005
+            ldr   r0,=SIM_SCGC4 
+ 7bc:	40048034 	.word	0x40048034
+            ldr   r0,=SIM_SCGC5 
+ 7c0:	40048038 	.word	0x40048038
+            ldr     r0,=PORTB_PCR2 
+ 7c4:	4004a008 	.word	0x4004a008
+            ldr     r1,=PORT_PCR_SET_PTB2_UART0_RX 
+ 7c8:	01000200 	.word	0x01000200
+            ldr     r0,=PORTB_PCR1 
+ 7cc:	4004a004 	.word	0x4004a004
+            ldr   r0,=UART0_BASE 
+ 7d0:	4006a000 	.word	0x4006a000
+            ldr r0, =UART0_IPR
+ 7d4:	e000e40c 	.word	0xe000e40c
+            ldr r0, =NVIC_ICPR
+ 7d8:	e000e280 	.word	0xe000e280
+            ldr r0, =NVIC_ISER
+ 7dc:	e000e100 	.word	0xe000e100
+            ldr r0, =PIT_BASE
+ 7e0:	40037000 	.word	0x40037000
+            ldr r0, =SIM_BASE
+ 7e4:	40047000 	.word	0x40047000
+            ldr r0, =PIT_IPR
+ 7e8:	e000e414 	.word	0xe000e414
+            ldr r0, =PIT_CH0_BASE
+ 7ec:	40037100 	.word	0x40037100
+            ldr r1, =PIT_LDVAL_10ms
+ 7f0:	0003a8f5 	.word	0x0003a8f5
+    ldr r0, =run_stop_watch
+ 7f4:	1ffffe4c 	.word	0x1ffffe4c
+    ldr r0, =pit_count
+ 7f8:	1ffffe48 	.word	0x1ffffe48

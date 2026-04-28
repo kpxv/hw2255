@@ -1,0 +1,253 @@
+
+a.out:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00008000 <_start>:
+.endm
+
+.section .text
+.global _start
+_start:
+    bl init
+    8000:	eb00004a 	bl	8130 <init>
+    bl load_var
+    8004:	eb000051 	bl	8150 <load_var>
+
+    // Prep for comparison
+    movs r4, #127
+    8008:	e3b0407f 	movs	r4, #127	@ 0x7f
+    adds r4, #127
+    800c:	e294407f 	adds	r4, r4, #127	@ 0x7f
+    adds r4, #1
+    8010:	e2944001 	adds	r4, r4, #1
+    /**
+      * F
+      */
+
+    // 3P
+    movs r0, r1
+    8014:	e1b00001 	movs	r0, r1
+    lsls r0, r0, #1
+    8018:	e1b00080 	lsls	r0, r0, #1
+    validate_f
+    801c:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    8020:	e1500004 	cmp	r0, r4
+    8024:	2a000017 	bcs	8088 <err_f>
+    8028:	e250007f 	subs	r0, r0, #127	@ 0x7f
+    adds r0, r0, r1
+    802c:	e0900001 	adds	r0, r0, r1
+    validate_f
+    8030:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    8034:	e1500004 	cmp	r0, r4
+    8038:	2a000012 	bcs	8088 <err_f>
+    803c:	e250007f 	subs	r0, r0, #127	@ 0x7f
+
+    // 2Q
+    adds r0, r0, r2
+    8040:	e0900002 	adds	r0, r0, r2
+    validate_f
+    8044:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    8048:	e1500004 	cmp	r0, r4
+    804c:	2a00000d 	bcs	8088 <err_f>
+    8050:	e250007f 	subs	r0, r0, #127	@ 0x7f
+    adds r0, r0, r2
+    8054:	e0900002 	adds	r0, r0, r2
+    validate_f
+    8058:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    805c:	e1500004 	cmp	r0, r4
+    8060:	2a000008 	bcs	8088 <err_f>
+    8064:	e250007f 	subs	r0, r0, #127	@ 0x7f
+
+    // -75
+    ldr r3, =const_f
+    8068:	e59f30fc 	ldr	r3, [pc, #252]	@ 816c <const_g+0x4>
+    ldr r3, [r3]
+    806c:	e5933000 	ldr	r3, [r3]
+    subs r0, r0, r3
+    8070:	e0500003 	subs	r0, r0, r3
+    validate_f
+    8074:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    8078:	e1500004 	cmp	r0, r4
+    807c:	2a000001 	bcs	8088 <err_f>
+    8080:	e250007f 	subs	r0, r0, #127	@ 0x7f
+    b store_f
+    8084:	ea000000 	b	808c <store_f>
+
+00008088 <err_f>:
+
+err_f:
+    movs r0, #0
+    8088:	e3b00000 	movs	r0, #0
+
+0000808c <store_f>:
+
+store_f:
+    // Store
+    ldr r3, =f
+    808c:	e59f30dc 	ldr	r3, [pc, #220]	@ 8170 <const_g+0x8>
+    str r0, [r3]
+    8090:	e5830000 	str	r0, [r3]
+    /**
+      * G
+      */
+
+    // 2P
+    movs r0, r1
+    8094:	e1b00001 	movs	r0, r1
+    lsls r0, r0, #1
+    8098:	e1b00080 	lsls	r0, r0, #1
+    validate_g
+    809c:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    80a0:	e1500004 	cmp	r0, r4
+    80a4:	2a000012 	bcs	80f4 <err_g>
+    80a8:	e250007f 	subs	r0, r0, #127	@ 0x7f
+
+    // -4Q
+    lsls r2, r2, #2
+    80ac:	e1b02102 	lsls	r2, r2, #2
+    validate_g
+    80b0:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    80b4:	e1500004 	cmp	r0, r4
+    80b8:	2a00000d 	bcs	80f4 <err_g>
+    80bc:	e250007f 	subs	r0, r0, #127	@ 0x7f
+    subs r0, r0, r2
+    80c0:	e0500002 	subs	r0, r0, r2
+    validate_g
+    80c4:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    80c8:	e1500004 	cmp	r0, r4
+    80cc:	2a000008 	bcs	80f4 <err_g>
+    80d0:	e250007f 	subs	r0, r0, #127	@ 0x7f
+
+    // +63
+    ldr r3, =const_g
+    80d4:	e59f3098 	ldr	r3, [pc, #152]	@ 8174 <const_g+0xc>
+    ldr r3, [r3]
+    80d8:	e5933000 	ldr	r3, [r3]
+    adds r0, r0, r3
+    80dc:	e0900003 	adds	r0, r0, r3
+    validate_g
+    80e0:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    80e4:	e1500004 	cmp	r0, r4
+    80e8:	2a000001 	bcs	80f4 <err_g>
+    80ec:	e250007f 	subs	r0, r0, #127	@ 0x7f
+    b store_g
+    80f0:	ea000000 	b	80f8 <store_g>
+
+000080f4 <err_g>:
+
+err_g:
+    movs r0, #0
+    80f4:	e3b00000 	movs	r0, #0
+
+000080f8 <store_g>:
+
+store_g:
+    // Store
+    ldr r3, =g
+    80f8:	e59f3078 	ldr	r3, [pc, #120]	@ 8178 <const_g+0x10>
+    str r0, [r3]
+    80fc:	e5830000 	str	r0, [r3]
+    /**
+      * Final
+      */
+
+    // Sum
+    ldr r1, =f
+    8100:	e59f1068 	ldr	r1, [pc, #104]	@ 8170 <const_g+0x8>
+    ldr r1, [r1]
+    8104:	e5911000 	ldr	r1, [r1]
+    adds r0, r0, r1
+    8108:	e0900001 	adds	r0, r0, r1
+    validate_res
+    810c:	e290007f 	adds	r0, r0, #127	@ 0x7f
+    8110:	e1500004 	cmp	r0, r4
+    8114:	2a000001 	bcs	8120 <err_res>
+    8118:	e250007f 	subs	r0, r0, #127	@ 0x7f
+    b store_res
+    811c:	ea000000 	b	8124 <store_res>
+
+00008120 <err_res>:
+
+err_res:
+    movs r0, #0
+    8120:	e3b00000 	movs	r0, #0
+
+00008124 <store_res>:
+
+store_res:
+    // Store
+    ldr r1, =result
+    8124:	e59f1050 	ldr	r1, [pc, #80]	@ 817c <const_g+0x14>
+    str r0, [r1]
+    8128:	e5810000 	str	r0, [r1]
+
+    // End
+    b .
+    812c:	eafffffe 	b	812c <store_res+0x8>
+
+00008130 <init>:
+
+
+
+init:
+    ldr r0, =p
+    8130:	e59f0048 	ldr	r0, [pc, #72]	@ 8180 <const_g+0x18>
+    ldr r3, =q
+    8134:	e59f3048 	ldr	r3, [pc, #72]	@ 8184 <const_g+0x1c>
+    // Input 1
+    // movs r1, #9
+    // movs r2, #4
+
+    // Input 2
+    movs r1, #13
+    8138:	e3b0100d 	movs	r1, #13
+    movs r2, #14
+    813c:	e3b0200e 	movs	r2, #14
+    rsbs r2, r2, #0
+    8140:	e2722000 	rsbs	r2, r2, #0
+
+    str r1, [r0]
+    8144:	e5801000 	str	r1, [r0]
+    str r2, [r3]
+    8148:	e5832000 	str	r2, [r3]
+
+    bx lr
+    814c:	e12fff1e 	bx	lr
+
+00008150 <load_var>:
+
+
+load_var:
+    ldr r0, =p
+    8150:	e59f0028 	ldr	r0, [pc, #40]	@ 8180 <const_g+0x18>
+    ldr r3, =q
+    8154:	e59f3028 	ldr	r3, [pc, #40]	@ 8184 <const_g+0x1c>
+    ldr r1, [r0]
+    8158:	e5901000 	ldr	r1, [r0]
+    ldr r2, [r3]
+    815c:	e5932000 	ldr	r2, [r3]
+
+    bx lr
+    8160:	e12fff1e 	bx	lr
+
+00008164 <const_f>:
+    8164:	0000004b 	.word	0x0000004b
+
+00008168 <const_g>:
+    8168:	0000003f 	.word	0x0000003f
+    ldr r3, =const_f
+    816c:	00008164 	.word	0x00008164
+    ldr r3, =f
+    8170:	00009188 	.word	0x00009188
+    ldr r3, =const_g
+    8174:	00008168 	.word	0x00008168
+    ldr r3, =g
+    8178:	0000918c 	.word	0x0000918c
+    ldr r1, =result
+    817c:	00009198 	.word	0x00009198
+    ldr r0, =p
+    8180:	00009190 	.word	0x00009190
+    ldr r3, =q
+    8184:	00009194 	.word	0x00009194

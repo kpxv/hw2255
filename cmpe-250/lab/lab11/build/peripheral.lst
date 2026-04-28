@@ -1,0 +1,511 @@
+   4              	.list
+   5              	
+   6              	.syntax unified
+   7              	.thumb
+   8              	
+   9              	.section code, "ax"
+  10              	/**
+  11              	  * Initialize UART for interrupt control at 9600 baud 8N1
+  12              	  *
+  13              	  * Inputs:
+  14              	  *     none
+  15              	  * Outputs:
+  16              	  *     none
+  17              	  * Modifies:
+  18              	  *     psr
+  19              	  */
+  20              	.global Init_UART0_IRQ
+  21              	Init_UART0_IRQ:
+  22 0000 07B5     	            push {r0, r1, r2, lr}
+  23              	            // Initialize queues
+  24 0002 7E48     	            ldr r0, =rx_buffer
+  25 0004 7E49     	            ldr r1, =rx_record
+  26 0006 5022     	            movs r2, #rx_qbuf_sz
+  27 0008 FFF7FEFF 	            bl init_queue
+  28 000c 7D48     	            ldr r0, =tx_buffer
+  29 000e 7E49     	            ldr r1, =tx_record
+  30 0010 FFF7FEFF 	            bl init_queue
+  31              	            // Select MCGFLLCLK as UART0 clock source 
+  32 0014 7D48     	            ldr   r0,=SIM_SOPT2 
+  33 0016 4FF04061 	            ldr   r1,=SIM_SOPT2_UART0SRC_MASK 
+  34 001a 0268     	            ldr   r2,[r0,#0] 
+  35 001c 8A43     	            bics  r2,r2,r1 
+  36 001e 4FF08061 	            ldr   r1,=SIM_SOPT2_UART0SRC_MCGFLLCLK 
+  37 0022 0A43     	            orrs  r2,r2,r1 
+  38 0024 0260     	            str   r2,[r0,#0] 
+  39              	            // Set UART0 for external connection 
+  40 0026 7A48     	            ldr   r0,=SIM_SOPT5 
+  41 0028 7A49     	            ldr   r1,=SIM_SOPT5_UART0_EXTERN_MASK_CLEAR 
+  42 002a 0268     	            ldr   r2,[r0,#0] 
+  43 002c 8A43     	            bics  r2,r2,r1 
+  44 002e 0260     	            str   r2,[r0,#0] 
+  45              	            // Enable UART0 module clock 
+  46 0030 7948     	            ldr   r0,=SIM_SCGC4 
+  47 0032 4FF48061 	            ldr   r1,=SIM_SCGC4_UART0_MASK 
+  48 0036 0268     	            ldr   r2,[r0,#0] 
+  49 0038 0A43     	            orrs  r2,r2,r1 
+  50 003a 0260     	            str   r2,[r0,#0] 
+  51              	            // Enable PORT B module clock 
+  52 003c 7748     	            ldr   r0,=SIM_SCGC5 
+  53 003e 4FF48061 	            ldr   r1,=SIM_SCGC5_PORTB_MASK 
+  54 0042 0268     	            ldr   r2,[r0,#0] 
+  55 0044 0A43     	            orrs  r2,r2,r1 
+  56 0046 0260     	            str   r2,[r0,#0] 
+  57              	            // Select PORT B Pin 2 (D0) for UART0 RX (J8 Pin 01) 
+  58 0048 7548     	            ldr     r0,=PORTB_PCR2 
+  59 004a 7649     	            ldr     r1,=PORT_PCR_SET_PTB2_UART0_RX 
+  60 004c 0160     	            str     r1,[r0,#0] 
+  61              	            //  Select PORT B Pin 1 (D1) for UART0 TX (J8 Pin 02) 
+  62 004e 7648     	            ldr     r0,=PORTB_PCR1 
+  63 0050 7449     	            ldr     r1,=PORT_PCR_SET_PTB1_UART0_TX 
+  64 0052 0160     	            str     r1,[r0,#0] 
+  65              	            // Disable UART0 receiver and transmitter 
+  66 0054 7548     	            ldr   r0,=UART0_BASE 
+  67 0056 0C21     	            movs  r1,#UART0_C2_T_R 
+  68 0058 C278     	            ldrb  r2,[r0,#UART0_C2_OFFSET] 
+  69 005a 8A43     	            bics  r2,r2,r1 
+  70 005c C270     	            strb  r2,[r0,#UART0_C2_OFFSET] 
+  71              	            // Init NVIC
+  72              	            // Set UART0 IRQ priority
+  73 005e 7448     	            ldr r0, =UART0_IPR
+  74 0060 4FF0C002 	            ldr r2, =NVIC_IPR_UART0_PRI_3
+  75 0064 0368     	            ldr r3, [r0]
+  76 0066 1343     	            orrs r3, r2
+  77 0068 0360     	            str r3, [r0]
+  78              	            // Clear pending interrupts
+  79 006a 7248     	            ldr r0, =NVIC_ICPR
+  80 006c 4FF0C001 	            ldr r1, =NVIC_IPR_UART0_MASK
+  81 0070 0160     	            str r1, [r0]
+  82              	            // Unmask interrupts
+  83 0072 7148     	            ldr r0, =NVIC_ISER
+  84 0074 4FF48051 	            ldr r1, =NVIC_ISER_UART0_MASK
+  85 0078 0160     	            str r1, [r0]
+  86              	            // Set UART0 for 9600 baud, 8N1 protocol 
+  87 007a 6C48     	            ldr   r0, =UART0_BASE
+  88 007c 0121     	            movs  r1,#UART0_BDH_9600 
+  89 007e 0170     	            strb  r1,[r0,#UART0_BDH_OFFSET] 
+  90 0080 3821     	            movs  r1,#UART0_BDL_9600 
+  91 0082 4170     	            strb  r1,[r0,#UART0_BDL_OFFSET] 
+  92 0084 0021     	            movs  r1,#UART0_C1_8N1 
+  93 0086 8170     	            strb  r1,[r0,#UART0_C1_OFFSET] 
+  94 0088 0021     	            movs  r1,#UART0_C3_NO_TXINV 
+  95 008a 8171     	            strb  r1,[r0,#UART0_C3_OFFSET] 
+  96 008c 0F21     	            movs  r1,#UART0_C4_NO_MATCH_OSR_16 
+  97 008e 8172     	            strb  r1,[r0,#UART0_C4_OFFSET] 
+  98 0090 0021     	            movs  r1,#UART0_C5_NO_DMA_SSR_SYNC 
+  99 0092 C172     	            strb  r1,[r0,#UART0_C5_OFFSET] 
+ 100 0094 1F21     	            movs  r1,#UART0_S1_CLEAR_FLAGS 
+ 101 0096 0171     	            strb  r1,[r0,#UART0_S1_OFFSET] 
+ 102 0098 C021     	            movs  r1, #UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS 
+ 103 009a 4171     	            strb  r1,[r0,#UART0_S2_OFFSET] 
+ 104              	            // Enable UART0 receiver and transmitter 
+ 105 009c 2C21     	            movs  r1,#UART0_C2_T_RI
+ 106 009e C170     	            strb  r1,[r0,#UART0_C2_OFFSET] 
+ 107 00a0 07BD     	            pop {r0, r1, r2, pc}
+ 108              	
+ 109              	
+ 110              	
+ 111              	/**
+ 112              	  * Initialize PIT module to use 10ms clock, timer freeze in debug, interrupts,
+ 113              	  * and no chain mode.
+ 114              	  *
+ 115              	  * Inputs:
+ 116              	  *     none
+ 117              	  * Outputs:
+ 118              	  *     none
+ 119              	  * Modifies:
+ 120              	  *     psr
+ 121              	  */
+ 122              	.global Init_PIT_IRQ
+ 123              	Init_PIT_IRQ:
+ 124 00a2 0FB4     	            push {r0-r3}
+ 125              	            // Disable PIT for setup and disable timer in debug
+ 126 00a4 6548     	            ldr r0, =PIT_BASE
+ 127 00a6 0168     	            ldr r1, [r0, #PIT_MCR_OFFSET]
+ 128 00a8 0322     	            movs r2, #PIT_MCR_MF
+ 129 00aa 1140     	            ands r1, r2
+ 130 00ac 0160     	            str r1, [r0, #PIT_MCR_OFFSET]
+ 131              	            // Allow PIT clock
+ 132 00ae 6448     	            ldr r0, =SIM_BASE
+ 133 00b0 41F23C01 	            ldr r1, =SIM_SCGC6_OFFSET
+ 134 00b4 4258     	            ldr r2, [r0, r1]
+ 135 00b6 0123     	            movs r3, #1
+ 136 00b8 DB05     	            lsls r3, #SIM_SCGC6_PIT_SHIFT
+ 137 00ba 1A40     	            ands r2, r3
+ 138 00bc 4250     	            str r2, [r0, r1]
+ 139              	            // Disable timer and timer interrupt
+ 140 00be 4FF48471 	            ldr r1, =PIT_TCTRL0_OFFSET
+ 141 00c2 0022     	            movs r2, #0
+ 142 00c4 4250     	            str r2, [r0, r1]
+ 143              	            // NVIC interrupts
+ 144              	            // Does this order matter?
+ 145              	            // Set PIT interrupt priority
+ 146 00c6 5F48     	            ldr r0, =PIT_IPR
+ 147 00c8 0168     	            ldr r1, [r0]
+ 148 00ca 4FF00002 	            ldr r2, =NVIC_IPR_PIT_PRI_0
+ 149 00ce 1143     	            orrs r1, r2
+ 150 00d0 0160     	            str r1, [r0]
+ 151              	            // Clear pending PIT interrupts
+ 152 00d2 5848     	            ldr r0, =NVIC_ICPR
+ 153 00d4 0160     	            str r1, [r0]
+ 154              	            // Enable PIT interrupts
+ 155 00d6 5848     	            ldr r0, =NVIC_ISER
+ 156 00d8 4FF48001 	            ldr r1, =PIT_IRQ_MASK
+ 157 00dc 0160     	            str r1, [r0]
+ 158              	            // Enable PIT module
+ 159              	            // Why is this here? Shouldn't it be at the end?
+ 160 00de 5748     	            ldr r0, =PIT_BASE
+ 161 00e0 0168     	            ldr r1, [r0, #PIT_MCR_OFFSET]
+ 162 00e2 0222     	            movs r2, #PIT_MCR_MDIS_MASK
+ 163 00e4 9143     	            bics r1, r2
+ 164 00e6 0160     	            str r1, [r0, #PIT_MCR_OFFSET]
+ 165              	            // Set PIT timer value
+ 166              	            // Wtf? This seems like setup
+ 167 00e8 5748     	            ldr r0, =PIT_CH0_BASE
+ 168 00ea 5849     	            ldr r1, =PIT_LDVAL_10ms
+ 169 00ec 0160     	            str r1, [r0, #PIT_LDVAL_OFFSET]
+ 170              	            // Enable timer and timer interrupt; disable chain mode
+ 171              	            // Still seems like setup
+ 172 00ee 4FF48471 	            ldr r1, =PIT_TCTRL0_OFFSET
+ 173 00f2 0322     	            movs r2, #PIT_TCTRL_TIE_TEN_MASK
+ 174 00f4 4250     	            str r2, [r0, r1]
+ 175 00f6 0FBC     	            pop {r0-r3}
+ 176 00f8 7047     	            bx lr
+ 177              	
+ 178              	
+ 179              	
+ 180              	/**
+ 181              	  * Handle PIT interrupts
+ 182              	  *
+ 183              	  * Inputs:
+ 184              	  *     none
+ 185              	  * Outputs:
+ 186              	  *     none
+ 187              	  * Modifies:
+ 188              	  *     psr
+ 189              	  */
+ 190              	.global PIT_ISR
+ 191              	PIT_ISR:
+ 192              	    // Increment only if run_stop_watch is set
+ 193 00fa 5548     	    ldr r0, =run_stop_watch
+ 194 00fc 0028     	    cmp r0, #0
+ 195 00fe 03D0     	    beq PIT_ISR_exit
+ 196 0100 5448     	    ldr r0, =pit_count
+ 197 0102 0168     	    ldr r1, [r0]
+ 198 0104 0131     	    adds r1, #1
+ 199 0106 0160     	    str r1, [r0]
+ 200              	PIT_ISR_exit:
+ 201              	    // Clear interrupt
+ 202 0108 4F48     	    ldr r0, =PIT_CH0_BASE
+ 203 010a 4FF00101 	    ldr r1, =PIT_TFLG_TIF_MASK
+ 204 010e C160     	    str r1, [r0, #PIT_TFLG_OFFSET]
+ 205 0110 7047     	    bx lr
+ 206              	
+ 207              	
+ 208              	
+ 209              	/**
+ 210              	  * Handle UART interrupts
+ 211              	  *
+ 212              	  * Inputs:
+ 213              	  *     none
+ 214              	  * Outputs:
+ 215              	  *     none
+ 216              	  * Modifies:
+ 217              	  *     psr
+ 218              	  */
+ 219              	.global UART0_ISR
+ 220              	UART0_ISR:
+ 221 0112 72B6     	            cpsid I
+ 222 0114 00B5     	            push {lr}
+ 223 0116 454A     	            ldr r2, =UART0_BASE
+ 224 0118 D178     	            ldrb r1, [r2, #UART0_C2_OFFSET]
+ 225 011a 4FF08003 	            ldr r3, =UART0_C2_TIE_MASK
+ 226 011e 1940     	            ands r1, r3
+ 227              	            // Check tx interrupt enabled
+ 228 0120 0029     	            cmp r1, #0
+ 229              	            // If disabled, jump to rx interrupt check
+ 230 0122 0ED0     	            beq UART0_ISR_rxint
+ 231              	            // Else, check tx interrupt
+ 232 0124 1179     	            ldrb r1, [r2, #UART0_S1_OFFSET]
+ 233 0126 4FF08003 	            ldr r3, =UART0_S1_TDRE_MASK
+ 234 012a 1940     	            ands r1, r3
+ 235 012c 0029     	            cmp r1, #0
+ 236              	            // If disabled, jump to rx interrupt check
+ 237 012e 08D0     	            beq UART0_ISR_rxint
+ 238              	            // Else, dequeue
+ 239 0130 3549     	            ldr r1, =tx_record
+ 240 0132 FFF7FEFF 	            bl Dequeue
+ 241 0136 01D2     	            bcs UART0_ISR_disable_tx
+ 242              	            // If successful, store
+ 243 0138 D071     	            strb r0, [r2, #UART0_D_OFFSET]
+ 244 013a 02E0     	            b UART0_ISR_rxint
+ 245              	            // Else, disable tx
+ 246              	UART0_ISR_disable_tx:
+ 247 013c 4FF02C01 	            ldr r1, =UART0_C2_T_RI
+ 248 0140 D170     	            strb r1, [r2, #UART0_C2_OFFSET]
+ 249              	            // Check rx interrupt
+ 250              	UART0_ISR_rxint:
+ 251 0142 1179     	            ldrb r1, [r2, #UART0_S1_OFFSET]
+ 252 0144 4FF02003 	            ldr r3, =UART0_S1_RDRF_MASK
+ 253 0148 1940     	            ands r1, r3
+ 254 014a 0029     	            cmp r1, #0
+ 255              	            // Exit if rx interrupt not set
+ 256 014c 03D0     	            beq UART0_ISR_exit
+ 257              	            // Otherwise, enqueue
+ 258 014e D079     	            ldrb r0, [r2, #UART0_D_OFFSET]
+ 259 0150 2B49     	            ldr r1, =rx_record
+ 260 0152 FFF7FEFF 	            bl Enqueue
+ 261              	UART0_ISR_exit:
+ 262 0156 62B6     	            cpsie I
+ 263 0158 00BD     	            pop {pc}
+ 264              	
+ 265              	
+ 266              	
+ 267              	
+ 268              	/**
+ 269              	  * Get a byte from UART0
+ 270              	  *
+ 271              	  * Inputs:
+ 272              	  *     none, but requires rx_record to be defined
+ 273              	  * Outputs:
+ 274              	  *     r0 : returned byte
+ 275              	  * Modifies:
+ 276              	  *     r0
+ 277              	  *     psr
+ 278              	  */
+ 279              	.global GetChar
+ 280              	GetChar:
+ 281 015a 02B5     	            push {r1, lr}
+ 282              	GetChar_loop:
+ 283 015c 72B6     	            cpsid I
+ 284 015e 2849     	            ldr r1, =rx_record
+ 285 0160 FFF7FEFF 	            bl Dequeue
+ 286 0164 62B6     	            cpsie I
+ 287 0166 F9D2     	            bcs GetChar_loop
+ 288 0168 FFF7FEFF 	            bl Dequeue
+ 289 016c 02BD     	            pop {r1, pc}
+ 290              	
+ 291              	
+ 292              	
+ 293              	/**
+ 294              	  * Send a byte over UART0
+ 295              	  *
+ 296              	  * Inputs:
+ 297              	  *     r0 : byte to send
+ 298              	  *     requires tx_record to be defined
+ 299              	  * Outputs:
+ 300              	  *     none
+ 301              	  * Modifies:
+ 302              	  *     psr
+ 303              	  */
+ 304              	.global PutChar
+ 305              	PutChar:
+ 306 016e 06B5     	            push {r1, r2, lr}
+ 307              	PutChar_loop:
+ 308              	            // Put char
+ 309 0170 72B6     	            cpsid I
+ 310 0172 2549     	            ldr r1, =tx_record
+ 311 0174 FFF7FEFF 	            bl Enqueue
+ 312 0178 62B6     	            cpsie I
+ 313 017a F9D2     	            bcs PutChar_loop
+ 314              	            // Enable transmit interrupt
+ 315 017c 2B49     	            ldr r1, =UART0_BASE
+ 316 017e 4FF0AC02 	            ldr r2, =UART0_C2_TI_RI
+ 317 0182 CA70     	            strb r2, [r1, #UART0_C2_OFFSET]
+ 318 0184 06BD     	            pop {r1, r2, pc}
+ 319              	
+ 320              	
+ 321              	
+ 322              	/** Initialize queue record
+ 323              	  *
+ 324              	  * Inputs:
+ 325              	  *     R0 : buffer address
+ 326              	  *     R1 : record address
+ 327              	  *     R2 : buffer capacity
+ 328              	  * Outputs:
+ 329              	  *     None
+ 330              	  * Modifies:
+ 331              	  *     psr
+ 332              	  */
+ 333              	.global init_queue
+ 334              	init_queue:
+ 335 0186 08B4     	            push {r3}
+ 336              	            // In pointer
+ 337 0188 0860     	            str r0, [r1, #in_ptr]
+ 338              	            // Out pointer
+ 339 018a 4860     	            str r0, [r1, #out_ptr]
+ 340              	            // Buffer start
+ 341 018c 8860     	            str r0, [r1, #buf_start]
+ 342              	            // Buffer end
+ 343 018e 8318     	            adds r3, r0, r2
+ 344 0190 013B     	            subs r3, #1
+ 345 0192 CB60     	            str r3, [r1, #buf_past]
+ 346              	            // Buffer size
+ 347 0194 0A74     	            strb r2, [r1, #buf_size]
+ 348              	            // Number enqueued
+ 349 0196 0023     	            movs r3, #0
+ 350 0198 4B74     	            strb r3, [r1, #num_enqd]
+ 351 019a 08BC     	            pop {r3}
+ 352 019c 7047     	            bx lr
+ 353              	
+ 354              	
+ 355              	
+ 356              	/**
+ 357              	  * Increment queue pointer
+ 358              	  *
+ 359              	  * Inputs:
+ 360              	  *     R1 : record address
+ 361              	  *     R2 : pointer
+ 362              	  * Outputs:
+ 363              	  *     R2 : incremented pointer
+ 364              	  * Modifies:
+ 365              	  *     R2
+ 366              	  *     psr
+ 367              	  */
+ 368              	.global Pointer_inc
+ 369              	Pointer_inc:
+ 370 019e 09B4     	            push {r0, r3}
+ 371              	            // Load end of buffer
+ 372 01a0 1000     	            movs r0, r2
+ 373 01a2 CB68     	            ldr r3, [r1, #buf_past]
+ 374              	            // If pointer is at the end of the buffer
+ 375 01a4 9842     	            cmp r0, r3
+ 376              	            // Wrap
+ 377 01a6 01D0     	            beq Pointer_inc_wrap
+ 378              	            // Else increment
+ 379 01a8 0130     	            adds r0, r0, #1
+ 380 01aa 00E0     	            b Pointer_inc_exit
+ 381              	Pointer_inc_wrap:
+ 382              	            // Wrap by setting pointer to start of buffer
+ 383 01ac 8868     	            ldr r0, [r1, #buf_start]
+ 384              	Pointer_inc_exit:
+ 385              	            // Return
+ 386 01ae 0200     	            movs r2, r0
+ 387 01b0 09BC     	            pop {r0, r3}
+ 388 01b2 7047     	            bx lr
+ 389              	
+ 390              	
+ 391              	
+ 392              	/**
+ 393              	  * Attempt to get char from queue
+ 394              	  *
+ 395              	  * Inputs:
+ 396              	  *     R1 : record address
+ 397              	  * Outputs:
+ 398              	  *     R0 : dequeued character
+ 399              	  *     psr : clear c iff successful
+ 400              	  * Modifies:
+ 401              	  *     R0, iff DEQUEUE successful
+ 402              	  *     psr
+ 403              	  */
+ 404              	.global Dequeue
+ 405              	Dequeue:
+ 406 01b4 04B5     	            push {r2, lr}
+ 407              	            // Check if empty
+ 408 01b6 4A7C     	            ldrb r2, [r1, #num_enqd]
+ 409 01b8 002A     	            cmp r2, #0
+ 410 01ba 09D0     	            BEQ Dequeue_empty
+ 411              	            // Get from queue
+ 412 01bc 4A68     	            ldr r2, [r1, #out_ptr]
+ 413 01be 1078     	            ldrb r0, [r2]
+ 414              	            // Increment pointer
+ 415 01c0 FFF7FEFF 	            bl Pointer_inc
+ 416 01c4 4A60     	            str r2, [r1, #out_ptr]
+ 417              	            // Decrement num enqueued
+ 418 01c6 4A7C     	            ldrb r2, [r1, #num_enqd]
+ 419 01c8 013A     	            subs r2, r2, #1
+ 420 01ca 4A74     	            strb r2, [r1, #num_enqd]
+ 421              	            // Clear C flag
+ 422 01cc 0032     	            adds r2, #0
+ 423 01ce 02E0     	            B Dequeue_exit
+ 424              	Dequeue_empty:
+ 425              	            // Set C flag
+ 426 01d0 0022     	            MOVS R2, #0
+ 427 01d2 D243     	            MVNS R2, R2
+ 428 01d4 0132     	            ADDS R2, R2, #1
+ 429              	Dequeue_exit:
+ 430 01d6 04BD     	            POP {R2, PC}
+ 431              	
+ 432              	
+ 433              	
+ 434              	/**
+ 435              	  * Attempt to put char in queue
+ 436              	  *
+ 437              	  * Inputs:
+ 438              	  *     R0 : ENQUEUE char
+ 439              	  *     R1 : record address
+ 440              	  * Outputs:
+ 441              	  *     psr: clear c iff ENQUEUE successful
+ 442              	  * Modifies:
+ 443              	  *     psr
+ 444              	  */
+ 445              	.global Enqueue
+ 446              	Enqueue:
+ 447 01d8 0CB5     	            push {r2-r3, lr}
+ 448              	            // Check if full
+ 449 01da 0A7C     	            ldrb r2, [r1, #buf_size]
+ 450 01dc 4B7C     	            ldrb r3, [r1, #num_enqd]
+ 451 01de 9A42     	            cmp r2, r3
+ 452 01e0 08D0     	            beq Enqueue_full
+ 453              	            // Store to queue
+ 454 01e2 0A68     	            ldr r2, [r1, #in_ptr]
+ 455 01e4 1070     	            strb r0, [r2]
+ 456              	            // Increment in pointer
+ 457 01e6 FFF7FEFF 	            bl Pointer_inc
+ 458 01ea 0A60     	            str r2, [r1, #in_ptr]
+ 459              	            // Increment num enqueued
+ 460 01ec 0133     	            adds r3, r3, #1
+ 461 01ee 4B74     	            strb r3, [r1, #num_enqd]
+ 462              	            // Clear C flag
+ 463 01f0 0032     	            adds r2, #0
+ 464 01f2 01E0     	            b Enqueue_exit
+ 465              	Enqueue_full:
+ 466              	            // Set C flag
+ 467 01f4 0022     	            movs r2, #0
+ 468 01f6 D243     	            mvns r2, r2
+ 469              	Enqueue_exit:
+ 470 01f8 0CBD     	            pop {r2-r3, pc}
+ 471              	
+ 472              	
+ 473              	
+ 474 01fa 0000     	.section data, "aw", %nobits
+ 475              	// Receive queue variables
+ 476              	.balign WORD_SIZE
+ 477              	rx_buffer:
+ 478 0000 00000000 	.skip rx_qbuf_sz
+ 478      00000000 
+ 478      00000000 
+ 478      00000000 
+ 478      00000000 
+ 479              	.balign WORD_SIZE
+ 480              	rx_record:
+ 481 0050 00000000 	.skip rx_qrec_sz
+ 481      00000000 
+ 481      00000000 
+ 481      00000000 
+ 481      0000
+ 482              	
+ 483              	// Transmit queue variables
+ 484 0062 0000     	.balign WORD_SIZE
+ 485              	tx_buffer:
+ 486 0064 00000000 	.skip tx_qbuf_sz
+ 486      00000000 
+ 486      00000000 
+ 486      00000000 
+ 486      00000000 
+ 487              	.balign WORD_SIZE
+ 488              	tx_record:
+ 489 00b4 00000000 	.skip tx_qrec_sz
+ 489      00000000 
+ 489      00000000 
+ 489      00000000 
+ 489      0000
+ 490              	
+ 491              	// PIT counter variables
+ 492 00c6 0000     	.balign WORD_SIZE
+ 493              	.global pit_count
+ 494              	pit_count:
+ 495 00c8 00000000 	.skip WORD_SIZE
+ 496              	.global run_stop_watch
+ 497              	run_stop_watch:
+ 498 00cc 00       	.skip 1

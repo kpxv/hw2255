@@ -1,0 +1,195 @@
+   1              	.macro validate_f
+   2              	    adds r0, #127
+   3              	    cmp r0, r4
+   4              	    bhs err_f
+   5              	    subs r0, #127
+   6              	.endm
+   7              	
+   8              	.macro validate_g
+   9              	    adds r0, #127
+  10              	    cmp r0, r4
+  11              	    bhs err_g
+  12              	    subs r0, #127
+  13              	.endm
+  14              	
+  15              	.macro validate_res
+  16              	    adds r0, #127
+  17              	    cmp r0, r4
+  18              	    bhs err_res
+  19              	    subs r0, #127
+  20              	.endm
+  21              	
+  22              	.section .text
+  23              	.global _start
+  24              	_start:
+  25 0000 4A0000EB 	    bl init
+  26 0004 510000EB 	    bl load_var
+  27              	
+  28              	    // Prep for comparison
+  29 0008 7F40B0E3 	    movs r4, #127
+  30 000c 7F4094E2 	    adds r4, #127
+  31 0010 014094E2 	    adds r4, #1
+  32              	
+  33              	    /**
+  34              	      * F
+  35              	      */
+  36              	
+  37              	    // 3P
+  38 0014 0100B0E1 	    movs r0, r1
+  39 0018 8000B0E1 	    lsls r0, r0, #1
+  40 001c 7F0090E2 	    validate_f
+  40      040050E1 
+  40      1700002A 
+  40      7F0050E2 
+  41 002c 010090E0 	    adds r0, r0, r1
+  42 0030 7F0090E2 	    validate_f
+  42      040050E1 
+  42      1200002A 
+  42      7F0050E2 
+  43              	
+  44              	    // 2Q
+  45 0040 020090E0 	    adds r0, r0, r2
+  46 0044 7F0090E2 	    validate_f
+  46      040050E1 
+  46      0D00002A 
+  46      7F0050E2 
+  47 0054 020090E0 	    adds r0, r0, r2
+  48 0058 7F0090E2 	    validate_f
+  48      040050E1 
+  48      0800002A 
+  48      7F0050E2 
+  49              	
+  50              	    // -75
+  51 0068 FC309FE5 	    ldr r3, =const_f
+  52 006c 003093E5 	    ldr r3, [r3]
+  53 0070 030050E0 	    subs r0, r0, r3
+  54 0074 7F0090E2 	    validate_f
+  54      040050E1 
+  54      0100002A 
+  54      7F0050E2 
+  55 0084 000000EA 	    b store_f
+  56              	
+  57              	err_f:
+  58 0088 0000B0E3 	    movs r0, #0
+  59              	
+  60              	store_f:
+  61              	    // Store
+  62 008c DC309FE5 	    ldr r3, =f
+  63 0090 000083E5 	    str r0, [r3]
+  64              	
+  65              	
+  66              	
+  67              	    /**
+  68              	      * G
+  69              	      */
+  70              	
+  71              	    // 2P
+  72 0094 0100B0E1 	    movs r0, r1
+  73 0098 8000B0E1 	    lsls r0, r0, #1
+  74 009c 7F0090E2 	    validate_g
+  74      040050E1 
+  74      1200002A 
+  74      7F0050E2 
+  75              	
+  76              	    // -4Q
+  77 00ac 0221B0E1 	    lsls r2, r2, #2
+  78 00b0 7F0090E2 	    validate_g
+  78      040050E1 
+  78      0D00002A 
+  78      7F0050E2 
+  79 00c0 020050E0 	    subs r0, r0, r2
+  80 00c4 7F0090E2 	    validate_g
+  80      040050E1 
+  80      0800002A 
+  80      7F0050E2 
+  81              	
+  82              	    // +63
+  83 00d4 98309FE5 	    ldr r3, =const_g
+  84 00d8 003093E5 	    ldr r3, [r3]
+  85 00dc 030090E0 	    adds r0, r0, r3
+  86 00e0 7F0090E2 	    validate_g
+  86      040050E1 
+  86      0100002A 
+  86      7F0050E2 
+  87 00f0 000000EA 	    b store_g
+  88              	
+  89              	err_g:
+  90 00f4 0000B0E3 	    movs r0, #0
+  91              	
+  92              	store_g:
+  93              	    // Store
+  94 00f8 78309FE5 	    ldr r3, =g
+  95 00fc 000083E5 	    str r0, [r3]
+  96              	
+  97              	    /**
+  98              	      * Final
+  99              	      */
+ 100              	
+ 101              	    // Sum
+ 102 0100 68109FE5 	    ldr r1, =f
+ 103 0104 001091E5 	    ldr r1, [r1]
+ 104 0108 010090E0 	    adds r0, r0, r1
+ 105 010c 7F0090E2 	    validate_res
+ 105      040050E1 
+ 105      0100002A 
+ 105      7F0050E2 
+ 106 011c 000000EA 	    b store_res
+ 107              	
+ 108              	err_res:
+ 109 0120 0000B0E3 	    movs r0, #0
+ 110              	
+ 111              	store_res:
+ 112              	    // Store
+ 113 0124 50109FE5 	    ldr r1, =result
+ 114 0128 000081E5 	    str r0, [r1]
+ 115              	
+ 116              	    // End
+ 117 012c FEFFFFEA 	    b .
+ 118              	
+ 119              	
+ 120              	
+ 121              	init:
+ 122 0130 48009FE5 	    ldr r0, =p
+ 123 0134 48309FE5 	    ldr r3, =q
+ 124              	
+ 125              	    // Input 1
+ 126              	    // movs r1, #9
+ 127              	    // movs r2, #4
+ 128              	
+ 129              	    // Input 2
+ 130 0138 0D10B0E3 	    movs r1, #13
+ 131 013c 0E20B0E3 	    movs r2, #14
+ 132 0140 002072E2 	    rsbs r2, r2, #0
+ 133              	
+ 134 0144 001080E5 	    str r1, [r0]
+ 135 0148 002083E5 	    str r2, [r3]
+ 136              	
+ 137 014c 1EFF2FE1 	    bx lr
+ 138              	
+ 139              	
+ 140              	load_var:
+ 141 0150 28009FE5 	    ldr r0, =p
+ 142 0154 28309FE5 	    ldr r3, =q
+ 143 0158 001090E5 	    ldr r1, [r0]
+ 144 015c 002093E5 	    ldr r2, [r3]
+ 145              	
+ 146 0160 1EFF2FE1 	    bx lr
+ 147              	    
+ 148              	
+ 149              	const_f:
+ 150 0164 4B000000 	.word 75
+ 151              	const_g:
+ 152 0168 3F000000 	.word 63
+ 153              	
+ 154              	
+ 155              	.section .data
+ 156              	f:
+ 157 0000 00000000 	.space 4
+ 158              	g:
+ 159 0004 00000000 	.space 4
+ 160              	p:
+ 161 0008 00000000 	.space 4
+ 162              	q:
+ 163 000c 00000000 	.space 4
+ 164              	result:
+ 165 0010 00000000 	.space 4

@@ -1,0 +1,335 @@
+   1              	// ****************************************************************
+   2              	// * Flash configuration image for area at 0x400-0x40F(+)
+   3              	// * SystemInit subroutine (++)
+   4              	// * SetClock48MHz subroutine (+, +++)
+   5              	// +:Following [3]
+   6              	// ++:Following [1].1.1.4.2 Startup routines and [2]
+   7              	// +++:Following [1].4.1 Clocking
+   8              	// [1] Freescale Semiconductor, <B>Kinetis L Peripheral Module Quick
+   9              	//     Reference</B>, KLQRUG, Rev. 0, 9/2012.
+  10              	// [2] Freescale Semiconductor, <B>KL05 Sub-Family Reference Manual</B>,
+  11              	//     KL05P48M48SF1RM, Rev. 3.1, 11/2012.
+  12              	// [3] Freescale startup_MKL05Z4.s and system_MKL05Z4.c
+  13              	//     Device specific configuration file for MKL05Z4
+  14              	//     rev. 2.2, 4/12/2013
+  15              	// [4] RIT CMPE-250 KL46 Bare Metal Assembly Startup, 2/5/2018
+  16              	// Name:  R. W. Melton
+  17              	// Date:  January 13, 2025
+  18              	// Class:  CMPE 250
+  19              	// Section:  All sections
+  20              	// ****************************************************************
+  21              	// Assembler Directives
+  22              	.syntax unified
+  23              	.thumb
+  24              	// ****************************************************************
+  25              	// Include files
+  26              	//   MKL05Z4.s
+  29              	.list
+  30              	// ****************************************************************
+  31              	// EQUates
+  32              	// ---------------------------------------------------------------
+  33              	// Clock source values
+  34              	// External crystal frequency (Hz)
+  35              	.set CPU_XTAL_CLK_HZ       ,  32768
+  36              	// Slow internal oscillator frequency (Hz)
+  37              	.set CPU_INT_SLOW_CLK_HZ   ,  32768
+  38              	// Fast internal oscillator frequency (Hz)
+  39              	.set CPU_INT_FAST_CLK_HZ   ,  4000000
+  40              	// Default system clock frequency (Hz)
+  41              	.set DEFAULT_SYSTEM_CLOCK  ,  47972352
+  42              	// ---------------------------------------------------------------
+  43              	// MCG_C1 MCG Control 1 Register
+  44              	//  00-->7-6:CLKS=clock source select (FLL)
+  45              	// 000-->5-3:FRDIV=FLL external reference divider (1 for LF range)
+  46              	//   0-->  2:IREFS=internal reference select (for FLL) (external)
+  47              	//   1-->  1:IRCLKEN=internal reference clock (MCGIRCLK) enable
+  48              	//   0-->  0:IREFSTEN=internal reference stop enable
+  49              	.set MCG_C1_FLL_DIV1_IRCLKEXTSTOP  ,  MCG_C1_IRCLKEN_MASK
+  50              	// ---------------------------------------------------------------
+  51              	// MCG_C2 MCG Control 2 Register 
+  52              	//  0-->  7:LOCRE0=loss of clock reset enable (interrupt, not reset)
+  53              	// 00-->5-4:RANGE0=frequency range select (low frequency)
+  54              	//  0-->  3:HGO0=high gain oscillator select (low-power)
+  55              	//  1-->  2:EREFS0=external reference select (oscillator)
+  56              	//  0-->  1:LP=low power select (FLL not disabled in bypass)
+  57              	//  0-->  0:IRCS=internal reference clock select (slow)
+  58              	.set MCG_C2_LF_EREFOSC  ,  MCG_C2_EREFS0_MASK
+  59              	// ---------------------------------------------------------------
+  60              	// MCG_C4 MCG Control 4 Register
+  61              	//   1-->   7:DMX32=DCO maximum frequency with 32.768 kHz ref
+  62              	//                 (25%)
+  63              	//   01-->6-5:DRST_DRS=DCO range select (mid range)
+  64              	// keep-->4-1:FCTRIM=fast internal reference clock trim setting
+  65              	// keep-->  0:SCFTRIM=slow internal reference clock fine trim
+  66              	.set MCG_C4_DCO_25PMAX_MID  ,  (MCG_C4_DMX32_MASK | (1 << MCG_C4_DRST_DRS_SHIFT))
+  67              	// ---------------------------------------------------------------
+  68              	// Port A
+  69              	.set PORT_PCR_SET_PTA3_EXTAL  ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_0_MASK)
+  70              	.set PORT_PCR_SET_PTA4_XTAL   ,  (PORT_PCR_ISF_MASK | PORT_PCR_MUX_SELECT_0_MASK)
+  71              	// ---------------------------------------------------------------
+  72              	// OSC0_CR
+  73              	// 1-->7:ERCLKEN=external reference enable
+  74              	// 0-->5:EREFSTEN=external reference stop enable
+  75              	// 0-->3:SC2P=oscillator 2-pF capacitor load configure (disabled)
+  76              	// 0-->2:SC4P=oscillator 4-pF capacitor load configure (disabled)
+  77              	// 0-->1:SC8P=oscillator 8-pF capacitor load configure (disabled)
+  78              	// 0-->0:SC16P=oscillator 16-pF capacitor load configure (disabled)
+  79              	.set OSC0_CR_ERCLK_STOP_NOLOAD  , OSC_CR_ERCLKEN_MASK
+  80              	// ---------------------------------------------------------------
+  81              	// SIM_CLKDIV1
+  82              	// 0000-->31-28:OUTDIV1=clock 1 output divider value (1)
+  83              	//              :set divider for core/system clock,
+  84              	//              :from which bus/flash clocks are derived
+  85              	//              :divide by OUTDIV1 + 1
+  86              	// 001-->18-16:OUTDIV4=clock 4 output divider value (2)
+  87              	//              :sets divider for bus and flash clocks,
+  88              	//              :relative to core/system clock
+  89              	//              :divide by OUTDIV4 + 1
+  90              	.set SIM_CLKDIV1_COREDIV1_BUSDIV2  ,  (1 << SIM_CLKDIV1_OUTDIV4_SHIFT)
+  91              	// ---------------------------------------------------------------
+  92              	// SIM_COPC
+  93              	// 00-->3-2:COPT=COP watchdog timeout (disabled)
+  94              	//  0-->  1:COPCLKS=COP clock select (x)
+  95              	//  0-->  0:COPW=COP windowed mode (x)
+  96              	.set SIM_COPC_COP_DISABLED  ,  0
+  97              	// ****************************************************************
+  98              	.section start, "ax"
+  99              	.global Startup
+ 100              	// ---------------------------------------------------------------
+ 101              	Startup:     
+ 102              	// ****************************************************************
+ 103              	// Performs the following startup tasks
+ 104              	// * System initialization
+ 105              	// * Mask interrupts
+ 106              	// * Configure 48-MHz system clock
+ 107              	// Calls:  SystemInit
+ 108              	//         SetClock48MHz
+ 109              	// Input:  None
+ 110              	// Output:  None
+ 111              	// Modifies:  R0-R15;APSR
+ 112              	// ****************************************************************
+ 113              	// Save return address
+ 114 0000 00B5     	            PUSH    {LR}
+ 115              	// Initialize system
+ 116 0002 00F004F8 	            BL      SystemInit
+ 117              	// Mask interrupts
+ 118 0006 72B6     	            CPSID   I
+ 119              	// Configure 48-MHz system clock
+ 120 0008 00F020F8 	            BL      SetClock48MHz
+ 121              	// Return
+ 122 000c 00BD     	            POP     {PC}
+ 123              	                // Startup
+ 124              	// ---------------------------------------------------------------
+ 125              	SystemInit:  
+ 126              	// ****************************************************************
+ 127              	// Performs the following system initialization tasks.
+ 128              	// * Mask interrupts
+ 129              	// * Disable watchdog timer (+)
+ 130              	// * Initialize registers to known state for debugger
+ 131              	// +:Following [1].1.1.4.2 Startup routines: 1 Disable watchdog
+ 132              	// [1] Freescale Semiconductor, <B>Kinetis L Peripheral Module Quick
+ 133              	//     Reference</B>, KLQRUG, Rev. 0, 9/2012.
+ 134              	// Input:  None
+ 135              	// Output:  None
+ 136              	// Modifies:  R0-R15;APSR
+ 137              	// ****************************************************************
+ 138              	// Mask interrupts
+ 139 000e 72B6     	            CPSID   I
+ 140              	// Disable COP watchdog timer
+ 141 0010 2548     	            LDR     R0,=SIM_COPC
+ 142 0012 0021     	            MOVS    R1,#SIM_COPC_COP_DISABLED
+ 143 0014 0160     	            STR     R1,[R0,#0]
+ 144              	// Put return address on stack
+ 145 0016 00B5     	            PUSH    {LR}
+ 146              	// Initialize registers
+ 147 0018 4FF01131 	            LDR     R1,=0x11111111
+ 148 001c 4A18     	            ADDS    R2,R1,R1
+ 149 001e 5318     	            ADDS    R3,R2,R1
+ 150 0020 5C18     	            ADDS    R4,R3,R1
+ 151 0022 6518     	            ADDS    R5,R4,R1
+ 152 0024 6E18     	            ADDS    R6,R5,R1
+ 153 0026 7718     	            ADDS    R7,R6,R1
+ 154 0028 8846     	            MOV     R8,R1
+ 155 002a B844     	            ADD     R8,R8,R7
+ 156 002c 8946     	            MOV     R9,R1
+ 157 002e C144     	            ADD     R9,R9,R8
+ 158 0030 8A46     	            MOV     R10,R1
+ 159 0032 CA44     	            ADD     R10,R10,R9
+ 160 0034 8B46     	            MOV     R11,R1
+ 161 0036 D344     	            ADD     R11,R11,R10
+ 162 0038 8C46     	            MOV     R12,R1
+ 163 003a DC44     	            ADD     R12,R12,R11
+ 164 003c 9646     	            MOV     R14,R2
+ 165 003e E644     	            ADD     R14,R14,R12
+ 166 0040 0846     	            MOV     R0,R1
+ 167 0042 7044     	            ADD     R0,R0,R14
+ 168 0044 80F30088 	            MSR     APSR,R0
+ 169 0048 1848     	            LDR     R0,=0x05250113
+ 170 004a 00BD     	            POP     {PC}
+ 171              	                // SystemInit
+ 172              	// ---------------------------------------------------------------
+ 173              	SetClock48MHz:  
+ 174              	// ****************************************************************
+ 175              	// Multipurpose clock generator (MCG) in FLL engaged external (FEE) mode
+ 176              	// Establishes 48-MHz FLL clock from 32.678-kHz external crystal
+ 177              	// Core clock = 47.97MHz
+ 178              	// BusClock = 23.98MHz
+ 179              	// Corresponds to CLOCK_SETUP = 1 in system_MKL05Z4.c
+ 180              	// Follows [3], [2].24.5.1 MCG module initialization sequence,
+ 181              	//   and [1].4.1 Clocking 3: Configuration examples,
+ 182              	// [1] Freescale Semiconductor, <B>Kinetis L Peripheral Module Quick
+ 183              	//     Reference</B>, KLQRUG, Rev. 0, 9/2012.
+ 184              	// [2] Freescale Semiconductor, <B>KL05 Sub-Family Reference Manual</B>,
+ 185              	//     KL05P48M48SF1RM, Rev. 3.1, 11/2012.
+ 186              	// [3] Freescale startup_MKL05Z4.s and system_MKL05Z4.c
+ 187              	//     rev. 1.6, 4/11/2013
+ 188              	// Input:  None
+ 189              	// Output:  None
+ 190              	// Modifies:  APSR
+ 191              	// ****************************************************************
+ 192 004c 0FB4     	            PUSH    {R0-R3}
+ 193              	// Configure for external clock from external 32-kHz oscillator
+ 194              	//   EXTAL0 on PTA3
+ 195              	//   XTAL0 on PTA4
+ 196              	            // Enable PORT A
+ 197 004e 1848     	            LDR      R0,=SIM_SCGC5
+ 198 0050 4FF40071 	            LDR      R1,=SIM_SCGC5_PORTA_MASK
+ 199 0054 0268     	            LDR      R2,[R0,#0]
+ 200 0056 0A43     	            ORRS     R2,R2,R1
+ 201 0058 0260     	            STR      R2,[R0,#0]
+ 202              	            // Set PORT A Pin 3 for EXTAL0
+ 203 005a 1648     	            LDR      R0,=PORTA_BASE
+ 204 005c 4FF08071 	            LDR      R1,=PORT_PCR_SET_PTA3_EXTAL
+ 205 0060 C160     	            STR      R1,[R0,#PORTA_PCR3_OFFSET]
+ 206              	            // Set PORT A Pin 4 for XTAL0
+ 207              	            // PORT_PCR_SET same as PTA3 already in R1
+ 208              	            // LDR     R1,=PORT_PCR_SET_PTA4_EXTAL
+ 209 0062 0161     	            STR      R1,[R0,#PORTA_PCR4_OFFSET]
+ 210              	// Update clock dividers:  system/core = 1; bus/flash = 2
+ 211              	// [1] defers this step until first part of switching to FEE mode
+ 212 0064 1448     	            LDR      R0,=SIM_CLKDIV1
+ 213 0066 4FF48031 	            LDR      R1,=SIM_CLKDIV1_COREDIV1_BUSDIV2
+ 214 006a 0160     	            STR      R1,[R0,#0]
+ 215              	// ------------------------------------------
+ 216              	// Establish FLL engaged external mode (FEE)
+ 217              	// ------------------------------------------
+ 218              	// First configure oscillator settings in MCG_C2
+ 219              	//   RANGE is determined from external frequency
+ 220              	//   Since RANGE affects FRDIV, it must be set
+ 221              	//   correctly even with an external clock
+ 222              	//   * Low frequency range
+ 223              	//   * External reference oscillator
+ 224 006c 1348     	            LDR     R0,=MCG_BASE
+ 225 006e 0421     	            MOVS    R1,#MCG_C2_LF_EREFOSC
+ 226 0070 4170     	            STRB    R1,[R0,#MCG_C2_OFFSET]
+ 227              	// Enable external reference clock OSCERCLK,
+ 228              	// without additional oscillator load
+ 229 0072 134A     	            LDR     R2,=OSC0_CR
+ 230 0074 8021     	            MOVS    R1,#OSC0_CR_ERCLK_STOP_NOLOAD
+ 231 0076 1170     	            STRB    R1,[R2,#0]
+ 232              	// FRDIV set to keep FLL ref clock within
+ 233              	// correct range, determined by ref clock.
+ 234              	//   For 1-KHz ref, need divide by 1 (FRDIV = 0)
+ 235              	//   CLKS must be set to 2_00 to select FLL
+ 236              	//   Clearing IREFS selects and enables
+ 237              	//     external oscillator
+ 238              	//   [3] sets IRCLKEN for internal reference clock as MCGIRCLK
+ 239              	//   [2] states this is optional:  convenient to allow
+ 240              	//       switching between internal and external but
+ 241              	//       consumes more power
+ 242 0078 0221     	            MOVS    R1,#MCG_C1_FLL_DIV1_IRCLKEXTSTOP
+ 243 007a 0170     	            STRB    R1,[R0,#MCG_C1_OFFSET]
+ 244              	// Wait for oscillator initialization cycles
+ 245              	// to complete and become stable
+ 246              	// [2] suggests doing this step here
+ 247              	// [3] omits this step
+ 248 007c 0221     	            MOVS    R1,#MCG_S_OSCINIT0_MASK
+ 249              	SetClock48MHz_Wait_MCG_S_OSCINIT0:                      // repeat {
+ 250 007e 8279     	            LDRB    R2,[R0,#MCG_S_OFFSET]
+ 251 0080 1142     	            TST     R1,R2
+ 252 0082 FCD0     	            BEQ     SetClock48MHz_Wait_MCG_S_OSCINIT0  // } until OSCINIT0
+ 253              	// Wait for source of the FLL reference clock 
+ 254              	// to be the external reference clock.
+ 255              	// [2] suggests doing this step here
+ 256              	// [3] defers until after MCG_C4 initialization
+ 257              	// (MCG_S:  IREFST becomes 0)
+ 258 0084 1021     	            MOVS    R1,#MCG_S_IREFST_MASK
+ 259              	SetClock48MHz_Wait_MCG_S_IREFST_Clear:                      // do {
+ 260 0086 8279     	            LDRB    R2,[R0,#MCG_S_OFFSET]
+ 261 0088 1142     	            TST     R1,R2
+ 262 008a FCD1     	            BNE     SetClock48MHz_Wait_MCG_S_IREFST_Clear  // } while IREFST
+ 263              	// [1] omits this step
+ 264              	// Reference range:  31.25–39.0625 kHz
+ 265              	// FLL factor:  1280
+ 266              	// DCO range:  40–50 MHz
+ 267              	// Preserve FCTRIM and SCFTRIM
+ 268 008c C278     	            LDRB    R2,[R0,#MCG_C4_OFFSET]
+ 269 008e 6021     	            MOVS    R1,#MCG_C4_DRST_DRS_MASK
+ 270 0090 A023     	            MOVS    R3,#MCG_C4_DCO_25PMAX_MID
+ 271 0092 8A43     	            BICS    R2,R2,R1
+ 272 0094 1A43     	            ORRS    R2,R2,R3
+ 273 0096 C270     	            STRB    R2,[R0,#MCG_C4_OFFSET]
+ 274              	// Wait until output of FLL is selected [3]
+ 275 0098 0C21     	            MOVS    R1,#MCG_S_CLKST_MASK
+ 276              	SetClock48MHz_Wait_MCG_FLL_Selected:                      // do {
+ 277 009a 8279     	            LDRB    R2,[R0,#MCG_S_OFFSET]
+ 278 009c 1142     	            TST     R1,R2
+ 279 009e FCD1     	            BNE     SetClock48MHz_Wait_MCG_FLL_Selected  // } while CLKST
+ 280              	// Now have 48-MHz FLL clock,
+ 281              	// 48-MHz core clock, and 24-MHz bus clock
+ 282 00a0 0FBC     	            POP     {R0-R3}
+ 283 00a2 7047     	            BX      LR
+ 284              	                // SetClock48MHz
+ 285              	// ****************************************************************
+ 286              	.align
+ 287              	// Program template for CMPE-250 uses main as "Reset_Handler"
+ 288              	//            EXPORT  Reset_Handler
+ 289              	// ****************************************************************
+ 290              	// Goto main
+ 291              	// ****************************************************************
+ 292              	//            LDR     R0,=main
+ 293              	//            BX      R0
+ 294              	.global Dummy_Handler
+ 295              	.weak HardFault_Handler
+ 296              	.global HardFault_Handler
+ 297              	Dummy_Handler:  
+ 298 00a4 FEE7     	b .
+ 299              	HardFault_Handler:
+ 300              	// ****************************************************************
+ 301              	// Dummy exception handler (infinite loop)
+ 302              	// ****************************************************************
+ 303 00a6 FEE7     	            B       .
+ 304              	                // Dummy_Handler
+ 305              	// ---------------------------------------------------------------
+ 306              	.balign 8
+ 307              	// ****************************************************************
+ 308              	.section prog_once
+ 309              	// Program once field:  0xC0-0xFF
+ 310 0000 00000000 	.skip 0x40
+ 310      00000000 
+ 310      00000000 
+ 310      00000000 
+ 310      00000000 
+ 311              	// ****************************************************************
+ 312              	.section keys, "ax"
+ 313 0000 FFFF     	.byte     FCF_BACKDOOR_KEY0,FCF_BACKDOOR_KEY1
+ 314 0002 FFFF     	.byte     FCF_BACKDOOR_KEY2,FCF_BACKDOOR_KEY3
+ 315 0004 FFFF     	.byte     FCF_BACKDOOR_KEY4,FCF_BACKDOOR_KEY5
+ 316 0006 FFFF     	.byte     FCF_BACKDOOR_KEY6,FCF_BACKDOOR_KEY7
+ 317 0008 FFFFFFFF 	.byte     FCF_FPROT0,FCF_FPROT1,FCF_FPROT2,FCF_FPROT3
+ 318 000c 7EFFFFFF 	.byte     FCF_FSEC,FCF_FOPT,0xFF,0xFF
+ 319              	// ****************************************************************
+ 320              	.section stack, "aw", %nobits
+ 321              	.align 3
+ 322              	// Allocate system stack beginning at lowest address of RAM
+ 323              	.set SSTACK_SIZE ,     0x00000100
+ 324              	Stack_Mem:
+ 325 0000 00000000 	.skip SSTACK_SIZE
+ 325      00000000 
+ 325      00000000 
+ 325      00000000 
+ 325      00000000 
+ 326              	.global __initial_sp
+ 327              	__initial_sp:
+ 328              	// ****************************************************************
+ 329              	.end
