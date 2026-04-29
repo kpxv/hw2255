@@ -1,0 +1,96 @@
+\documentclass[CMPE]{KGCOEReport}
+
+\usepackage{graphicx}
+\usepackage{newtxtext, newtxmath}
+\usepackage{csquotes}
+\usepackage{parskip}
+\usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[super]{nth}
+\usepackage{pdfpages}
+
+\graphicspath{{./assets/}}
+
+\newcommand{\classCode}{CMPE 260}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L2}
+\newcommand{\LabInstructor}{Richard Cliver}
+
+\newcommand{\TAs}{Eric Reed \\ Tevin Hendess}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Cory Merkel}
+\newcommand{\exerciseNumber}{7}
+\newcommand{\exerciseDescription}{Processor Timing}
+\newcommand{\dateDone}{2026-04-21}
+\newcommand{\dateSubmitted}{2026-04-28}
+
+\begin{document}
+
+\maketitle
+
+\section*{Questions}
+\addcontentsline{toc}{section}{Questions}
+
+What are setup and hold times?
+
+Setup time is the time before the clock edge that the data signal must stay
+stable for the flip-flop output to be trusted. Hold time is the time after the
+clock edge that the data signal must stay stable for the flip-flop edge to be
+trusted.
+
+How would violating setup and hold times cause a design to fail?
+
+Violating either can cause unpredictable or signal outputs after a clock edge.
+
+\section*{Results and Analysis}
+\addcontentsline{toc}{section}{Results and Analysis}
+
+\begin{table}[H]
+    \center
+	\caption{Results}
+	\begin{tabular}{ccc}
+		Clock Frequency (MHz) & Worst Negative Slack (ns) & Worst Hold Slack (ns) \\
+		\hline
+		\hline
+		10                    & 42.729                    & 0.028                 \\
+		15                    & 24.481                    & 0.009                 \\
+		20                    & 17.249                    & 0.057                 \\
+		25                    & 12.158                    & 0.062                 \\
+		30                    & 8.921                     & 0.016                 \\
+		35                    & 6.907                     & 0.020                 \\
+		40                    & 5.233                     & 0.035                 \\
+		45                    & 2.960                     & 0.012                 \\
+		50                    & 1.252                     & 0.038                 \\
+		55                    & 1.041                     & 0.032                 \\
+		60                    & 0.749                     & 0.026                 \\
+		65                    & 0.535                     & 0.023                 \\
+		70                    & 0.279                     & 0.036                 \\
+		75                    & 0.547                     & 0.041                 \\
+		80                    & 0.307                     & 0.015                 \\
+		81                    & -0.658                    & 0.045                 \\
+		85                    & -0.227                    & 0.025                 \\
+		\hline
+		\hline
+	\end{tabular}
+	\label{tab}
+\end{table}
+
+Interestingly, at high clock frequencies, WNS does not always go down with
+increased frequency. Based on Table \ref{tab}, the highest clock frequency this
+MIPS processor can support is 80 MHz.
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+The requested output frequency of the clock of the MIPS design was incremented
+by 5 MHz repeatedly, until a negative WNS was attained. Then, starting at the
+last frequency to give a positive WNS, the frequency was incremented by 1 ns.
+Because changing and re-implementing the design in Vivado is a time-consuming
+process, the first 80 MHz tests were automated using a basic Tcl script. The
+maximum working clock frequency was determined; the exercise was successful.
+Tcl is a common language encountered in chip design software; basic knowledge
+of Tcl will be useful in future projects.
+
+\includepdf[pages=-]{assets/prelab}
+\end{document}
