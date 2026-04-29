@@ -102,6 +102,13 @@ begin
 
         end loop clk_l;
 
+        for i in 0 to 1000 loop
+            clk_s <= '0';
+            wait for 50 ns;
+            clk_s <= '1';
+            wait for 50 ns;
+        end loop;
+
         assert false
             report "Passed tests"
             severity failure;

@@ -1,0 +1,36 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{IEEEtrantools}
+\usepackage{karnaugh-map}
+
+\graphicspath{{./assets/}}
+
+\title{Floating-point Operations}
+\author{Aden Perry}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Multiplication}
+
+\begin{itemize}
+    \item Floating point format: 1 sign bit, 8 exponent bits, 23 mantissa bits
+    \item Multiplication is intuitive: multiply sign bits, multiply mantissas, add exponents
+    \item To multiply $A = S_A \cdot 2 ^ {E_A - Bias} \cdot 1.F_A$ and $B = S_A \cdot 2 ^ {E_B - Bias} \cdot 1.F_B$:
+        \begin{equation}
+            A \cdot B = \left( -1 \right)^{S_A + S_B} \cdot 2 ^ {E_A - Bias + E_B - Bias} \cdot 1.F_A \cdot 1.F_B = C
+        \end{equation}
+
+    \item Overflows when $E_A + E_B - Bias > 127$
+
+    \item Alogrithm: Normalize both, then XOR for sign bit, ADD for exponent, bitshifts and addition (?) for mantissa
+        
+\end{itemize}
+
+\section{Addition}
+
+\end{document}

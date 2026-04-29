@@ -109,7 +109,7 @@ begin
     --         clk_out1 => clk,
     --         -- Status and control signals
     --         reset => rst,
-    --         -- Clock in ports
+    --         -- Clock in portsm
     --         clk_in1 => clk_in
     --     );
     clk <= clk_in;

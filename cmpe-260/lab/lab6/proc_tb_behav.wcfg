@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="proc_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="globals" />
+            <top_module name="mult_adder_pkg" />
+            <top_module name="mult_wrapper_pkg" />
+            <top_module name="proc_tb" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
+      <ZoomEndTime time="16.500001 us"></ZoomEndTime>
+      <Cursor1Time time="7.030000 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="195"></NameColumnWidth>
+      <ValueColumnWidth column_width="118"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="15" />
+   <wvobject type="logic" fp_name="/proc_tb/clk_s">
+      <obj_property name="ElementShortName">clk_s</obj_property>
+      <obj_property name="ObjectShortName">clk_s</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/proc_tb/rst_s">
+      <obj_property name="ElementShortName">rst_s</obj_property>
+      <obj_property name="ObjectShortName">rst_s</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/alu_s">
+      <obj_property name="ElementShortName">alu_s[31:0]</obj_property>
+      <obj_property name="ObjectShortName">alu_s[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/test_s">
+      <obj_property name="ElementShortName">test_s[31:0]</obj_property>
+      <obj_property name="ObjectShortName">test_s[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/test_array">
+      <obj_property name="ElementShortName">test_array[0:18][31:0]</obj_property>
+      <obj_property name="ObjectShortName">test_array[0:18][31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/w_en">
+      <obj_property name="ElementShortName">w_en</obj_property>
+      <obj_property name="ObjectShortName">w_en</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/addr">
+      <obj_property name="ElementShortName">addr[9:0]</obj_property>
+      <obj_property name="ObjectShortName">addr[9:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/d_in">
+      <obj_property name="ElementShortName">d_in[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_in[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/switches">
+      <obj_property name="ElementShortName">switches[15:0]</obj_property>
+      <obj_property name="ObjectShortName">switches[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/d_out">
+      <obj_property name="ElementShortName">d_out[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_out[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/seven_seg_digit">
+      <obj_property name="ElementShortName">seven_seg_digit[15:0]</obj_property>
+      <obj_property name="ObjectShortName">seven_seg_digit[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/mips_mem">
+      <obj_property name="ElementShortName">mips_mem[0:1023][31:0]</obj_property>
+      <obj_property name="ObjectShortName">mips_mem[0:1023][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/n">
+      <obj_property name="ElementShortName">n</obj_property>
+      <obj_property name="ObjectShortName">n</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/proc_tb/uut/mem_inst/data_mem_inst/addr_space">
+      <obj_property name="ElementShortName">addr_space</obj_property>
+      <obj_property name="ObjectShortName">addr_space</obj_property>
+   </wvobject>
+</wave_config>
