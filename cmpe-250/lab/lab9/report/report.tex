@@ -1,20 +1,87 @@
-\documentclass{article}
+\documentclass[CMPE]{KGCOEReport}
 
 \usepackage{graphicx}
-\usepackage[a4paper, margin=1in]{geometry}
-\usepackage{amsmath}
-\usepackage{IEEEtrantools}
+\usepackage{newtxtext, newtxmath}
+\usepackage{parskip}
 \usepackage{karnaugh-map}
+\usepackage{float}
+\usepackage{pdfpages}
 
 \graphicspath{{./assets/}}
 
-\title{Assembly Lab 9}
-\author{Aden Perry}
-\date{\today}
+\newcommand{\classCode}{CMPE 250}
+\newcommand{\name}{Aden Perry}
+\newcommand{\LabSectionNum}{L1}
+\newcommand{\LabInstructor}{Chongzhou Fang}
+
+\newcommand{\TAs}{Eddie Satowski \\ Eric Reed \\ Khoi Pham}
+\newcommand{\LectureSectionNum}{01}
+\newcommand{\LectureInstructor}{Chongzhou Fang}
+\newcommand{\exerciseNumber}{9}
+\newcommand{\exerciseDescription}{Serial I/O Driver}
+\newcommand{\dateDone}{2026-03-26}
+\newcommand{\dateSubmitted}{2026-04-28}
 
 \begin{document}
+
 \maketitle
 
+\section*{Abstract}
 
+
+\section*{Procedure}
+
+
+\section*{Results}
+
+
+\begin{figure}[H]
+	The TUI was tested using a variety of inputs. The complete test is given by
+	Figure \ref{fig:test}.
+	\vspace{0.5cm}
+	\center
+    \includegraphics[width=\textwidth]{img}
+	\caption{Demonstration of TUI}
+	\label{fig:test}
+\end{figure}
+
+Enqueue fails when trying to enqueue over the buffer limit. Dequeue reduces the
+number enqueued and prints the dequeud character. Status prints the in and out
+pointers as well as the number enqueued. Print prints out all characters in the
+queue. Help prints a help menu.
+
+A useful way by which to analyze a given assembly (or other) program is by
+examining its memory map. The memory map for the implemented program is
+presented in Table \ref{tab:mem}.
+
+\begin{table}[H]
+	\center
+	\caption{Memory Ranges}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Symbol Name    & Start Address & End Address \\
+		\hline
+		\hline
+		Reset\_Handler & 0x00000411    & 0x0000047a  \\
+		\hline
+		AddIntMultiU   & 0x0000050d    & 0x00000542  \\
+		\hline
+		GetHexIntMulti & 0x00000573    & 0x000005d2  \\
+		\hline
+		PutHexIntMulti & 0x000005d3    & 0x000005e6  \\
+		\hline
+	\end{tabular}
+	\label{tab:mem}
+\end{table}
+
+It should be noted that code has been broken up into a number of subroutines,
+not all of which are displayed here. For example, \texttt{AddIntMultiU}
+additionally depends on a lengthy \texttt{ReverseRegister} subroutine not
+given here.
+
+\section*{Conclusion}
+
+
+\includepdf[pages=-]{assets/prelab}
 
 \end{document}
