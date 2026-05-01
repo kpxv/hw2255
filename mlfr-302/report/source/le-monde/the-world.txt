@@ -1,0 +1,64 @@
+oo o THE WORLD — March 21, 1974 — Page 9
+
+JUSTICE
+
+While the Ministry of the Interior develops the centralization of its information
+
+An IT division is created at the chancellery
+
+In a dispersed order, the ministerial departments attempt to develop for their benefit, for their sole use, information technology and its tool, the computer. It is not entirely a coincidence that, at the time when the Official Journal was going to publish a decree creating an “information technology division” in the Ministry of Justice, that of the Interior was putting the finishing touches to the commissioning of a powerful computer intended to bring together the enormous mass of information gathered throughout the territory; It is also no coincidence that the SAFARI project (Automated system for administrative files and the directory of individuals) intended to define each French person by an “identifier”, which only defines him, now completed, is the object of ardent desire; the Ministry of the Interior wishes to play the first role. Indeed, such a data bank, the operational basis of any other collection of intelligence, will give those who own it unparalleled power.
+
+This clearly poses a fundamental problem, even if it is rebuilt: that of the relationship between public freedoms and information technology.
+
+Its importance would require that it be publicly debated in Parliament. This does not appear to be, however, the solution envisaged by the Prime Minister in the directives he has just sent to the Ministry of Justice, which is primarily interested if we refer to the Constitution which in its article 66 makes the judicial authority the guardian of individual freedoms.
+
+“Safari” or French acaux hunting
+
+Rue Jules-Breton, in Paris-13th, in the premises of the Minister of the Interior, an LRIS-80 computer with a dual processor is being started up. Across France, the different police services hold, according to the confidence made by a very senior magistrate, 100 million files, distributed in 400 files. Thus, the data of a problem comprising, on the one hand, the enormity of the information collected; on the other, the method to be defined to make this set a unique source, in all respects, of information.
+
+The history of the very powerful device that is the IRIS-80 is exemplary of the secrecy which surrounds the development of IT in administrations, whatever the information which filters here and there.
+
+Powerful, this Iris-80, a comparison demonstrates it without dispute. The device used to collect data from Operation Satari, which concerns the individual identification of all 52 million French people, has a capacity of 2 billion bytes (1); that of the computer of the Ministry of the Interior is 3.2 billion bytes,
+
+This means that the launch of IRIS-80 - the rental of which costs 1 million francs each month - was preceded by studies and tests to test its possibilities. Especially since it alone must replace the three GE 400s and the 10070 of the C.I.I. used until then by Place Beauvau.
+
+It was on this last computer that the tests took place. For 20% of its capacity, .| was dedicated to the management of municipal staff in the City of Paris. But, for the rest (80%), it was used to test the programs to be provided to Plris-80, in order to make the data contained in the 400 files that the police services have: general information, territorial surveillance department, judicial police, etc., consistent with each other.
+
+Anecdotally, we can recall that this 10,070 from the C.I.I., originally, budgetarily, was not at all intended for the task it ultimately carried out, but to “process” the administrative data from the National Manufacturers File (F.N.C.). This is therefore apparently a clear misappropriation of study funds, which was undoubtedly not the wish of the Parliament which voted for them.
+
+Vast ambitions
+
+It's not just that. The interior ministry has even larger ambitions. Already holders of the national land consolidation file, the services of Mr. Jacques Chirac are making great efforts to, it is claimed, add others: the land register, the file of the national tax department and, perhaps more seriously, that of the Ministry of Labor.
+
+Such aims involve a danger which is obvious, and which Mr. Adolphe Touftfait, Attorney General of the Court of Cassation, had perfectly defined on April 9, 1973 before the Academy of Moral and Political Sciences, saying: “The dynamics of the system which tends towards the centralization of files risks seriously undermining freedoms, and even the balance of political powers. »
+
+This is so true that the national management of Renault factories, for example, already has a database established from a personnel file.
+
+We will admit, in these conditions, that the opening of a public debate will seem particularly urgent to define the limits of the use of data banks. However, this debate appears, in principle, to be dismissed by the Prime Minister, who, in a directive letter addressed a few weeks ago to Mr. Jean Taittinger, had ruled out such a procedure in favor of circulars, or even decrees, preserving in any case the secrecy of the administration's decisions. We know the lack of immediate effectiveness that the appeal for annulment of government acts can have before the administrative judge...
+
+It is not, however, that the warnings were lacking. The Council of State in 1970, then the Ministry of Justice in 1972 (which had recalled the role assigned to the judicial authority as "guardian of individual freedoms" and therefore demanded a voice in the matter) insisted on the need for legislative intervention which would specify the few essential elements of the use of computing applied to individuals: regulation of third party access to files, intercommunication of these, right of rectification of the persons recorded if the information retained are inaccurate, etc.
+
+Furthermore, all the foreign examples encourage this debate on a use of computing which, by definition, it is not a question of renouncing, but for which limits must be drawn, so great is the danger it implies. The appointment by the government of a commission of “knowledgeable people” in the coming weeks cannot be enough to replace the parliamentary debate which we are so visibly involved in.
+
+In terms of parliamentary debates, there are also precedents which are the work, precisely, of the Ministry of Justice and have not compromised the development of the files. With criminal records, the Chancellery has had experience with similar files for a long time. Whatever judgment may be made on the principle of such a tool, it does not appear - barring relatively negligible errors - that the access of third parties or the right to control of the persons concerned - by requesting an extract - has ever caused blunders detrimental to legality.
+
+Likewise, the national driver file, in its judicial part, is provided for by law, and it is regrettable that the implementing texts have allowed unjustifiable – but known – illegalities (Le Monde, March 8).
+
+“In the hussar”
+
+Strengthened, however, by these advantages, the Ministry of Justice curiously seems to be overtaken by internal quarrels that are difficult to understand. The decree signed on March 18 by Mr. Jean Taittinger shows this. The creation of a "computer science division" in Place Venddéme would in itself be a good thing, from the point of view of efficiency, if the conditions for its creation, which began in earnest three months ago, did not take on the appearance of a somewhat elegant attempt at elimination directed against certain innovative minds who had the bad taste to become too interested in information technology.
+
+It would, in fact, be very surprising if the members of the IT commission at the Ministry of Justice, chaired by Mr. Adolphe Touiffait, were not offended by a decision which, in itself, can only have the aim of “emptying the substance” of the said commission. Especially since it is already known that Mr. Touffait has been removed from the list of “knowledgeable people”. It also seems that the strong reactions recorded relate less to the renewal of structures, considered inevitable, than to the "hussar" method used by a member of Mr. Taittinger's entourage to carry out his management renovation projects in the judicial field.
+
+Does this further mean that the choices we intend to promote are necessarily the most appropriate? Everything indicates, for the moment, that, if the Ministry of the Interior has definitively chosen "heavy equipment" to equip itself, the chancellery, on the contrary, is moving towards a network of mini-computers placed near each important high court.
+
+In this vein, the already decided choice of Mr. Jean Malbec, vice-president in Bobigny (SeineSaint-Denis), as future head of the IT division (to the point that he has already carried out information missions to Lilie, Nice, Lyon and Marseille in recent weeks), is significant. 1} is, in fact, in Bobigny the apostle of a “mini” system which he wishes to extend to the entire judicial institution. It is undoubtedly also not by chance that television, on Monday, after having given extracts from Mr. Taittinger's speech at Gap on civil justice and the needs for technical aggiornamento, illustrated his speech with a large report on the equipment of the Bobigny court - more reduced, therefore quicker to produce, thus more quickly a source of pride for their creators.
+
+It is therefore a global doubt which weighs on the intentions of the government, in general, and of the Ministry of Justice, in particular: the latter department, which reminds everyone of its mission of protecting individual freedoms, has apparently accepted without flinching the suppression of a possible public debate, which casts a suspicion on Mr. Taittinger's "liberal" declarations in other areas which is not appropriate.
+
+But, in this enterprise, the Ministry of Justice, even if it shows great weakness in defending its ideals, because it is not only a question at present of "protecting delinquents", is not essentially at fault. What it is is an enterprise whose purity we have every reason to suspect as we take so much care to hide its achievement. )
+
+PHILIPPE BOUCHER.
+
+(1) The byte, a set of eight “bits”, is the unit of memory in most computers. When you store a text in memory, each character of the text occupies a byte. A billion bytes represents, roughly, the memory capacity of fifty magnetic tapes.
+

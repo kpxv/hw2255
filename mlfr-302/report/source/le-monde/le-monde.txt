@@ -1,0 +1,64 @@
+oo o LE MONDE — 21 mars 1974 — Page 9
+
+JUSTICE
+
+Tandis que le ministére de l'intérieur développe la centralisation de ses renseignements
+
+Une division de l'informatique est créée a la chancellerie
+
+En ordre dispersé, les départements ministériels tentent de développer à leur profit, à leur seul usage, linformatique et son outil, l'ordinateur. Ce n'est pas tout à fait un hasard si, a l'époque ol le Journal officiel va publier un arrété créant une « division de 'informatique » au ministere de la justice, celui de intérieur met la derniére main a la mise en route d’'un ordinateur puissant destiné à rassembler la masse énorme des renseignements grapillés sur tout le territoire; pas un hasard non plus si le projet SAFARI (Systéme automatisé pour les fichiers administratifs et le répertoire des individus) destiné a définir chaque Frangais par un « identifiant », qui ne définisse que lui, maintenant terminé, est l'objet de convoitises ardentes; le ministére de l'intérieur y souhaite jouer le premier rble. En effet, une telle banque de données, soubassement opérationnel de toute autre collecte de renseignements, donnera a qui la possédera, une puissance sans égale.
+
+Ainsi se trouve d’évidence posé un probléme fondamental, méme s'il est rebatiu : celui des rapports des libertés publiques et de l'informa-tique.
+
+Son importance exigerait qu'il en fit, au Parlement, publiquement débattu. Tel ne parait pas étre, pourtant, la solution envisagée par le premier ministre dans les directives qu'il vient d’adresser au ministére de la justice, intéressé au premier chef si l'on s’en rapporte à la Constitution qui dans son article 66 fait de l'autorité judiciaire le gardien des libertés individuelles.
+
+« Safari» ou la chasse acaux Francais
+
+Rue Jules-Breton, à Paris-13e, dans des locaux du ministre de l'intérieur, un ordinateur lris-80 avec bi-processeur est en cours de mise en marche. A travers la France, les d'fférents services de police détiennent, selon la confidence faite par un trés haut magistrat, 100 millions de fiches, réparties dans 400 fchiers. Ainsi se trouve posées — et, a terme, théoriquement résolues — les données d'un probléme comprenant, d’'une part, l'énormité des renseignements collectés ; de l'autre, la méthode a définir pour faire de cet ensemble une source unique, à tous égards, de renseignements.
+
+L’histoire du trés puissant appareil qu'est l'lris-80 est exemplaire du secret qui entoure I’épanouissement de l'informatique dans les administrations, quelles que puissent étre les informations qui filtrent ici et là.
+
+Puissant, cet Iris-80, une comparaison le démontre sans contestation. L'appareil empioyé pour engranger les données de P'opération Satari, qui concerne !identification individuelle de l'ensemble des 52 millions de Frangais, a une contenance de 2 milliards d’octets (1) ; celle de l'ordinateur du ministére de Pintérieur est de 3,2 milliards d’octets,
+
+C’est dire que la mise en route d’lris-80 — dont la location colte 1 million de francs chaque mois — a été précédée d’'études, de tests pour en éprouver les possibilités. D’autant qu’a lui seul, il doit remplacer les trois GE 400 et le 10070 de la C.I.I. qu’employait jusqu'alors la Place Beauvau.
+
+C’est sur ce dernier ordinateur qu'ont eu lieu les essais. Pour 20 % de sa capacité, .| a été consacré a la gestion du personnel communal de la Ville de Paris. Mais, pour le reste (80°%), il a servi a tester les programmes devant étre fournis a Plris-80, afin de rendre cohérentes enire elles, les données contenues dans les 400 fichiers que possédent les services de police : renseignements généraux, direction de la surveillance du territoire, police judiciaire, etc.
+
+A tire d’anecdote, on peut rappeler que ce 10 070 de la C.I.I., à l'origine, budgétairement, n’était pas du tout prévu pour la tache qu’il a finalement assurée, mais pour « traiter » les données administratives du Fichier national des constructeurs (F.N.C.). Il s’agit donc apparemment d'un détournement man:feste de crédits d’études, ce qui n’était sans doute pas le veeu du Parlement qui les vota.
+
+De vastes ambitions
+
+Il n'y a pas que cela. Le ministére de linténeur a d’encore plus vastes ambitions. Détenteurs, déja, du fichier national du remembrement, les services de M. Jacques Chirac font de grands efforts pour, affirmet-on, s’en adjoindre d'autres: le cadastre, le fichier de la direction nationale des impdts et, plus grave peut-être, celui du ministére du travail.
+
+De telles visées comportent un danger qui saute aux yeux, et que M. Adolphe Touftfait, procureur général de la Cour de cassation, avait parfaitement defini le 9 avril 1973 devant I’Académie des sciences morales et politiques, en disant: «La dynamique du systéme qui tend à la centralisation des fichiers risque de porter gravement atteinte aux libertés, et méme à l'équilibre des pouvoirs politiques. »
+
+C'est si vrai que la régie nationale des usines Renault, par exemple, dispose déja d'une base de données établies a partir d’un fichier du personnel.
+
+On admetira, dans ces conditions, que l'ouverture d'un débat public paraitra particuliérement urgente pour définir les limites de l'emplor des banques de données. Or ce debat parait, dans le principe, écarté par le premier ministre, qui, dans une lettre directive adressée voici quelques semaines a M. Jean Taittinger, avait écarté une telle procédure au profit de circulaires, voire de décrets, préservant en tout état de cause le secret de décision de l'administration. On connait le peu d’efficacité immédiate que peut avoir devant le juge administratif le recours en annulation d’actes du gouvernement...
+
+Ce n’est pas, pourtant, que les avertissements aient manqué. Le Conseil d’Etat en 1970, puis le ministére de la justice en 1972 (qui avait rappelé le role dévolu a lautorité judiciaire de « gardien des libertés individuelles » et donc réclamé voix au chapitre) ont insisté sur la nécessité d’une intervention législative qui preciserait les quelques éléments essentiels de l'emploi de l'informatique appliquée aux particuliers : réglementation de l'acces des tiers aux fichiers, de l'intercommunication de ceux-ci, droit de rectification des personnes fichées si les renseignements retenus sont inexacts, etc.
+
+De plus, tous les exemples étran~ gers incitent 4 ce débat sur une utihsation de l'informatique à laquelle, par définition, il ne s’agit pas de renoncer, mais a qui doivent étre tracées des limites, si grand est le danger qu'elle implique. La désignation par le gouvernement d’une commission de « sachants » dans les semaines a venir ne saurait suffire à remplacer le débat parlementaire dont on se métie si visiblement.
+
+En fait de débats parlementaires, il y a dailleurs des précédents qui sont le fait, précisément, du ministére de la justice et n’ont pas compromis le développement des fichiers. Avec le casier judiciaire, depuis longtemps, la chancellerie a l'expérience de semblables fichiers. Quel que soit ie jugement qui peut étre porté sur le principe d'un tel outil, il n’apparait pas — sauf erreurs négligeables, relativement — que l'accés des tiers ou le droit 3 contréle des personnes visées — par demande d’un extrait — ait jamais provoqué des bavures préjudiciables a la légalité.
+
+De méme, le fichier national des conducteurs, dans sa partie judiciaire, est prévu par une loi, et il faut regretter que les textes d’application ait permis des illégalités injustifiables — mais connues (le Monde du 8 mars).
+
+« A la hussarde »
+
+Fort, pourtant, de ces avantages, le ministére de la justice parait curieusement se laisser dépasser par des querelles internes peu compréhensibles. L’arrété signé le 18 mars par M. Jean Taittinger le montre. La création d'une « division de l'informatique », place Venddéme, serait en soi une bonne chose, du point de vue de l'efficacité, si les conditions de sa création, engagée vraiment voici trois mois, ne prenait l'allure d’une peu élégante tentative d’élimination dirigee contre certains esprits novateurs ayant eu le mauvais goit de s’intéresser trop tét 4 l'inforamtique.
+
+Il serait, en effet, bien étonnant que les membres de la commission de l'informatique au ministére de la justice, que préside M. Adolphe Touiffait, ne s’offusquent pas d’une décision qui, en soi, ne peut avoir pour but que de «vider de sa substance » ladite commission. D’autant qu'il est d’'ores et déja connu que M. Touffait a été rayé de la liste des « sachants ». Il semble d'ailleurs que les réactions vives qui sont enregistrées portent moins sur le renouvellement des structures, jugées inévitables, que sur ia méthode « a /a hussarde » employée par tel membre de l'entourage de M. Taittinger pour mener a bien ses projets de rénovation de la gestion dans le domaine judiciaire.
+
+Est-ce a dire de plus que les choix que l'on entend promouvoir soient nécessairement les plus opportuns ? Tout indique, pour l'instant, que, si le ministére de lintérieur a définitivement choisi le « matériel lourd » pour s’équiper, la chancellerie, au contraire, s’oriente vers un réseau de mini-ordinateurs placés auprés de chaque tribunal de grande instance important.
+
+Dans cet ordre d’idée, le choix déja décidé de M. Jean Malbec, vice-président à Bobigny (SeineSaint-Denis), comme futur chef de la division de l'informatique (au point quil a, dés a présent, effectué des missions d’information à Lilie, Nice, Lyon et Marseille dans les semaines passées), est significatif. 1} est, en effet, a Bobigny I'apbtre d’'un systéme « mini » qu’il souhaite étendre a4 l'ensemble de l'institution judiciaire. Ce n'est sans doute pas non plus par hasard si la télévision, lundi, apres avoir donné des extraits du discours de M. Taittinger à Gap sur la justice civile et les nécessités d'un aggiornamento technique, a illustré son discours par un large reportage sur les éguipements du tribunal de Bobigny — plus réduits, donc plus rapides à réaliser, ainsi plus vite source d’orgueil pour leurs créateurs.
+
+C’est donc un doute global qui pése sur les intentions du gouvernement, en général, et du ministéere de la justice, en particulier : ce dernier département, qui rappelle a tous sa mission de protection des libertés individuelles, a apparemment accepté sans broncher la suppression d'un éventuel débat public, ce qui jette sur les déclarations « libérales » de M. Taittinger en d’autres domaines une suspicion qui n'est pas de bon aloi.
+
+Mais, dans cette entreprise, le ministere de la justice, méme s’il fait preuve d'une grande mollesse pour la défense de ses idéaux, car il ne s’agit pas seulement a présent de « protéger des délinquants », n'est pas essenticllement en cause. Ce qui l'est, c’est une entreprise dont on a tout lieu de suspecter la pureté tant on prend soin de cacher sa réalisation. )
+
+PHILIPPE BOUCHER.
+
+(1) L’octet, ensemble de huit « bits », est l'unité de mémoire de la plupart des ordinateurs. Quand on enregistre un texte dans la mémoire, chaque caractére du texte occupe un octet, Un milliard d’octets représente, en gros, la capacité de msémoire de cinquante bandes magnétiques.
+
